@@ -7,7 +7,7 @@
     <ProjectGuid>{180DE949-9685-4BB4-8FDF-63C773F8FF56}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Analytics</RootNamespace>
+    <RootNamespace>Events</RootNamespace>
     <AssemblyName>Analytics</AssemblyName>
     <ProjectTypeGuids>{0B4745B0-194B-4BB6-8E21-E9057CA92500};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <PlatformFamilyName>WindowsCE</PlatformFamilyName>
@@ -71,7 +71,7 @@
         <Programmer />
         <ArchiveFilename />
         <MinFirmwareVersion>1.007.0017</MinFirmwareVersion>
-        <CompiledOn>1/1/0001 12:00:00 AM</CompiledOn>
+        <CompiledOn>11/20/2015 3:12:32 PM</CompiledOn>
         <AdditionalInfo />
         <EmbedSourceArchive>False</EmbedSourceArchive>
         <CopyTo />

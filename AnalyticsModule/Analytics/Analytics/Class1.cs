@@ -2,18 +2,22 @@
 using System.Collections.Generic;
 using System.Text;
 using Crestron.SimplSharp;      // For Basic SIMPL# Classes
+using Crestron.SimplSharp.Net.Https;
 
-namespace Analytics
+namespace Events
 {
-    public class Class1
+    public class EventProxy
     {
+        public HttpsClient proxy;
 
         /// <summary>
         /// SIMPL+ can only execute the default constructor. If you have variables that require initialization, please
         /// use an Initialize method
         /// </summary>
-        public Class1()
+        public EventProxy()
         {
+
         }
+
     }
 }
