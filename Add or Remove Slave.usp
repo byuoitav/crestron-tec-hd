@@ -13,7 +13,7 @@
 //Input output variables
 
 Digital_Input Add_Slave,Remove_Slave,Reset_Program,Test,Get_Program_Info; 
-Buffer_Input IP_Address$[16],From_Console$[500];
+Buffer_Input IP_Address$[15],From_Console$[500];
 String_Output _skip_,_skip_,_skip_,_skip_,Program_Name$,Compile_Date$,To_Console$, IPTable$, DMPSver$;
 
 //Global variables
@@ -34,6 +34,7 @@ Push Add_Slave
 
 	{
 	To_Console$ = "ADDSlave " + IP_ID$ + " " + IP_Address$ + "\x0D";
+	IP_Address$ ="";
 	}
 
 Push Remove_Slave
