@@ -37,6 +37,8 @@
   InputSigType8=Digital
   OutputCue1=_clientConnected
   OutputSigType1=Digital
+  OutputCue2=GetInfo
+  OutputSigType2=Digital
   InputList2Cue1=dmpsHostName
   InputList2SigType1=Serial
   InputList2Cue2=dmpsIp
@@ -50,8 +52,8 @@
   MaxVariableInputs=8
   MinVariableInputsList2=3
   MaxVariableInputsList2=3
-  MinVariableOutputs=1
-  MaxVariableOutputs=1
+  MinVariableOutputs=2
+  MaxVariableOutputs=2
   MinVariableOutputsList2=1
   MaxVariableOutputsList2=1
   MinVariableParams=0

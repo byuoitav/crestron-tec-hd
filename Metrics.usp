@@ -37,7 +37,7 @@ STRING_INPUT dmpsHostName[32],dmpsIp[15];
 
 BUFFER_INPUT clientBuffer[100];
 
-DIGITAL_OUTPUT _clientConnected;
+DIGITAL_OUTPUT _clientConnected,GetInfo;
 
 STRING_OUTPUT  toClientBuffer$;
 
@@ -759,6 +759,7 @@ Function Main()
 	HOSTNAME = "";
 	HOSTIP = "";
 	_clientConnected = 1;
+	GetInfo = 1;
 
 	// !!!!!!!!!! TODO: Use Configuration File to store Event Host Information
 	/*
