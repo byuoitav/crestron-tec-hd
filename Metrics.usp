@@ -202,7 +202,7 @@ RELEASE Startup_press // Start the session, turn system on
 RELEASE Confirm_System_Off  // End the session, turn system off
 {
 /*User Event*/
-	_clientConnected = 0;
+	//_clientConnected = 0;
 	BuildHttpMessage("ITB-1100J-DMPS-1", "10.6.36.51", "", "ITB", "1100J", "1", "40.252619", "-111.657548", "touchpanel", "Confirm_System_Off", USER);
 }
 
@@ -663,7 +663,7 @@ SOCKETSTATUS client
 		case(0):
 		{
 			Log("SOCKET STATUS: Not Connected");
-			//_clientConnected = 0;
+			_clientConnected = 1;
 		}
 		case(1):
 		{
@@ -676,17 +676,17 @@ SOCKETSTATUS client
 		case(3):
 		{
 			Log("SOCKET STATUS: Connection Failed");
-			//_clientConnected = 0;
+			_clientConnected = 1;
 		}
 		case(4):
 		{
 			Log("SOCKET STATUS: Connection Broken Remotely");
-			//_clientConnected = 0;
+			_clientConnected = 1;
 		}
 		case(5):
 		{
 			Log("SOCKET STATUS: Connection Broken Locally");
-			//_clientConnected = 0;
+			_clientConnected = 1;
 		}
 		case(6):
 		{
@@ -758,6 +758,7 @@ Function Main()
 	REPORTINGHOSTPORT = 9200;
 	HOSTNAME = "";
 	HOSTIP = "";
+	_clientConnected = 1;
 
 	// !!!!!!!!!! TODO: Use Configuration File to store Event Host Information
 	/*
