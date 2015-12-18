@@ -4,64 +4,108 @@
 *******************************************************************************************/
 /*
 Dealer Name: Brigham Young University
-System Name: Metrics Proxy
-System Number: 1.0.0
+System Name: TEC HD
+System Number: 0.1
 Programmer: Dan Clegg
-Comments: Forwards Metrics Events
+Comments:
 */
 
 /*******************************************************************************************
   Compiler Directives
   (Uncomment and declare compiler directives as needed)
 *******************************************************************************************/
-#SYMBOL_NAME "Metrics"
-#CATEGORY "46" "Metrics"
-#DEFINE_CONSTANT	BIGGESTSIZE	65534
-#DEFINE_CONSTANT	NEWLINE	"\n"
-#DEFINE_CONSTANT	USER	"user"
-#DEFINE_CONSTANT	SYSTEM	"system"
-#OUTPUT_SHIFT 10
+// #ENABLE_DYNAMIC
+#SYMBOL_NAME "Event Proxy"
+// #HINT ""
+#DEFINE_CONSTANT	FALSE	0
+#DEFINE_CONSTANT	TRUE	1
+#CATEGORY "46" "Metrics" //Custom Category
+// #PRINT_TO_TRACE
+// #DIGITAL_EXPAND
+// #ANALOG_SERIAL_EXPAND 
+// #OUTPUT_SHIFT 
+// #HELP_PDF_FILE ""
 #DEFAULT_VOLATILE
 #ENABLE_STACK_CHECKING
+#ENABLE_TRACE
+// #ENCODING_ASCII
+// #ENCODING_UTF16
+// #ENCODING_INHERIT_FROM_PARENT
+// #ENCODING_INHERIT_FROM_PROGRAM
+/*
+#HELP_BEGIN
+   (add additional lines of help lines)
+#HELP_END
+*/
 
 /*******************************************************************************************
-  DIGITAL_INPUT, ANALOG_INPUT, STRING_INPUT, BUFFER_INPUT inputs and DIGITAL_OUTPUT, 
-  ANALOG_OUTPUT, STRING_OUTPUT and SERIAL_OUTPUT outputs
+  Include Libraries
+  (Uncomment and include additional libraries as needed)
 *******************************************************************************************/
-DIGITAL_INPUT Startup_press,Confirm_System_Off; // Enumerate signals here
-DIGITAL_INPUT _skip_,_skip_,_skip_,_skip_,_skip_;
+// #CRESTRON_LIBRARY ""
+#USER_SIMPLSHARP_LIBRARY "EventProxy"
 
-DIGITAL_INPUT clientConnected;    
+/*******************************************************************************************
+  DIGITAL, ANALOG and SERIAL INPUTS and OUTPUTS
+  (Uncomment and declare inputs and outputs as needed)
+*******************************************************************************************/
+DIGITAL_INPUT Startup_Press
+// ANALOG_INPUT 
+// STRING_INPUT 
+// BUFFER_INPUT 
 
-STRING_INPUT dmpsHostName[32],dmpsIp[15],dmpsMAC[17];
+// DIGITAL_OUTPUT 
+// ANALOG_OUTPUT 
+// STRING_OUTPUT 
 
-BUFFER_INPUT clientBuffer[100];
-
-DIGITAL_OUTPUT _clientConnected;
-
-STRING_OUTPUT  toClientBuffer$;
 /*******************************************************************************************
   SOCKETS
+  (Uncomment and define socket definitions as needed)
 *******************************************************************************************/
+// TCP_CLIENT
+// TCP_SERVER
+// UDP_SOCKET
 
-TCP_CLIENT client[1024];
-TCP_CLIENT localConsole[1024];
-TCP_CLIENT touchPanelConsole[1024];
+/*******************************************************************************************
+  Parameters
+  (Uncomment and declare parameters as needed)
+*******************************************************************************************/
+// INTEGER_PARAMETER
+// SIGNED_INTEGER_PARAMETER
+// LONG_INTEGER_PARAMETER
+// SIGNED_LONG_INTEGER_PARAMETER
+// STRING_PARAMETER
+
+/*******************************************************************************************
+  Parameter Properties
+  (Uncomment and declare parameter properties as needed)
+*******************************************************************************************/
+/*
+#BEGIN_PARAMETER_PROPERTIES parameter_variable, parameter_variable, ...
+   // propValidUnits = // unitString or unitDecimal|unitHex|unitPercent|unitCharacter|unitTime|unitTicks;
+   // propDefaultUnit = // unitString, unitDecimal, unitHex, unitPercent, unitCharacter, unitTime or unitTicks;
+   // propBounds = lower_bound , upper_bound;
+   // propDefaultValue = ;  // or, propDefaultValue = "";
+   // propList = // { "value" , "label" } , { "value" , "label" } , ... ;
+   // propShortDescription = "status_bar_hint_text";
+   // #BEGIN_PROP_FULL_DESCRIPTION  line_1...  line_2...  line_n  #END_PROP_FULL_DESCRIPTION
+   // #BEGIN_PROP_NOTES line_1...  line_2...  line_n  #END_PROP_NOTES
+#END_PARAMETER_PROPERTIES
+*/
 
 /*******************************************************************************************
   Structure Definitions
+  (Uncomment and define structure definitions as needed)
   Note:  Be sure to initialize all declared STRING variables as needed
          For example, in Function Main: struct.myString = "";
 *******************************************************************************************/
-
-STRUCTURE QUEUEDEVENT
+/*
+STRUCTURE MyStruct1
 {
-	STRING userOrSystem[15];
-	STRING header1[1024],header2[1024],header3[1024],header4[1024],header5[1024],header6[1024];
-	STRING innerMsg1[1024],innerMsg2[1024],innerMsg3[1024],innerMsg4[1024];
-};                    
+};
 
-
+MyStruct1 struct;
+*/
 
 /*******************************************************************************************
   Global Variables
@@ -69,703 +113,126 @@ STRUCTURE QUEUEDEVENT
   Note:  Be sure to initialize all declared STRING variables as needed
          For example, in Function Main: myString = "";
 *******************************************************************************************/
-
-SIGNED_INTEGER CONFIGFILEHANDLE;
-STRING REPORTINGHOST[30],HOSTNAME[30],HOSTIP[15],$MAC[17],$BUILDING[30],$ROOM[30],$FLOOR[4],$LATITUDE[11],$LONGITUDE[11];
-STRING MESSAGE[BIGGESTSIZE];
-INTEGER REPORTINGHOSTPORT;
+// INTEGER
+// LONG_INTEGER
+// SIGNED_INTEGER
+// SIGNED_LONG_INTEGER
+// STRING
 
 /*******************************************************************************************
-  Functions -- No Editing
+  Functions
+  (Add any additional functions here)
+  Note:  Functions must be physically placed before the location in
+         the code that calls them.
 *******************************************************************************************/
-
-Function Log(string msg)
-{	
-	Print("\n%s",msg);
-
-}
-
-Function Error(string msg)
+/*
+Function MyFunction1()
 {
-	Log(msg);
-}
+    // TODO:  Add local variable declarations here
 
-Function Send(string msg)
+    // TODO:  Add code here
+}
+*/
+
+/*
+Integer_Function MyIntFunction1()
 {
-	Print("Sending: %s",msg);
-	SocketSend(client,msg);	
-}
+    // TODO:  Add local variable declarations here
 
-Function BuildHttpMessage(STRING EVENTHOSTNAME, STRING EVENTIP, STRING EVENTMAC, STRING EVENTBLDG, STRING EVENTROOM, STRING EVENTFLOOR, STRING EVENTLAT, STRING EVENTLON, STRING EVENTACTOR, string EVENTACTION, STRING userOrSystem)
+    // TODO:  Add code here
+
+    Return (0);
+}
+*/
+
+/*
+String_Function MyStrFunction1()
 {
-	SIGNED_INTEGER offset,mNum,yNum,dNum,ContentLength;
-    SIGNED_LONG_INTEGER PortNumber;
-	STRING timestamp[24];
-	STRING hostname[30];
-	STRING description[256];
-	STRING ipAddress[15];
-	STRING mac[17];
-	STRING building[8];
-	STRING roomNumber[8];
-	STRING lat[11];
-	STRING lon[11];
-	STRING flr[8];
-	STRING actor[30];
-	STRING desc[256];
-	STRING type[6];
-	STRING header1[1024],header2[1024],header3[1024],header4[1024],header5[1024],header6[1024];
-	STRING innerMsg1[1024],innerMsg2[1024],innerMsg3[1024],innerMsg4[1024];
-	STRING CLString[1024];
-	Print("Got to the HTTP Message Build\n");
-	if (EVENTHOSTNAME = "")
-		hostname = dmpsHostName;
-	else
-		hostname = EVENTHOSTNAME;
+    // TODO:  Add local variable declarations here
 
-	description = "";
-	ipAddress = EVENTIP;
-	mac = EVENTMAC;
-	building = EVENTBLDG;
-	roomNumber = EVENTROOM;
-	lat = EVENTLAT;
-	lon = EVENTLON;
-	flr = EVENTFLOOR;
-	actor = EVENTACTOR;
-	desc = EVENTACTION;
-	type = userOrSystem;
+    // TODO:  Add code here
 
-	
-	offset = GetGmtOffset();
-	mNum = GetMonthNum();
-	yNum = GetYearNum();
-	dNum = GetDateNum();
-	
-    // !!! TODO: Build in the DST offset
-	timestamp = ITOA(yNum) + "-" + ITOA(mNum) + "-"+ ITOA(dNum) +"T"+ Time() +"Z"; // YYYY-MM-DDTHH:mm:ss.SSSZ
-
-	innerMsg1 = "{\"" + type + "\": \"user\",\"timestamp\": \"" + timestamp +"\",\"device\": {\"hostname\": \"" + hostname +"\", \"description\": \"";
-	innerMsg2 = "" + description +"\", \"ipAddress\": \"" + ipAddress +"\", \"macAddress\": \"" + mac +"\"}, \"room\": { \"building\": \"" + building;
-	innerMsg3 = "\", \"roomNumber\": \"" + roomNumber +"\",\"coordinates\": \"" + lat +"," + lon +"\", \"floor\": \"" + flr;
-	innerMsg4 = "\" },\"actions\": [{\"actor\": \"" + actor +"\", \"description\": \"" + desc +"\"}]}";
-	ContentLength = Len(innerMsg1) + Len(innerMsg2) + Len(innerMsg3) + Len(innerMsg4);
-	CLString = ITOA(ContentLength);
-
-	header1 = "POST events/" + userOrSystem +"/ HTTP/1.1" + NEWLINE;
-	header2 = "Host: " + REPORTINGHOST + ":" + ITOA(REPORTINGHOSTPORT) + NEWLINE;
-	header3 = "Connection: keep-alive" + NEWLINE;
-	header4 = "Content-Length: " + CLString + NEWLINE;
-	header5 = "Content-type: text/plain;charset=UTF-8" + NEWLINE;
-	header6 = "Accept: */*" + NEWLINE;
-	Print("%s",header1);
-	Print("%s",header1);
-	Print("%s",header2);
-	Print("%s",header3);
-	Print("%s",header4);
-	Print("%s",header5);
-	Print("%s",header6);
-	Print("%s",NEWLINE);
-	Print("%s",innerMsg1);
-	Print("%s",innerMsg2);
-	Print("%s",innerMsg3);
-	Print("%s",innerMsg4);
-
-	Send(header1);
-	Send(header2);
-	Send(header3);
-	Send(header4);
-	Send(header5);
-	Send(header6);
-	Send(NEWLINE);
-	Send(innerMsg1);
-	Send(innerMsg2);
-	Send(innerMsg3);
-	Send(innerMsg4);
+    Return ("");
 }
+*/
 
 /*******************************************************************************************
   Event Handlers
   (Uncomment and declare additional event handlers as needed)
 *******************************************************************************************/
-
-/******************
-//
-// !!! MOVE ACTIVE SIGNAL EVENTS INTO THIS SECTION !!!
-//
-******************/
-
-RELEASE Startup_press // Start the session, turn system on
-{  
-	// Set startClient to High so it kicks off a socket
-	_clientConnected = 1;
-	BuildHttpMessage(HOSTNAME,HOSTIP, $MAC,$BUILDING,$ROOM,$FLOOR,$LATITUDE,$LONGITUDE, "touchpanel", "Startup_press", USER);
-}
-
-RELEASE Confirm_System_Off  // End the session, turn system off
+/*
+PUSH input
 {
-/*User Event*/
-	//_clientConnected = 0;
-	//BuildHttpMessageSTRING EVENTHOSTNAME, STRING EVENTIP, STRING EVENTMAC, STRING EVENTBLDG, STRING EVENTROOM, STRING EVENTFLOOR, STRING EVENTLAT, STRING EVENTLON, STRING EVENTACTOR, string EVENTACTION, STRING userOrSystem
-	BuildHttpMessage(HOSTNAME,HOSTIP,$MAC,$BUILDING,$ROOM,$FLOOR,$LATITUDE,$LONGITUDE, "touchpanel", "Confirm_System_Off", USER);
+    // TODO:  Add code here
 }
+*/
 
-// !!!!!!!!! INACTIVE SIGNAL EVENTS !!!!!!!!!!!!!!
-
-//RELEASE Audio_Only {/*User Events*/}
-//RELEASE Audio_Only_Press {/*User Events*/}
-//RELEASE Audio_Page_Enable {/*System Events*/}
-//RELEASE Audio_Tab_Select {/*User Events*/}
-//RELEASE Aux1_Program_is_Mono {/*System States - Configuration*/}
-//RELEASE Aux1_Program_is_None {/*System States - Configuration*/}
-//RELEASE Aux1_Program_is_Stereo {/*System States - Configuration*/}
-//RELEASE Blu-ray_Down {/*User Events*/}
-//RELEASE Blu-ray_Fast_Forward {/*User Events*/}
-//RELEASE Blu-ray_Fast_Reverse {/*User Events*/}
-//RELEASE Blu-ray_Left {/*User Events*/}
-//RELEASE Blu-ray_Next_Track {/*User Events*/}
-//RELEASE Blu-ray_OK {/*User Events*/}
-//RELEASE Blu-ray_Open/Close_Tray {/*User Events*/}
-//RELEASE Blu-ray_Pause {/*User Events*/}
-//RELEASE Blu-ray_Play {/*User Events*/}
-//RELEASE Blu-ray_Pop-up_Menu {/*User Events*/}
-//RELEASE Blu-ray_Previous_Track {/*User Events*/}
-//RELEASE Blu-ray_Right {/*User Events*/}
-//RELEASE Blu-ray_Stop {/*User Events*/}
-//RELEASE Blu-ray_Top_Menu {/*User Events*/}
-//RELEASE Blu-ray_Up {/*User Events*/}
-//RELEASE Configuration_Page_Enable {/*System Events*/}
-//RELEASE Confirm_Display_Off {/*User Events*/}
-//RELEASE Decline_Display_Off {/*User Events*/}
-//RELEASE Decline_System_Off {/*User Events*/}
-//RELEASE Device_Page_Enable {/*System Events*/}
-//RELEASE Device_Tab_Select {/*User Events*/}
-//RELEASE Display_Page_Enable {/*System Events*/}
-//RELEASE Display_Power_On_Button {/*User Events*/}
-//RELEASE Display_Tab_Select {/*User Events*/}
-//RELEASE Display1_Firmware_Version {/*SERIAL’s*/}
-//RELEASE Display1_ID_String_Fb {/*SERIAL’s*/}
-//RELEASE Display1_IP_Address_Fb {/*SERIAL’s*/}
-//RELEASE Display1_Is_Epson_G5450 {/*System States - Configuration*/}
-//RELEASE Display1_Is_Epson_G5750 {/*System States - Configuration*/}
-//RELEASE Display1_Is_Epson_G6750 {/*System States - Configuration*/}
-//RELEASE Display1_Is_NEC_E-Series {/*System States - Configuration*/}
-//RELEASE Display1_Is_Panasonic_PT-DZ10K {/*System States - Configuration*/}
-//RELEASE Display1_Is_Panasonic_PT-DZ770 {/*System States - Configuration*/}
-//RELEASE Display1_Is_Panasonic_PT-EZ570 {/*System States - Configuration*/}
-//RELEASE Display1_Is_Panasonic_PT-EZ770 {/*System States - Configuration*/}
-//RELEASE Display1_Is_Panasonic_TH-XXLF6 {/*System States - Configuration*/}
-//RELEASE Display1_Is_Sharp_AQUOS_CEC {/*System States - Configuration*/}
-//RELEASE Display1_Is_Sharp_PN-E702 {/*System States - Configuration*/}
-//RELEASE Display1_Is_Sharp_PN-E802 {/*System States - Configuration*/}
-//RELEASE Display1_Is_Sony_Z65 {/*System States - Configuration*/}
-//RELEASE Display1_Lamp_hours_fb {/*ANALOG’s*/}
-//RELEASE Display1_Lamp_Hours_Text_Fb (currently commented out) {/*SERIAL’s*/}
-//RELEASE Display1_MAC_Address_Fb (currently commented out) {/*SERIAL’s*/}
-//RELEASE Display1_Power_is_On {/*System Events*/}
-//RELEASE Display1_Projector_Name_Fb {/*SERIAL’s*/}
-//RELEASE Display1_Resolution {/*SERIAL’s*/}
-//RELEASE Display1_Select {/*User Events*/}
-//RELEASE Display1_Status_Message_Fb {/*SERIAL’s*/}
-//RELEASE Display1_Temp {/*ANALOG’s*/}
-//RELEASE Display2_Firmware_Version {/*SERIAL’s*/}
-//RELEASE Display2_ID_String_Fb {/*SERIAL’s*/}
-//RELEASE Display2_IP_Address_Fb {/*SERIAL’s*/}
-//RELEASE Display2_Is_Epson_G5450 {/*System States - Configuration*/}
-//RELEASE Display2_Is_Epson_G5750 {/*System States - Configuration*/}
-//RELEASE Display2_Is_Epson_G6750 {/*System States - Configuration*/}
-//RELEASE Display2_Is_NEC_E-Series {/*System States - Configuration*/}
-//RELEASE Display2_Is_Panasonic_PT-DZ10K {/*System States - Configuration*/}
-//RELEASE Display2_Is_Panasonic_PT-DZ770 {/*System States - Configuration*/}
-//RELEASE Display2_Is_Panasonic_PT-EZ570 {/*System States - Configuration*/}
-//RELEASE Display2_Is_Panasonic_PT-EZ770 {/*System States - Configuration*/}
-//RELEASE Display2_Is_Panasonic_TH-XXLF6 {/*System States - Configuration*/}
-//RELEASE Display2_Is_Sharp_AQUOS_CEC {/*System States - Configuration*/}
-//RELEASE Display2_Is_Sharp_PN-E702 {/*System States - Configuration*/}
-//RELEASE Display2_Is_Sharp_PN-E802 {/*System States - Configuration*/}
-//RELEASE Display2_Is_Sony_Z65 {/*System States - Configuration*/}
-//RELEASE Display2_Lamp_hours_fb {/*ANALOG’s*/}
-//RELEASE Display2_Lamp_Hours_Text_Fb (currently commented out) {/*SERIAL’s*/}
-//RELEASE Display2_MAC_Address_Fb (currently commented out) {/*SERIAL’s*/}
-//RELEASE Display2_Power_is_On {/*System Events*/}
-//RELEASE Display2_Projector_Name_Fb {/*SERIAL’s*/}
-//RELEASE Display2_Resolution {/*SERIAL’s*/}
-//RELEASE Display2_Select {/*User Events*/}
-//RELEASE Display2_Status_Message_Fb {/*SERIAL’s*/}
-//RELEASE Display2_Temp {/*ANALOG’s*/}
-//RELEASE Display3_Firmware_Version {/*SERIAL’s*/}
-//RELEASE Display3_ID_String_Fb {/*SERIAL’s*/}
-//RELEASE Display3_IP_Address_Fb {/*SERIAL’s*/}
-//RELEASE Display3_Is_Epson_G5450 {/*System States - Configuration*/}
-//RELEASE Display3_Is_Epson_G5750 {/*System States - Configuration*/}
-//RELEASE Display3_Is_Epson_G6750 {/*System States - Configuration*/}
-//RELEASE Display3_Is_NEC_E-Series {/*System States - Configuration*/}
-//RELEASE Display3_Is_Panasonic_PT-DZ10K {/*System States - Configuration*/}
-//RELEASE Display3_Is_Panasonic_PT-DZ770 {/*System States - Configuration*/}
-//RELEASE Display3_Is_Panasonic_PT-EZ570 {/*System States - Configuration*/}
-//RELEASE Display3_Is_Panasonic_PT-EZ770 {/*System States - Configuration*/}
-//RELEASE Display3_Is_Panasonic_TH-XXLF6 {/*System States - Configuration*/}
-//RELEASE Display3_Is_Sharp_AQUOS_CEC {/*System States - Configuration*/}
-//RELEASE Display3_Is_Sharp_PN-E702 {/*System States - Configuration*/}
-//RELEASE Display3_Is_Sharp_PN-E802 {/*System States - Configuration*/}
-//RELEASE Display3_Is_Sony_Z65 {/*System States - Configuration*/}
-//RELEASE Display3_Lamp_hours_fb {/*ANALOG’s*/}
-//RELEASE Display3_Lamp_Hours_Text_Fb (currently commented out) {/*SERIAL’s*/}
-//RELEASE Display3_MAC_Address_Fb (currently commented out) {/*SERIAL’s*/}
-//RELEASE Display3_Power_is_On {/*System Events*/}
-//RELEASE Display3_Projector_Name_Fb {/*SERIAL’s*/}
-//RELEASE Display3_Resolution {/*SERIAL’s*/}
-//RELEASE Display3_Select {/*User Events*/}
-//RELEASE Display3_Status_Message_Fb {/*SERIAL’s*/}
-//RELEASE Display3_Temp {/*ANALOG’s*/}
-//RELEASE DMPSver$ {/*SERIAL’s*/}
-//RELEASE Duplicate_Displays {/*User Events*/}
-//RELEASE Help_Menu_Press (add to digital 3) {/*User Events*/}
-//RELEASE Home_button {/*User Events*/}
-//RELEASE Input1_Audio_Is_Analog {/*System States - Configuration*/}
-//RELEASE Input1_Audio_Is_Digital {/*System States - Configuration*/}
-//RELEASE Input1_Is_Apple_TV {/*System States - Configuration*/}
-//RELEASE Input1_Is_Department_Computer {/*System States - Configuration*/}
-//RELEASE Input1_Is_Desk_Document_Camera {/*System States - Configuration*/}
-//RELEASE Input1_Is_Local_Input {/*System States - Configuration*/}
-//RELEASE Input1_Is_None {/*System States - Configuration*/}
-//RELEASE Input1_Is_TEC_Computer1 {/*System States - Configuration*/}
-//RELEASE Input2_Is_IPTV {/*System States - Configuration*/}
-//RELEASE Input2_Is_TEC_Computer2 {/*System States - Configuration*/}
-//RELEASE Input3_Is_Blu-ray {/*System States - Configuration*/}
-//RELEASE Input3_Is_TEC_Computer3 {/*System States - Configuration*/}
-//RELEASE Input4_Is_HDMI_Cable {/*System States - Configuration*/}
-//RELEASE Input4_Is_VGA_Cable {/*System States - Configuration*/}
-//RELEASE Input5_Composite_Is_A/V_Jack {/*System States - Configuration*/}
-//RELEASE Input5_Is_HDMI_Jack {/*System States - Configuration*/}
-//RELEASE Input6_Is_Apple_TV {/*System States - Configuration*/}
-//RELEASE Input6_Is_Ceiling_Document_Camera {/*System States - Configuration*/}
-//RELEASE Input6_Is_Custom_Input1 {/*System States - Configuration*/}
-//RELEASE Input6_Is_Department_Computer {/*System States - Configuration*/}
-//RELEASE Input6_Is_Desk_Document_Camera {/*System States - Configuration*/}
-//RELEASE Input6_Is_None {/*System States - Configuration*/}
-//RELEASE Input6_Is_Overflow {/*System States - Configuration*/}
-//RELEASE Input6_Is_Remote_Input1 {/*System States - Configuration*/}
-//RELEASE Input6_Is_Table_Input {/*System States - Configuration*/}
-//RELEASE Input6_Is_TEC_Computer2 {/*System States - Configuration*/}
-//RELEASE Input7_Is_Apple_TV {/*System States - Configuration*/}
-//RELEASE Input7_Is_Ceiling_Document_Camera {/*System States - Configuration*/}
-//RELEASE Input7_Is_Custom_Input2 {/*System States - Configuration*/}
-//RELEASE Input7_Is_Department_Computer {/*System States - Configuration*/}
-//RELEASE Input7_Is_Desk_Document_Camera {/*System States - Configuration*/}
-//RELEASE Input7_Is_None {/*System States - Configuration*/}
-//RELEASE Input7_Is_Overflow {/*System States - Configuration*/}
-//RELEASE Input7_Is_Remote_Input2 {/*System States - Configuration*/}
-//RELEASE Input7_Is_Table_Input {/*System States - Configuration*/}
-//RELEASE Input7_Is_TEC_Computer2 {/*System States - Configuration*/}
-//RELEASE IPTV_0 {/*User Events*/}
-//RELEASE IPTV_1 {/*User Events*/}
-//RELEASE IPTV_2 {/*User Events*/}
-//RELEASE IPTV_3 {/*User Events*/}
-//RELEASE IPTV_4 {/*User Events*/}
-//RELEASE IPTV_5 {/*User Events*/}
-//RELEASE IPTV_6 {/*User Events*/}
-//RELEASE IPTV_7 {/*User Events*/}
-//RELEASE IPTV_8 {/*User Events*/}
-//RELEASE IPTV_9 {/*User Events*/}
-//RELEASE IPTV_Blue {/*User Events*/}
-//RELEASE IPTV_CC {/*User Events*/}
-//RELEASE IPTV_CH- {/*User Events*/}
-//RELEASE IPTV_CH+ {/*User Events*/}
-//RELEASE IPTV_Down_Arrow {/*User Events*/}
-//RELEASE IPTV_Green {/*User Events*/}
-//RELEASE IPTV_Home {/*User Events*/}
-//RELEASE IPTV_Last {/*User Events*/}
-//RELEASE IPTV_Left_Arrow {/*User Events*/}
-//RELEASE IPTV_OK {/*User Events*/}
-//RELEASE IPTV_Pg_Dn {/*User Events*/}
-//RELEASE IPTV_Pg_Up {/*User Events*/}
-//RELEASE IPTV_Red {/*User Events*/}
-//RELEASE IPTV_Refresh {/*User Events*/}
-//RELEASE IPTV_Right_Arrow {/*User Events*/}
-//RELEASE IPTV_Up_Arrow {/*User Events*/}
-//RELEASE IPTV_Yellow {/*User Events*/}
-//RELEASE M1OffDateTime {/*SERIAL’s*/}
-//RELEASE M1OnDateTime {/*SERIAL’s*/}
-//RELEASE M2OffDateTime {/*SERIAL’s*/}
-//RELEASE M2OnDateTime {/*SERIAL’s*/}
-//RELEASE Mic1_Is_Active {/*System States - Configuration*/}
-//RELEASE Mic1_Is_Floor_Mic {/*System States - Configuration*/}
-//RELEASE Mic1_Is_Lectern {/*System States - Configuration*/}
-//RELEASE Mic1_Is_Line_Input {/*System States - Configuration*/}
-//RELEASE Mic1_Is_Mic1 {/*System States - Configuration*/}
-//RELEASE Mic1_Is_Mic2 {/*System States - Configuration*/}
-//RELEASE Mic1_Is_Mic3 {/*System States - Configuration*/}
-//RELEASE Mic1_Is_Mic4 {/*System States - Configuration*/}
-//RELEASE Mic1_Is_None {/*System States - Configuration*/}
-//RELEASE Mic1_Is_Overflow {/*System States - Configuration*/}
-//RELEASE Mic1_Is_Overhead_Mic {/*System States - Configuration*/}
-//RELEASE Mic1_Is_Podium {/*System States - Configuration*/}
-//RELEASE Mic1_Is_Wireless {/*System States - Configuration*/}
-//RELEASE Mic1_Is_Wireless1 {/*System States - Configuration*/}
-//RELEASE Mic1_Is_Wireless2 {/*System States - Configuration*/}
-//RELEASE Mic1_Is_Wireless3 {/*System States - Configuration*/}
-//RELEASE Mic1_Is_Wireless4 {/*System States - Configuration*/}
-//RELEASE Mic1_Volume {/*ANALOG’s*/}
-//RELEASE Mic1_Volume_Down {/*User Events*/}
-//RELEASE Mic1_Volume_Mute {/*User Events*/}
-//RELEASE Mic1_Volume_Press {/*User Events*/}
-//RELEASE Mic1_Volume_Up {/*User Events*/}
-//RELEASE Mic2_Is_Active {/*System States - Configuration*/}
-//RELEASE Mic2_Is_Floor_Mic {/*System States - Configuration*/}
-//RELEASE Mic2_Is_Lectern {/*System States - Configuration*/}
-//RELEASE Mic2_Is_Line_Input {/*System States - Configuration*/}
-//RELEASE Mic2_Is_Mic1 {/*System States - Configuration*/}
-//RELEASE Mic2_Is_Mic2 {/*System States - Configuration*/}
-//RELEASE Mic2_Is_Mic3 {/*System States - Configuration*/}
-//RELEASE Mic2_Is_Mic4 {/*System States - Configuration*/}
-//RELEASE Mic2_Is_None {/*System States - Configuration*/}
-//RELEASE Mic2_Is_Overflow {/*System States - Configuration*/}
-//RELEASE Mic2_Is_Overhead_Mic {/*System States - Configuration*/}
-//RELEASE Mic2_Is_Podium {/*System States - Configuration*/}
-//RELEASE Mic2_Is_Wireless {/*System States - Configuration*/}
-//RELEASE Mic2_Is_Wireless1 {/*System States - Configuration*/}
-//RELEASE Mic2_Is_Wireless2 {/*System States - Configuration*/}
-//RELEASE Mic2_Is_Wireless3 {/*System States - Configuration*/}
-//RELEASE Mic2_Is_Wireless4 {/*System States - Configuration*/}
-//RELEASE Mic2_Volume {/*ANALOG’s*/}
-//RELEASE Mic2_Volume_Down {/*User Events*/}
-//RELEASE Mic2_Volume_Mute {/*User Events*/}
-//RELEASE Mic2_Volume_Press {/*User Events*/}
-//RELEASE Mic2_Volume_Up {/*User Events*/}
-//RELEASE Mic3_Is_Active {/*System States - Configuration*/}
-//RELEASE Mic3_Is_Floor_Mic {/*System States - Configuration*/}
-//RELEASE Mic3_Is_Lectern {/*System States - Configuration*/}
-//RELEASE Mic3_Is_Line_Input {/*System States - Configuration*/}
-//RELEASE Mic3_Is_Mic1 {/*System States - Configuration*/}
-//RELEASE Mic3_Is_Mic2 {/*System States - Configuration*/}
-//RELEASE Mic3_Is_Mic3 {/*System States - Configuration*/}
-//RELEASE Mic3_Is_Mic4 {/*System States - Configuration*/}
-//RELEASE Mic3_Is_None {/*System States - Configuration*/}
-//RELEASE Mic3_Is_Overflow {/*System States - Configuration*/}
-//RELEASE Mic3_Is_Overhead_Mic {/*System States - Configuration*/}
-//RELEASE Mic3_Is_Podium {/*System States - Configuration*/}
-//RELEASE Mic3_Is_Wireless {/*System States - Configuration*/}
-//RELEASE Mic3_Is_Wireless1 {/*System States - Configuration*/}
-//RELEASE Mic3_Is_Wireless2 {/*System States - Configuration*/}
-//RELEASE Mic3_Is_Wireless3 {/*System States - Configuration*/}
-//RELEASE Mic3_Is_Wireless4 {/*System States - Configuration*/}
-//RELEASE Mic3_Volume {/*ANALOG’s*/}
-//RELEASE Mic3_Volume_Down {/*User Events*/}
-//RELEASE Mic3_Volume_Mute {/*User Events*/}
-//RELEASE Mic3_Volume_Press {/*User Events*/}
-//RELEASE Mic3_Volume_Up {/*User Events*/}
-//RELEASE Mic4_Is_Active {/*System States - Configuration*/}
-//RELEASE Mic4_Is_Floor_Mic {/*System States - Configuration*/}
-//RELEASE Mic4_Is_Lectern {/*System States - Configuration*/}
-//RELEASE Mic4_Is_Line_Input {/*System States - Configuration*/}
-//RELEASE Mic4_Is_Mic1 {/*System States - Configuration*/}
-//RELEASE Mic4_Is_Mic2 {/*System States - Configuration*/}
-//RELEASE Mic4_Is_Mic3 {/*System States - Configuration*/}
-//RELEASE Mic4_Is_Mic4 {/*System States - Configuration*/}
-//RELEASE Mic4_Is_None {/*System States - Configuration*/}
-//RELEASE Mic4_Is_Overflow {/*System States - Configuration*/}
-//RELEASE Mic4_Is_Overhead_Mic {/*System States - Configuration*/}
-//RELEASE Mic4_Is_Podium {/*System States - Configuration*/}
-//RELEASE Mic4_Is_Wireless {/*System States - Configuration*/}
-//RELEASE Mic4_Is_Wireless1 {/*System States - Configuration*/}
-//RELEASE Mic4_Is_Wireless2 {/*System States - Configuration*/}
-//RELEASE Mic4_Is_Wireless3 {/*System States - Configuration*/}
-//RELEASE Mic4_Is_Wireless4 {/*System States - Configuration*/}
-//RELEASE Mic4_Volume {/*ANALOG’s*/}
-//RELEASE Mic4_Volume_Down {/*User Events*/}
-//RELEASE Mic4_Volume_Mute {/*User Events*/}
-//RELEASE Mic4_Volume_Press {/*User Events*/}
-//RELEASE Mic4_Volume_Up {/*User Events*/}
-//RELEASE Mic5_Is_Active {/*System States - Configuration*/}
-//RELEASE Mic5_Is_Floor_Mic {/*System States - Configuration*/}
-//RELEASE Mic5_Is_Lectern {/*System States - Configuration*/}
-//RELEASE Mic5_Is_Line_Input {/*System States - Configuration*/}
-//RELEASE Mic5_Is_Mic1 {/*System States - Configuration*/}
-//RELEASE Mic5_Is_Mic2 {/*System States - Configuration*/}
-//RELEASE Mic5_Is_Mic3 {/*System States - Configuration*/}
-//RELEASE Mic5_Is_Mic4 {/*System States - Configuration*/}
-//RELEASE Mic5_Is_None {/*System States - Configuration*/}
-//RELEASE Mic5_Is_Overflow {/*System States - Configuration*/}
-//RELEASE Mic5_Is_Overhead_Mic {/*System States - Configuration*/}
-//RELEASE Mic5_Is_Podium {/*System States - Configuration*/}
-//RELEASE Mic5_Is_Wireless {/*System States - Configuration*/}
-//RELEASE Mic5_Is_Wireless1 {/*System States - Configuration*/}
-//RELEASE Mic5_Is_Wireless2 {/*System States - Configuration*/}
-//RELEASE Mic5_Is_Wireless3 {/*System States - Configuration*/}
-//RELEASE Mic5_Is_Wireless4 {/*System States - Configuration*/}
-//RELEASE Mic5_Volume {/*ANALOG’s*/}
-//RELEASE Mic5_Volume_Down {/*User Events*/}
-//RELEASE Mic5_Volume_Mute {/*User Events*/}
-//RELEASE Mic5_Volume_Press {/*User Events*/}
-//RELEASE Mic5_Volume_Up {/*User Events*/}
-//RELEASE Mic6_Is_Active {/*System States - Configuration*/}
-//RELEASE Mic6_Is_Floor_Mic {/*System States - Configuration*/}
-//RELEASE Mic6_Is_Lectern {/*System States - Configuration*/}
-//RELEASE Mic6_Is_Line_Input {/*System States - Configuration*/}
-//RELEASE Mic6_Is_Mic1 {/*System States - Configuration*/}
-//RELEASE Mic6_Is_Mic2 {/*System States - Configuration*/}
-//RELEASE Mic6_Is_Mic3 {/*System States - Configuration*/}
-//RELEASE Mic6_Is_Mic4 {/*System States - Configuration*/}
-//RELEASE Mic6_Is_None {/*System States - Configuration*/}
-//RELEASE Mic6_Is_Overflow {/*System States - Configuration*/}
-//RELEASE Mic6_Is_Overhead_Mic {/*System States - Configuration*/}
-//RELEASE Mic6_Is_Podium {/*System States - Configuration*/}
-//RELEASE Mic6_Is_Wireless {/*System States - Configuration*/}
-//RELEASE Mic6_Is_Wireless1 {/*System States - Configuration*/}
-//RELEASE Mic6_Is_Wireless2 {/*System States - Configuration*/}
-//RELEASE Mic6_Is_Wireless3 {/*System States - Configuration*/}
-//RELEASE Mic6_Is_Wireless4 {/*System States - Configuration*/}
-//RELEASE Mic6_Volume {/*ANALOG’s*/}
-//RELEASE Mic6_Volume_Down {/*User Events*/}
-//RELEASE Mic6_Volume_Mute {/*User Events*/}
-//RELEASE Mic6_Volume_Press {/*User Events*/}
-//RELEASE Mic6_Volume_Up {/*User Events*/}
-//RELEASE Mode {/*ANALOG’s*/}
-//RELEASE Output1_HDMI_Audio {/*System States - Configuration*/}
-//RELEASE Output1_HDMI_Is_Crash_Cart {/*System States - Configuration*/}
-//RELEASE Output1_HDMI_No_Audio {/*System States - Configuration*/}
-//RELEASE Output2_HDMI_Is_Display3 {/*System States - Configuration*/}
-//RELEASE Output2_HDMI_Is_None {/*System States - Configuration*/}
-//RELEASE Output3_DM_Is_Display1 {/*System States - Configuration*/}
-//RELEASE Output4_DM_Is_Display2 {/*System States - Configuration*/}
-//RELEASE Output4_DM_Is_None {/*System States - Configuration*/}
-//RELEASE Output4_DM_Is_Overflow {/*System States - Configuration*/}
-//RELEASE Output4_DM_Is_Surround_Receiver {/*System States - Configuration*/}
-//RELEASE PA_Is_Active {/*System States - Configuration*/}
-//RELEASE PA_Is_Inactive {/*System States - Configuration*/}
-//RELEASE Program_Compile_Date$ {/*SERIAL’s*/}
-//RELEASE Program_Name$ {/*SERIAL’s*/}
-//RELEASE Program_Volume_Down {/*User Events*/}
-//RELEASE Program_Volume_fb {/*ANALOG’s*/}
-//RELEASE Program_Volume_Mute_On_fb {/*System Events*/}
-//RELEASE Program_Volume_Mute_Toggle {/*User Events*/}
-//RELEASE Program_Volume_Slider_Press {/*User Events*/}
-//RELEASE Program_Volume_Up {/*User Events*/}
-//RELEASE Projector1_Reset_Shutter_os {/*System Events*/}
-//RELEASE Projector1_Set_Shutter_or {/*System Events*/}
-//RELEASE Projector2_Reset_Shutter_os {/*System Events*/}
-//RELEASE Projector2_Set_Shutter_or {/*System Events*/}
-//RELEASE Projector3_Reset_Shutter_os {/*System Events*/}
-//RELEASE Projector3_Set_Shutter_or {/*System Events*/}
-//RELEASE Remote_Input1_Custom$ {/*SERIAL’s*/}
-//RELEASE Remote_Input2_Custom$ {/*SERIAL’s*/}
-//RELEASE RV_B1_Time {/*SERIAL’s*/}
-//RELEASE RV_B2_Time {/*SERIAL’s*/}
-//RELEASE RV_M1_GrpChan {/*SERIAL’s*/}
-//RELEASE RV_M2_GrpChan {/*SERIAL’s*/}
-//RELEASE Select_A/V_Jack {/*User Events*/}
-//RELEASE Select_Blank {/*User Events*/}
-//RELEASE Select_Blu-ray {/*User Events*/}
-//RELEASE Select_Device_Control_Blu-ray {/*User Events*/}
-//RELEASE Select_Device_Control_IPTV {/*User Events*/}
-//RELEASE Select_HDMI_Cable {/*User Events*/}
-//RELEASE Select_HDMI_Jack {/*User Events*/}
-//RELEASE Select_IPTV {/*User Events*/}
-//RELEASE Select_Local_Input {/*User Events*/}
-//RELEASE Select_PA_Control (add to digital 386) {/*User Events*/}
-//RELEASE Select_Remote_Input1 {/*User Events*/}
-//RELEASE Select_Remote_Input2 {/*User Events*/}
-//RELEASE Select_VGA_Cable {/*User Events*/}
-//RELEASE Startup_Press {/*User Events*/}
-//RELEASE System_off {/*User Events*/}
-//RELEASE Touchpanel1_Is_TSW750 {/*System States - Configuration*/}
-//RELEASE Touchpanel2_Is_None {/*System States - Configuration*/}
-//RELEASE Touchpanel2_Is_TSW750 {/*System States - Configuration*/}
-//RELEASE Wireless_Monitoring_Is_Off {/*System States - Configuration*/}
-//RELEASE Wireless_Monitoring_Is_On {/*System States - Configuration*/}
-
-
-// !!!!!!!! SYSTEM SETUP EVENTS -- NO EDITING
-
-// Start a socket session to handle whether a push is active or not 
-PUSH clientConnected
+/*
+RELEASE input
 {
- 	SIGNED_INTEGER status; // variable to capture/store socket status
-	status = SocketConnectClient (client, REPORTINGHOST, REPORTINGHOSTPORT, 0); // SocketConnectClient(tcpClient,host,port,reconnect)
-    
-	// Status < 0 is an error, greater than is a successful connection
-    if (status < 0)
-        Print("Error connecting socket to address %s on port  %d", REPORTINGHOST, REPORTINGHOSTPORT);
+    // TODO:  Add code here
 }
- 
+*/
 
-//Signal to disconnect socket has been sent
-RELEASE clientConnected  
+/*
+CHANGE input
 {
-	SIGNED_INTEGER status;
-	status = SocketDisconnectClient(client);
-
-	if (status < 0)
-		Print("Error disconnecting socket to address %s on port %d",REPORTINGHOST,REPORTINGHOSTPORT);
+    // TODO:  Add code here
 }
+*/
 
-// The SOCKETCONNECT event is called when a socket connection is completed on a TCP_CLIENT or  TCP_SERVER variable.
-/***********
-When using the THREADSAFE keyword before an event (such as PUSH, RELEASE, CHANGE) the event is prevented from retriggering, until the entire code block in the event has executed.
-
-Events prevented from triggering WILL be dropped.
-
-************/
-
-CHANGE dmpsIp 
+/*
+EVENT
 {
-	HOSTIP = dmpsIp;	
+    // TODO:  Add code here
 }
+*/
 
-CHANGE dmpsHostName 
+/*
+SOCKETCONNECT
 {
-	HOSTNAME = dmpsHostName;	
+    // TODO:  Add code here
 }
+*/
 
-CHANGE dmpsMAC
+/*
+SOCKETDISCONNECT
 {
-	$MAC = dmpsMAC;
+    // TODO:  Add code here
 }
+*/
 
-THREADSAFE SOCKETCONNECT client
+/*
+SOCKETRECEIVE
 {
-	SIGNED_INTEGER LocalStatus,PortNumber;
-	Print("OnConnect: input buffer size is: %d\n", Len(client.SocketRxBuf));
-
-    LocalStatus = SocketGetRemoteIPAddress(client, REPORTINGHOST);
-    PortNumber = SocketGetPortNumber(client);
-
-    if (LocalStatus < 0)
-        Print("Error getting remote ip address. %d\n", LocalStatus);
-	else if (PortNumber < 0)
-        Print("Error getting client port number. %ld\n", REPORTINGHOSTPORT);
-    else
-		Print("OnConnect: Connected to port %ld on address %s\n", REPORTINGHOSTPORT, REPORTINGHOST);
+    // TODO:  Add code here
 }
+*/
 
-// The SOCKETDISCONNECT event is called when a TCP_CLIENT or  TCP_SERVER socket is disconnected. Determine if this was done remotely (i.e. network, remote server, etc.) or locally via this module
-SOCKETDISCONNECT client
+/*
+SOCKETSTATUS
 {
-	if (clientConnected = 0)
-		Print("Socket disconnected remotely");
-	else
-		Print("Local socket disconnect complete.");
+    // TODO:  Add code here
 }
-
-// Display the data received from the calls to the client and clear the buffer
-SOCKETRECEIVE client
-{
-	//LOG("SOCKET RECEIVING");
-    if (Len(client.SocketRxBuf) < 256)
-        Print("Rx: %s", client.SocketRxBuf);
-
-    // send to serial output and clear buffer
-    //clientRx = client.SocketRxBuf;
-    ClearBuffer(client.SocketRxBuf);
-}
-
-// The SOCKETSTATUS event is called when the status of a TCP_CLIENT or TCP_SERVER socket changes.
-SOCKETSTATUS client,localConsole,touchPanelConsole{
-	SIGNED_INTEGER Status;
- 	Status = SocketGetStatus();
-    Switch(Status)
-	{
-		case(0):
-		{
-			Log("SOCKET STATUS: Not Connected");
-			_clientConnected = 1;
-		}
-		case(1):
-		{
-			Log("SOCKET STATUS: Waiting for Connection");
-		}
-		case(2):
-		{
-			Log("SOCKET STATUS: Connected");
-		}
-		case(3):
-		{
-			Log("SOCKET STATUS: Connection Failed");
-			_clientConnected = 1;
-		}
-		case(4):
-		{
-			Log("SOCKET STATUS: Connection Broken Remotely");
-			_clientConnected = 1;
-		}
-		case(5):
-		{
-			Log("SOCKET STATUS: Connection Broken Locally");
-			_clientConnected = 1;
-		}
-		case(6):
-		{
-			Log("SOCKET STATUS: Performing DNS Lookup");
-		}
-		case(7):
-		{
-			Log("SOCKET STATUS: DNS Lookup Failed");
-			//_clientConnected = 0;
-		}
-		case(8):
-		{
-			Log("SOCKET STATUS: DNS Name Resolved");
-		}
-		case(-1):
-		{
-			Log("SOCKET STATUS: Client, Server or UDP variable not a TCP/IP or UDP variable.");
-			//_clientConnected = 0;
-		}
-		case(-2):
-		{
-			Log("SOCKET STATUS: Could not create the connection task");
-			//_clientConnected = 0;
-		}
-		case(-3):
-		{
-			Log("SOCKET STATUS: Could not resolve address");
-			//_clientConnected = 0;
-		}
-		case(-4):
-		{
-			Log("SOCKET STATUS: Port not in range of 0-65535.");
-			//_clientConnected = 0;
-		}
-		case(-5):
-		{
-			Log("SOCKET STATUS: No connection has been established");
-		}
-		case(-6):
-		{
-			Log("SOCKET STATUS: Not enough room in string parameter to hold IP address.");
-			//_clientConnected = 0;
-		}
-		default:
-		{
-			Log("Socket Status Undefined");
-		}
-	};
-}
+*/
 
 /*******************************************************************************************
   Main()
   Uncomment and place one-time startup code here
   (This code will get called when the system starts up)
 *******************************************************************************************/
-
+/*
 Function Main()
 {
-    // Initialize declared global and local variables/arrays
-	HOSTNAME = "";
-	HOSTIP = "";
-	$MAC= "";
-	$BUILDING = "";
-	$ROOM = "";
-	$FLOOR = "";
-	$LATITUDE = "";
-	$LONGITUDE = "";
+    // TODO:  Add code here
+    // Initialize declared global and local variables/arrays as needed.
 
-	REPORTINGHOST = "avreports.byu.edu";
-	REPORTINGHOSTPORT = 9200;   
-    
-	// Delay for all initialization settings to complete
-    WaitForInitializationComplete();
-	
-	// Open a socket to the reporting host
-	_clientConnected = 1;
-
+    // WaitForInitializationComplete();
+    // If you are reading any Input or Output variables, uncomment
+    //   the WaitForInitializationComplete statement above and read
+    //   them afterwards.  Input/Output variables will not have
+    //   their correct values set until after the logic processor
+    //   runs and propagates the values to them.
 }
+*/
+
