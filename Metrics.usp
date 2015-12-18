@@ -5,7 +5,7 @@
 /*
 Dealer Name: Brigham Young University
 System Name: Metrics Proxy
-System Number: 0.0.4
+System Number: 1.0.0
 Programmer: Dan Clegg
 Comments: Forwards Metrics Events
 */
@@ -20,7 +20,7 @@ Comments: Forwards Metrics Events
 #DEFINE_CONSTANT	NEWLINE	"\n"
 #DEFINE_CONSTANT	USER	"user"
 #DEFINE_CONSTANT	SYSTEM	"system"
-#OUTPUT_SHIFT 6
+#OUTPUT_SHIFT 10
 #DEFAULT_VOLATILE
 #ENABLE_STACK_CHECKING
 
@@ -33,19 +33,20 @@ DIGITAL_INPUT _skip_,_skip_,_skip_,_skip_,_skip_;
 
 DIGITAL_INPUT clientConnected;    
 
-STRING_INPUT dmpsHostName[32],dmpsIp[15];
+STRING_INPUT dmpsHostName[32],dmpsIp[15],dmpsMAC[17];
 
 BUFFER_INPUT clientBuffer[100];
 
-DIGITAL_OUTPUT _clientConnected,GetInfo;
+DIGITAL_OUTPUT _clientConnected;
 
 STRING_OUTPUT  toClientBuffer$;
-
 /*******************************************************************************************
   SOCKETS
 *******************************************************************************************/
 
 TCP_CLIENT client[1024];
+TCP_CLIENT localConsole[1024];
+TCP_CLIENT touchPanelConsole[1024];
 
 /*******************************************************************************************
   Structure Definitions
@@ -70,7 +71,7 @@ STRUCTURE QUEUEDEVENT
 *******************************************************************************************/
 
 SIGNED_INTEGER CONFIGFILEHANDLE;
-STRING REPORTINGHOST[30],HOSTNAME[30],HOSTIP[15];
+STRING REPORTINGHOST[30],HOSTNAME[30],HOSTIP[15],$MAC[17],$BUILDING[30],$ROOM[30],$FLOOR[4],$LATITUDE[11],$LONGITUDE[11];
 STRING MESSAGE[BIGGESTSIZE];
 INTEGER REPORTINGHOSTPORT;
 
@@ -196,14 +197,15 @@ RELEASE Startup_press // Start the session, turn system on
 {  
 	// Set startClient to High so it kicks off a socket
 	_clientConnected = 1;
-	BuildHttpMessage("ITB-1100J-DMPS-1", "10.6.36.51", "", "ITB", "1100J", "1", "40.252619", "-111.657548", "touchpanel", "Startup_press", USER);
+	BuildHttpMessage(HOSTNAME,HOSTIP, $MAC,$BUILDING,$ROOM,$FLOOR,$LATITUDE,$LONGITUDE, "touchpanel", "Startup_press", USER);
 }
 
 RELEASE Confirm_System_Off  // End the session, turn system off
 {
 /*User Event*/
 	//_clientConnected = 0;
-	BuildHttpMessage("ITB-1100J-DMPS-1", "10.6.36.51", "", "ITB", "1100J", "1", "40.252619", "-111.657548", "touchpanel", "Confirm_System_Off", USER);
+	//BuildHttpMessageSTRING EVENTHOSTNAME, STRING EVENTIP, STRING EVENTMAC, STRING EVENTBLDG, STRING EVENTROOM, STRING EVENTFLOOR, STRING EVENTLAT, STRING EVENTLON, STRING EVENTACTOR, string EVENTACTION, STRING userOrSystem
+	BuildHttpMessage(HOSTNAME,HOSTIP,$MAC,$BUILDING,$ROOM,$FLOOR,$LATITUDE,$LONGITUDE, "touchpanel", "Confirm_System_Off", USER);
 }
 
 // !!!!!!!!! INACTIVE SIGNAL EVENTS !!!!!!!!!!!!!!
@@ -232,7 +234,6 @@ RELEASE Confirm_System_Off  // End the session, turn system off
 //RELEASE Blu-ray_Up {/*User Events*/}
 //RELEASE Configuration_Page_Enable {/*System Events*/}
 //RELEASE Confirm_Display_Off {/*User Events*/}
-//RELEASE Confirm_System_Off {/*User Events*/}
 //RELEASE Decline_Display_Off {/*User Events*/}
 //RELEASE Decline_System_Off {/*User Events*/}
 //RELEASE Device_Page_Enable {/*System Events*/}
@@ -565,7 +566,6 @@ RELEASE Confirm_System_Off  // End the session, turn system off
 //RELEASE Select_Remote_Input2 {/*User Events*/}
 //RELEASE Select_VGA_Cable {/*User Events*/}
 //RELEASE Startup_Press {/*User Events*/}
-//RELEASE System Events {/*System Events*/}
 //RELEASE System_off {/*User Events*/}
 //RELEASE Touchpanel1_Is_TSW750 {/*System States - Configuration*/}
 //RELEASE Touchpanel2_Is_None {/*System States - Configuration*/}
@@ -575,17 +575,6 @@ RELEASE Confirm_System_Off  // End the session, turn system off
 
 
 // !!!!!!!! SYSTEM SETUP EVENTS -- NO EDITING
-// If system gets hostname, set it in the global var
-CHANGE dmpsHostName
-{
-	HOSTNAME = dmpsHostName;
-}
-
-// If system gets IP, set it in the global var
-CHANGE dmpsIp
-{
-	HOSTIP = dmpsIp;
-}
 
 // Start a socket session to handle whether a push is active or not 
 PUSH clientConnected
@@ -616,6 +605,22 @@ When using the THREADSAFE keyword before an event (such as PUSH, RELEASE, CHANGE
 Events prevented from triggering WILL be dropped.
 
 ************/
+
+CHANGE dmpsIp 
+{
+	HOSTIP = dmpsIp;	
+}
+
+CHANGE dmpsHostName 
+{
+	HOSTNAME = dmpsHostName;	
+}
+
+CHANGE dmpsMAC
+{
+	$MAC = dmpsMAC;
+}
+
 THREADSAFE SOCKETCONNECT client
 {
 	SIGNED_INTEGER LocalStatus,PortNumber;
@@ -654,8 +659,7 @@ SOCKETRECEIVE client
 }
 
 // The SOCKETSTATUS event is called when the status of a TCP_CLIENT or TCP_SERVER socket changes.
-SOCKETSTATUS client
-{
+SOCKETSTATUS client,localConsole,touchPanelConsole{
 	SIGNED_INTEGER Status;
  	Status = SocketGetStatus();
     Switch(Status)
@@ -746,32 +750,22 @@ SOCKETSTATUS client
 Function Main()
 {
     // Initialize declared global and local variables/arrays
-
-    // If you are reading any Input or Output variables, uncomment
-    //   the WaitForInitializationComplete statement above and read
-    //   them afterwards.  Input/Output variables will not have
-    //   their correct values set until after the logic processor
-    //   runs and propagates the values to them.
-    WaitForInitializationComplete();
-
-	REPORTINGHOST = "avreports.byu.edu";
-	REPORTINGHOSTPORT = 9200;
 	HOSTNAME = "";
 	HOSTIP = "";
-	_clientConnected = 1;
-	GetInfo = 1;
+	$MAC= "";
+	$BUILDING = "";
+	$ROOM = "";
+	$FLOOR = "";
+	$LATITUDE = "";
+	$LONGITUDE = "";
 
-	// !!!!!!!!!! TODO: Use Configuration File to store Event Host Information
-	/*
-	CONFIGFILEHANDLE = FileOpen ( "\\NVRAM\\EVENTTARGET.TXT", _O_RDONLY );
-	if (CONFIGFILEHANDLE < 0)
-	{
-		PRINT("Error opening event target configuration file\n");
-	}
-	else {
-		if ( FileClose( CONFIGFILEHANDLE ) <> 0 )
-		{
-			Print("Error closing file\n");
-		}
-	}*/
+	REPORTINGHOST = "avreports.byu.edu";
+	REPORTINGHOSTPORT = 9200;   
+    
+	// Delay for all initialization settings to complete
+    WaitForInitializationComplete();
+	
+	// Open a socket to the reporting host
+	_clientConnected = 1;
+
 }
