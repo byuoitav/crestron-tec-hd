@@ -13,8 +13,8 @@
 //Input output variables
 
 Digital_Input Add_Slave,Remove_Slave,Reset_Program,Test,Get_Program_Info; 
-Buffer_Input IP_Address$[15],From_Console$[500];
-String_Output _skip_,_skip_,_skip_,_skip_,Program_Name$,Compile_Date$,To_Console$, IPTable$, DMPSver$;
+Buffer_Input IP_Address$[15],From_Console$[3000];
+String_Output _skip_,_skip_,_skip_,_skip_,Program_Name$,Compile_Date$,To_Console$, IPTable$, DMPSver$, DMPSHostname$, DMPSIP$, DMPSMAC$;
 
 //Global variables
 
@@ -56,39 +56,69 @@ Push Get_Program_Info
 	{
 	To_Console$ = "ProgComments\x0D";	//Request Running Program Info
 	To_Console$ = "ver\x0D";	//request DMPS Firmware version
+	To_Console$ = "host\x0D";	//request hostname
+	To_Console$ = "ipaddress\x0D"; // request JUST the ip address
+	To_Console$ = "estatus\x0D"; // request ethernet information, including MAC address
 	}
 
 Change From_Console$
 	{
 	Integer StartPosition;
-	String in$[1000], TempString[100], Trash[250];
+	String in$[3000], TempString[100], Trash[250];
 	
 	in$ = Gather("DMPS-300-C>", From_Console$);
-	if (Find("IP Table:",in$))
+	Print("in$ = %s",in$);
+	Print("Length of in$ = %d\n", Len(in$));
+	if (Find("IP Table:",in$)&& (len(in$)<150))
 		{
+		Print("Found IPTable ID:7");
 		IPTable$ = Left(in$,(Find("DMPS-300-C>",in$) - 5));
 		in$ = "";
 		}
-	else if (find("DMPS-300-C Cntrl Eng", in$))
+		else if (find("DMPS-300-C Cntrl Eng", in$))
 		{
 		DMPSver$ = Left(in$, (find("DMPS-300-C>",in$) - 5));
 		in$ = "";
 		}
-
+	
 	While(Find("\x0A",In$))
 		{
 		TempString = Remove("\x0A",In$);
 		if (Find("Program File:",TempString))
 			{
 			Trash = Remove("Program File: ",TempString);
-			Program_Name$ = Left(TempString,Find("\x0A",Tempstring) - 1);
+			Program_Name$ = Left(TempString,Find("\x0A",Tempstring) - 2);
 			}
 			
 		else if (Find("Compiled On:",TempString))
 			{
 			Trash = Remove("Compiled On:  ",TempString);
-			Compile_Date$ = Left(TempString,Find("\x0A",Tempstring) - 1);
+			Compile_Date$ = Left(TempString,Find("\x0A",Tempstring) - 2);
 			}
+		else if (Find("Host Name:",TempString))
+			{
+			Trash = Remove("Host Name: ",TempString);
+//			Trash = Remove("\n",Trash);
+//			Trash = Remove("\r",Trash);
+			DMPSHostname$ = Left(TempString,Find("\x0D",Tempstring) - 1);
+			}
+		else if (Find("IP address:",TempString))
+			{
+//			Trash = Right(TempString,Len(TempString) - Find(": ",Tempstring) - 1);
+			Trash = Remove("IP address:",TempString);
+//			Trash = Remove("\n",Trash);
+//			Trash = Remove("\r",Trash);
+			DMPSIP$ = Left(TempString,Find("\x0D",TempString) - 1);
+			
+			}
+		else if (Find("MAC Address(es):",TempString))
+			{
+			Trash = Remove("MAC Address(es): ",TempString);
+//			Trash = Remove("\n",Trash);
+//			Trash = Remove("\r",Trash);
+			DMPSMAC$ = Left(TempString,Find("\x0D",Tempstring) - 1);			
+			}
+
 		}
 	}
 

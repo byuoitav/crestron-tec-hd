@@ -1,0 +1,299 @@
+#define_constant MAX_SELECTION_LENGTH	100
+#define_constant MAX_TEXT_LENGTH		100
+#define_constant FIRST_CHAR				1
+#define_constant LAST_CHAR				0xFFFF
+
+#DEFAULT_VOLATILE
+
+#CATEGORY "0"
+digital_input NextCharInSelection;
+digital_input PrevCharInSelection;
+digital_input NextCharInText;
+digital_input PrevCharInText;
+digital_input Backspace;
+digital_input DeleteChar;
+digital_input Done;
+digital_input Cancel;
+digital_input Clear;
+digital_input InsertSpaceToRight;
+digital_input InsertSpaceToLeft;
+digital_input Debug;
+
+analog_input MaxNewTextLength;
+analog_input MaxCharactersInDisplay;
+analog_output CursorPositionOut;
+
+string_input Selection$[MAX_SELECTION_LENGTH];
+string_input Text$[MAX_TEXT_LENGTH];
+
+string_output TextEdit$;
+string_output FinalText$;
+
+// Module Variables
+string TextIntermediate$[MAX_TEXT_LENGTH];  
+integer SelectionPosition;
+integer iMaxNewTextLength;
+integer CursorPosition;
+ 
+ 
+function OutputTextAndUpdateCursorPosition(integer NewCursorPosition)
+	{
+//	TextEdit$ = TextIntermediate$;
+//	if(NewCursorPosition = LAST_CHAR)
+//		CursorPosition = len(TextIntermediate$);
+	if(NewCursorPosition > 0)
+		CursorPosition = NewCursorPosition;
+	else
+		CursorPosition = 1;
+	if(CursorPosition > MaxCharactersInDisplay)
+		{
+		CursorPositionOut = MaxCharactersInDisplay;
+		//TextEdit$ = right(TextIntermediate$, MaxcharactersInDisplay);                       
+//		TextEdit$ = right(TextIntermediate$, MaxCharactersInDisplay);
+		TextEdit$ = mid(TextIntermediate$, CursorPosition - MaxCharactersInDisplay + 1, MaxCharactersInDisplay);
+//		TextEdit$ = mid(TextIntermediate$, len(TextIntermediate$) - CursorPosition + 2, MaxCharactersInDisplay);
+		}
+	else
+		{
+		CursorPositionOut = CursorPosition;
+		TextEdit$ = TextIntermediate$;
+		}
+	}
+
+function UpdateDisplayText()
+{
+	SetString(Mid(Selection$, SelectionPosition, 1), CursorPosition, TextIntermediate$);
+	OutputTextAndUpdateCursorPosition(CursorPosition);
+}
+
+function SetNewSelectionPosition()
+{
+	SelectionPosition = find(mid(TextIntermediate$, CursorPosition, 1), Selection$);
+	if(SelectionPosition=0)
+		SelectionPosition=1;
+}
+
+function InsertSpcToRight()
+{
+	// Insert Space to the Right of the current position.
+	if(len(TextIntermediate$) < iMaxNewTextLength)
+	{
+		TextIntermediate$ = Left(TextIntermediate$, CursorPosition) + " " + Right(TextIntermediate$, len(TextIntermediate$)-CursorPosition);
+		CursorPosition = CursorPosition + 1;
+		OutputTextAndUpdateCursorPosition(CursorPosition);  
+	}
+}
+
+function InsertSpcToLeft()
+{
+	// Insert Space to the Left of the current position.
+	if(len(TextIntermediate$) < iMaxNewTextLength)
+	{
+		TextIntermediate$ = Left(TextIntermediate$, CursorPosition-1) + " " + Right(TextIntermediate$, len(TextIntermediate$)-CursorPosition+1);
+		OutputTextAndUpdateCursorPosition(CursorPosition);
+	}
+}
+
+function SetMaxTextLength()
+	{
+	if(MaxNewTextLength > MAX_TEXT_LENGTH)
+    	{
+    	GenerateUserError("MaxNewTextLength set to value greater than MAX_TEXT_LENGTH, truncating (%d > %d).", MaxNewTextLength, MAX_TEXT_LENGTH);
+    	iMaxNewTextLength = MAX_TEXT_LENGTH;
+    	}
+    else
+    	{
+    	iMaxNewTextLength = MaxNewTextLength;
+   		}
+   	}
+
+// Clockwise.
+push NextCharInSelection
+{
+	if(SelectionPosition < len(Selection$))
+		SelectionPosition = SelectionPosition + 1;
+	else
+		SelectionPosition = 1;
+	
+	UpdateDisplayText();
+}
+
+// CounterClockwise
+push PrevCharInSelection
+{
+	if(SelectionPosition > 1)
+		SelectionPosition = SelectionPosition - 1;
+	else
+		SelectionPosition = len(Selection$);
+
+	UpdateDisplayText();
+}
+
+push NextCharInText
+{
+	if(CursorPosition < len(TextIntermediate$))
+	{
+		// Moving within the text.
+		CursorPosition = CursorPosition + 1;
+		SetNewSelectionPosition();
+		OutputTextAndUpdateCursorPosition(CursorPosition);
+	}
+	else
+	{
+		// Went of the end, Need to insert a space if there's room.
+		InsertSpcToRight();
+	}
+}
+
+push PrevCharInText
+{
+	if(CursorPosition > 1)
+	{
+		CursorPosition = CursorPosition - 1;
+		SetNewSelectionPosition();
+		OutputTextAndUpdateCursorPosition(CursorPosition);
+	}
+//	else
+//	{
+//		InsertSpcToLeft();
+//	}
+}   
+
+change Text$
+{
+	INTEGER Temp;
+	
+	if(len(Text$) < iMaxNewTextLength)
+		TextIntermediate$ = Text$ + " ";
+	else
+		TextIntermediate$ = left(Text$, iMaxNewTextLength);
+	Temp = len(TextIntermediate$);
+	OutputTextAndUpdateCursorPosition(Temp);
+	SetNewSelectionPosition();
+}
+
+// Delete the Character preceding the cursor.
+// ex:  "Kitchen" w/Cursor on "t" becomes "Ktchen"
+push Backspace
+{
+	if(CursorPosition > 1)
+	{
+		TextIntermediate$ =  Left(TextIntermediate$, CursorPosition-2) + Right(TextIntermediate$, len(TextIntermediate$)-CursorPosition+1);
+		CursorPosition = CursorPosition - 1;
+		SetNewSelectionPosition();
+		OutputTextAndUpdateCursorPosition(CursorPosition);
+	}		
+}
+
+// Delete the Character on the cursor.
+// ex:  "Kitchen" w/Cursor on "t" becomes "Kichen"
+push DeleteChar
+{
+	if(len(TextIntermediate$)=1)
+	{
+		TextIntermediate$=" ";
+		OutputTextAndUpdateCursorPosition(FIRST_CHAR);
+	}
+	else
+		{
+		if(CursorPosition = len(TextIntermediate$))
+			{
+			TextIntermediate$ =  Left(TextIntermediate$, CursorPosition-1) + Right(TextIntermediate$, len(TextIntermediate$)-CursorPosition);
+			OutputTextAndUpdateCursorPosition(CursorPosition-1);
+			}
+		else
+			{
+			TextIntermediate$ =  Left(TextIntermediate$, CursorPosition-1) + Right(TextIntermediate$, len(TextIntermediate$)-CursorPosition);
+			OutputTextAndUpdateCursorPosition(CursorPosition);
+			}
+		}
+	
+	SetNewSelectionPosition();
+}
+
+push Done
+{
+	integer i;
+	integer first, last;
+	
+	first = 1;
+	last = len(TextIntermediate$);
+	
+	for(i = 1 to len(TextIntermediate$))
+	{
+		if(byte(TextIntermediate$, i) <> ' ')
+			break;
+		else
+			first = first + 1;
+	}	
+
+	for(i = len(TextIntermediate$) to 1 step -1)
+	{
+		if(byte(TextIntermediate$, i) <> ' ')
+			break;
+		else
+			last = last - 1;
+	}
+    
+    if(first>last)
+    {
+    	// Only spaces.
+		FinalText$ = "";
+    }
+    else
+	{
+		// Has characters other than spaces.
+		FinalText$ = Mid(TextIntermediate$, first, last-first+1);
+	}
+	
+	CursorPosition=0;
+	SelectionPosition=1;
+}
+
+push Cancel
+{
+	TextIntermediate$ = Text$;
+	CursorPosition = 0;
+	CursorPositionOut = 0;
+	SelectionPosition=1;
+}
+
+push Clear
+{
+	TextIntermediate$ = " ";
+	OutputTextAndUpdateCursorPosition(FIRST_CHAR);
+}
+
+// Insert a space to the right of the cursor.  
+// ex:  "Kitchen" w/Cursor on "t" becomes "Kit chen"
+push InsertSpaceToRight
+{
+	InsertSpcToRight();
+}
+
+// Insert a space to the right of the cursor.  
+// ex:  "Kitchen" w/Cursor on "t" becomes "Ki tchen"
+push InsertSpaceToLeft
+{
+	InsertSpcToLeft();
+}
+
+push Debug
+{
+	print("\nTextIntermediate$ <%s>, %d chars. CursorPosition=%d, SelectionPosition=%d\n", TextIntermediate$, len(TextIntermediate$), CursorPosition, SelectionPosition);
+	print("Selection$ <%s>, %d chars.  Text$ <%s>, %d chars\n", Selection$, len(Selection$), Text$, len(Text$));
+}
+
+Change MaxNewTextLength
+	{
+	Call SetMaxTextLength();
+	}
+
+function main()
+	{
+	CursorPosition=0;
+	CursorPositionOut = 0;
+	SelectionPosition=1;
+	WaitForInitializationComplete();
+	Call SetMaxTextLength();
+	}

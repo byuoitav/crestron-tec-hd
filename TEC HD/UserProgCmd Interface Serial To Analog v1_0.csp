@@ -1,0 +1,52 @@
+/*******************************************************************************************
+  SIMPL+ Module Information
+  (Fill in comments below)
+*******************************************************************************************/
+/*
+Dealer Name:
+System Name:
+System Number:
+Programmer:
+Comments:
+*/
+
+/*******************************************************************************************
+  Compiler Directives
+  (Uncomment and declare compiler directives as needed)
+*******************************************************************************************/
+// #SYMBOL_NAME ""
+// #HINT ""
+#DEFINE_CONSTANT MAXVALUELENGTH		24
+#CATEGORY "0" 
+#DEFAULT_VOLATILE
+// #DIGITAL_EXPAND 
+// #ANALOG_SERIAL_EXPAND 
+// #OUTPUT_SHIFT 
+// #DEFAULT_NONVOLATILE
+#ENABLE_STACK_CHECKING
+/*
+#HELP_BEGIN
+   (add additional lines of help lines)
+#HELP_END
+*/
+ANALOG_INPUT In[10]; 
+STRING_INPUT In$[10][MAXVALUELENGTH];
+
+ANALOG_OUTPUT Out[10];
+STRING_OUTPUT Out$[10];
+
+CHANGE In
+	{
+	INTEGER Index;
+	
+	Index = getlastmodifiedarrayindex();
+	Makestring(Out$[Index], "%u", In[Index]);
+	}
+
+CHANGE In$
+	{
+	INTEGER Index;
+	
+	Index = getlastmodifiedarrayindex();
+	Out[Index] = atoi(In$[Index]);
+	}

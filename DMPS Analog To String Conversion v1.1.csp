@@ -1,0 +1,94 @@
+/*******************************************************************************************
+  SIMPL+ Module Information
+  (Fill in comments below)
+*******************************************************************************************/
+/*
+Dealer Name:
+System Name: DMPS
+System Number:
+Programmer:kskontrianos
+Comments:used to convert analogs to serial string for DMPS NVRAM slot
+*/
+
+/*******************************************************************************************
+  Compiler Directives
+  (Uncomment and declare compiler directives as needed)
+*******************************************************************************************/
+// #ENABLE_DYNAMIC
+// #SYMBOL_NAME ""
+// #HINT ""
+ #DEFINE_CONSTANT STRING_LENGTH 240
+ #DEFINE_CONSTANT MAX_INPUTS 80
+// #CATEGORY "" 
+// #PRINT_TO_TRACE
+// #DIGITAL_EXPAND 
+// #ANALOG_SERIAL_EXPAND 
+// #OUTPUT_SHIFT 
+// #HELP_PDF_FILE ""
+#DEFAULT_VOLATILE
+#ENABLE_STACK_CHECKING
+#ENABLE_TRACE
+#ENCODING_INHERIT_FROM_PARENT
+// #ENCODING_ASCII
+// #ENCODING_UTF16
+// #ENCODING_INHERIT_FROM_PROGRAM
+/*
+#HELP_BEGIN
+   (add additional lines of help lines)
+#HELP_END
+*/
+
+/*******************************************************************************************
+  Include Libraries
+  (Uncomment and include additional libraries as needed)
+*******************************************************************************************/
+// #CRESTRON_LIBRARY ""
+// #USER_LIBRARY ""
+
+/*******************************************************************************************
+  DIGITAL, ANALOG and SERIAL INPUTS and OUTPUTS
+  (Uncomment and declare inputs and outputs as needed)
+*******************************************************************************************/
+ DIGITAL_INPUT Go;
+//ANALOG_INPUT length;
+ ANALOG_INPUT In[MAX_INPUTS];
+// STRING_INPUT 
+// BUFFER_INPUT 
+
+// DIGITAL_OUTPUT 
+// ANALOG_OUTPUT 
+ STRING_OUTPUT out$;
+ 
+
+push Go
+
+/*	pre:	analogs 1-80 with valid integers
+		length is define as the total number of valid inputs to the module
+	post: each analog will broken into 3 bytes with the MSB always set to 1 (work around for NVRAM x\00 bug)
+	each 2-byte ANALOG will be converted as follows:
+	2 byte ANALOG X: 	{b15 b14 b13 b12 b11 b10 b9 b8 b7 b6 b5 b4 b3 b2 b1 b0}
+	byte1: {1 b15 b14 b13 b12 b11 b10 b9}
+	byte2: {1 b8 b7 b6 b5 b4 b3 b2}
+	byte3: {1 0 0 0 0 0 b1 b0}
+	All 80 analog inputs will be broken apart and sent to serial string for saving.
+
+*/
+{
+	integer i;
+	string  new$[STRING_LENGTH] ;
+	new$ = "";
+ for (i=1 to MAX_INPUTS)
+	{
+//	char1 = chr((((In[i] & 0xFE00) >> 1) | 0x8000) >> 8);
+//	char1 = chr(((In[i] & 0xFE00) >> 9) | 0x0080);
+//	char2 = chr((((In[i] & 0x01FC) >> 1) | 0x8000) >> 8);
+//	char2 = chr(((In[i] & 0x01FC) >> 9) | 0x0080);
+//	char3 = chr((((In[i] & 0x0003) >> 1) | 0x8000) >> 8);
+//	char3 = chr(((In[i] & 0x0003) >> 9) | 0x0080);
+	new$ = new$ + chr(((In[i] & 0xFE00) >> 9) | 0x0080) + chr(((In[i] & 0x01FC) >> 2) | 0x0080) + chr((In[i] & 0x0003) | 0x0080);
+//	new$ = new$ + chr((((In[i] & 0xFE00) >> 1) | 0x8000) >> 8) + chr((((In[i] & 0x01FC) >> 1) | 0x8000) >> 8) + chr((((In[i] & 0x0003) >> 1) | 0x8000) >> 8);
+	}
+out$ = new$;
+	
+}
+
