@@ -14,7 +14,7 @@
 
 Digital_Input Add_Slave,Remove_Slave,Reset_Program,Test,Get_Program_Info; 
 Buffer_Input IP_Address$[15],From_Console$[500];
-String_Output _skip_,_skip_,_skip_,_skip_,Program_Name$,Compile_Date$,To_Console$, IPTable$, DMPSver$;
+String_Output _skip_,_skip_,_skip_,_skip_,Program_Name$,Compile_Date$,To_Console$, IPTable$, DMPSver$, DMPSIP$, DMPSHost$;
 
 //Global variables
 
@@ -56,6 +56,7 @@ Push Get_Program_Info
 	{
 	To_Console$ = "ProgComments\x0D";	//Request Running Program Info
 	To_Console$ = "ver\x0D";	//request DMPS Firmware version
+	To_Console$ = "host\x0D"; // request Hostname
 	}
 
 Change From_Console$
@@ -89,7 +90,13 @@ Change From_Console$
 			Trash = Remove("Compiled On:  ",TempString);
 			Compile_Date$ = Left(TempString,Find("\x0A",Tempstring) - 1);
 			}
+		else if (Find("Host Name:",TempString))
+			{
+			Trash = Remove("Host Name: ",TempString);
+			DMPSHost$ = Left(TempString,Find("\x0A",Tempstring) - 1);
+			}
 		}
+		
 	}
 
 //Function Main

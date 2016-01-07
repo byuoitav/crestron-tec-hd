@@ -196,14 +196,14 @@ RELEASE Startup_press // Start the session, turn system on
 {  
 	// Set startClient to High so it kicks off a socket
 	//_clientConnected = 1;
-	BuildHttpMessage("ITB-1100J-DMPS-1", "10.6.36.51", "", "ITB", "1100J", "1", "40.252619", "-111.657548", "touchpanel", "Startup_press", USER);
+	BuildHttpMessage(dmpsHostName, "10.6.36.51", "", "ITB", "1100J", "1", "40.252619", "-111.657548", "touchpanel", "Startup_press", USER);
 }
 
 RELEASE Confirm_System_Off  // End the session, turn system off
 {
 /*User Event*/
 	//_clientConnected = 0;
-	BuildHttpMessage("ITB-1100J-DMPS-1", "10.6.36.51", "", "ITB", "1100J", "1", "40.252619", "-111.657548", "touchpanel", "Confirm_System_Off", USER);
+	BuildHttpMessage(dmpsHostName, "10.6.36.51", "", "ITB", "1100J", "1", "40.252619", "-111.657548", "touchpanel", "Confirm_System_Off", USER);
 }
 
 // !!!!!!!!! MOVE INACTIVE SIGNAL EVENTS HERE !!!!!!!!!!!!!!
