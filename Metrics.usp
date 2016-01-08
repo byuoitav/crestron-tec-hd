@@ -33,7 +33,7 @@ DIGITAL_INPUT _skip_,_skip_,_skip_,_skip_,_skip_;
 
 DIGITAL_INPUT clientConnected,systemReady;    
 
-STRING_INPUT dmpsHostName[32],dmpsIp[15];
+STRING_INPUT dmpsHostName[32],dmpsIp[15],dmpsMac[18];
 
 BUFFER_INPUT clientBuffer[100];
 
@@ -70,7 +70,7 @@ STRUCTURE QUEUEDEVENT
 *******************************************************************************************/
 
 SIGNED_INTEGER CONFIGFILEHANDLE;
-STRING REPORTINGHOST[30],HOSTNAME[30],HOSTIP[15];
+STRING REPORTINGHOST[30],HOSTNAME[30],HOSTIP[15],HOSTMAC[18],HOSTBLDG[8],HOSTROOM[16],HOSTFLOOR[2],HOSTLAT[11],HOSTLON[11];
 STRING MESSAGE[BIGGESTSIZE];
 INTEGER REPORTINGHOSTPORT;
 
@@ -228,6 +228,93 @@ Function BuildHttpMessage(STRING EVENTHOSTNAME, STRING EVENTIP, STRING EVENTMAC,
 	Send(innerMsg4);
 }
 
+Function GetConfiguration()
+{
+	SIGNED_INTEGER offset,mNum,yNum,dNum,ContentLength;
+    SIGNED_LONG_INTEGER PortNumber;
+	/*STRING timestamp[24];
+	STRING hostname[30];
+	STRING description[256];
+	STRING ipAddress[15];
+	STRING mac[17];
+	STRING building[8];
+	STRING roomNumber[8];
+	STRING lat[11];
+	STRING lon[11];
+	STRING flr[8];
+	STRING actor[30];
+	STRING desc[256];
+	STRING type[6];*/
+	STRING header1[1024],header2[1024],header3[1024],header4[1024],header5[1024],header6[1024];
+	//STRING innerMsg1[1024],innerMsg2[1024],innerMsg3[1024],innerMsg4[1024];
+	STRING CLString[1024];
+	//Print("Got to the HTTP Message Build\n");
+	/*if (EVENTHOSTNAME = "")
+		hostname = cleanString(HOSTNAME,"hostname");
+	else
+		hostname = cleanString(EVENTHOSTNAME,"hostname");
+    hostname = EVENTHOSTNAME;
+	description = "";
+	ipAddress = EVENTIP;
+	mac = EVENTMAC;
+	building = EVENTBLDG;
+	roomNumber = EVENTROOM;
+	lat = EVENTLAT;
+	lon = EVENTLON;
+	flr = EVENTFLOOR;
+	actor = EVENTACTOR;
+	desc = EVENTACTION;
+	type = userOrSystem;
+
+	
+	offset = GetGmtOffset();
+	mNum = GetMonthNum();
+	yNum = GetYearNum();
+	dNum = GetDateNum();
+	
+    // !!! TODO: Build in the DST offset
+	//timestamp = ITOA(yNum) + "-" + ITOA(mNum) + "-"+ ITOA(dNum) +"T"+ Time() +"Z"; // YYYY-MM-DDTHH:mm:ss.SSSZ
+
+	//innerMsg1 = "{\"" + type + "\": \"user\",\"timestamp\": \"" + timestamp +"\",\"device\": {\"hostname\": \"" + hostname +"\", \"description\": \"";
+	//innerMsg2 = "" + description +"\", \"ipAddress\": \"" + ipAddress +"\", \"macAddress\": \"" + mac +"\"}, \"room\": { \"building\": \"" + building;
+	//innerMsg3 = "\", \"roomNumber\": \"" + roomNumber +"\",\"coordinates\": \"" + lat +"," + lon +"\", \"floor\": \"" + flr + "\"";
+	//innerMsg4 = "},\"actions\": [{\"actor\": \"" + actor +"\", \"description\": \"" + desc +"\"}]}"; */
+	ContentLength = 0;
+	CLString = ITOA(ContentLength);
+
+	header1 = "GET configuration/device/" + HOSTNAME +"/_source/ HTTP/1.1" + NEWLINE;
+	header2 = "Host: " + REPORTINGHOST + ":" + ITOA(REPORTINGHOSTPORT) + NEWLINE;
+	header3 = "Connection: keep-alive" + NEWLINE;
+	header4 = "Content-Length: " + CLString + NEWLINE;
+	header5 = "Content-type: text/plain;charset=UTF-8" + NEWLINE;
+	header6 = "Accept: */*" + NEWLINE;
+/*	Print("%s",header1);
+	Print("%s",header1);
+	Print("%s",header2);
+	Print("%s",header3);
+	Print("%s",header4);
+	Print("%s",header5);
+	Print("%s",header6);
+	Print("%s",NEWLINE);
+	Print("%s",innerMsg1);
+	Print("%s",innerMsg2);
+	Print("%s",innerMsg3);
+	Print("%s",innerMsg4);*/
+
+	Send(header1);
+	Send(header2);
+	Send(header3);
+	Send(header4);
+	Send(header5);
+	Send(header6);
+	Send(NEWLINE);
+	//Send(innerMsg1);
+	//Send(innerMsg2);
+	//Send(innerMsg3);
+	//Send(innerMsg4);
+}
+
+
 /*******************************************************************************************
   Event Handlers
   (Uncomment and declare additional event handlers as needed)
@@ -243,14 +330,14 @@ RELEASE Startup_press // Start the session, turn system on
 {  
 	// Set startClient to High so it kicks off a socket
 	//_clientConnected = 1;
-	BuildHttpMessage(dmpsHostName, "10.6.36.51", "", "ITB", "1100J", "1", "40.252619", "-111.657548", "touchpanel", "Startup_press", USER);
+	BuildHttpMessage(HOSTNAME, HOSTIP, dmpsMac, "ITB", "1100J", "1", "40.252619", "-111.657548", "touchpanel", "Startup_press", USER);
 }
 
 RELEASE Confirm_System_Off  // End the session, turn system off
 {
 /*User Event*/
 	//_clientConnected = 0;
-	BuildHttpMessage(dmpsHostName, "10.6.36.51", "", "ITB", "1100J", "1", "40.252619", "-111.657548", "touchpanel", "Confirm_System_Off", USER);
+	BuildHttpMessage(HOSTNAME, HOSTIP, dmpsMac, "ITB", "1100J", "1", "40.252619", "-111.657548", "touchpanel", "Confirm_System_Off", USER);
 }
 
 // !!!!!!!!! MOVE INACTIVE SIGNAL EVENTS HERE !!!!!!!!!!!!!!
@@ -260,19 +347,28 @@ RELEASE Confirm_System_Off  // End the session, turn system off
 // If system gets hostname, set it in the global var
 CHANGE dmpsHostName
 {
-	STRING temp[100];
-	HOSTNAME = dmpsHostName;
-	while (ReverseFind("\x0D",HOSTNAME) > 0)
+	STRING trash[16];
+	if(FIND(" ",dmpsHostName) <= 1)
 	{
-		temp = Remove("\x0D",HOSTNAME);
+		trash = REMOVE(" ",dmpsHostName); // remove preceding space if there
 	}
-	HOSTNAME=temp;
+	HOSTNAME = dmpsHostName;
 }
 
 // If system gets IP, set it in the global var
 CHANGE dmpsIp
 {
+	STRING trash[16];
+	trash = REMOVE(" ",dmpsIp);
 	HOSTIP = dmpsIp;
+}
+
+// If system gets IP, set it in the global var
+CHANGE dmpsMac
+{
+	STRING trash[16];
+	trash = REMOVE(" ",dmpsMac);
+	HOSTMAC = dmpsMac;
 }
 
 // Start a socket session to handle whether a push is active or not 
@@ -452,7 +548,15 @@ Function Main()
 	REPORTINGHOSTPORT = 9200;
 	HOSTNAME = "";
 	HOSTIP = "";
-
+	HOSTMAC = "";
+	HOSTBLDG = "";
+	HOSTROOM = "";
+	HOSTFLOOR = "";
+	HOSTLAT = "40..249719";
+	HOSTLON = "-111.649265";
+    
+    
+    
 	// !!!!!!!!!! TODO: Use Configuration File to store Event Host Information
 	/*
 	CONFIGFILEHANDLE = FileOpen ( "\\NVRAM\\EVENTTARGET.TXT", _O_RDONLY );
