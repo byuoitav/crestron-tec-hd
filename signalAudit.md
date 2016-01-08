@@ -94,7 +94,7 @@ Select_HDMI_Cable
 Select_HDMI_Jack
 Select_IPTV
 Select_Local_Input
-Select_PA_Control (add to digital 386)
+Select_PA_Control
 Select_Remote_Input1
 Select_Remote_Input2
 Select_VGA_Cable

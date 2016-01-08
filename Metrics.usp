@@ -20,7 +20,7 @@ Comments: Forwards Metrics Events
 #DEFINE_CONSTANT	NEWLINE	"\n"
 #DEFINE_CONSTANT	USER	"user"
 #DEFINE_CONSTANT	SYSTEM	"system"
-#OUTPUT_SHIFT 6
+#OUTPUT_SHIFT 25
 #DEFAULT_VOLATILE
 #ENABLE_STACK_CHECKING
 
@@ -28,18 +28,20 @@ Comments: Forwards Metrics Events
   DIGITAL_INPUT, ANALOG_INPUT, STRING_INPUT, BUFFER_INPUT inputs and DIGITAL_OUTPUT, 
   ANALOG_OUTPUT, STRING_OUTPUT and SERIAL_OUTPUT outputs
 *******************************************************************************************/
-DIGITAL_INPUT Startup_press,Confirm_System_Off; // Enumerate signals here
+DIGITAL_INPUT Startup_press,Confirm_System_Off,Program_Volume_Down,Program_Volume_Up,Select_AV_Jack,Select_Blank,Select_BluRay,Select_Device_Control_Blurayl,Select_Device_Control_IPTV,Select_HDMI_Cable,Select_HDMI_Jack,Select_IPTV,Select_Local_Input,Select_PA_Control,Select_Remote_Input1,Select_Remote_Input2,Select_VGA_Cable;
+
 DIGITAL_INPUT _skip_,_skip_,_skip_,_skip_,_skip_;
+ 
+DIGITAL_INPUT clientConnected,systemReady;   
 
-DIGITAL_INPUT clientConnected,systemReady;    
-
-STRING_INPUT dmpsHostName[32],dmpsIp[15],dmpsMac[18];
-
+STRING_INPUT dmpsHostName[32],dmpsIp[15],dmpsMACAddr[18],devBuilding[8],devRoom[16],devFloor[2],devLatitude[11],devLongitude[11];
+                               
 BUFFER_INPUT clientBuffer[100];
 
 DIGITAL_OUTPUT _clientConnected;
 
-STRING_OUTPUT  toClientBuffer$;
+STRING_OUTPUT  _skip_,_skip_,_skip_,_skip_,toDevBuilding,toDevRoom,toDevFloor,toDevLat,toDevLon,toClientBuffer$;
+
 
 /*******************************************************************************************
   SOCKETS
@@ -94,7 +96,38 @@ Function Send(string msg)
 	Print("Sending: %s",msg);
 	SocketSend(client,msg);	
 }
- 
+
+Function storeGlobalVars(string inputString)
+{
+	STRING trash[100],parseThisString[1024],temp[1024];
+	
+	// Expected Format: {"room":{"coordinates":[-111.657548,40.252619],"roomNumber":"1100J","floor":"1","building":"ITB"}}
+	if((FIND("building",inputString) > 0) && (FIND("roomNumber",inputString) > 0) && (FIND("floor",inputString) > 0) && (FIND("building",inputString) > 0))
+	{
+		trash = Remove(":[",inputString);
+		parseThisString = inputString;
+		
+		// Get Longitude
+		HOSTLON = Remove(",",parseThisString);
+		
+		// Get Latitude
+		HOSTLAT = Remove("],",parseThisString);
+		
+		// Get Room
+		trash = Remove(":\"",parseThisString);
+		HOSTROOM = Remove("\"",parseThisString);
+		
+		// Get Floor
+		trash = Remove(":\"",parseThisString);
+		HOSTFLOOR = Remove(",",parseThisString);
+		
+		//Get Building
+		
+		trash = Remove(":\"",parseThisString);
+		temp = parseThisString;
+		HOSTBLDG = Remove("\"",temp);		
+	}
+}
 // type can be default, hostname, ip (add other types as needed
 /*String_function cleanString(string $in, string type)
 {
@@ -228,78 +261,21 @@ Function BuildHttpMessage(STRING EVENTHOSTNAME, STRING EVENTIP, STRING EVENTMAC,
 	Send(innerMsg4);
 }
 
-Function GetConfiguration()
+Function GetConfigurationValue(string field)
 {
 	SIGNED_INTEGER offset,mNum,yNum,dNum,ContentLength;
     SIGNED_LONG_INTEGER PortNumber;
-	/*STRING timestamp[24];
-	STRING hostname[30];
-	STRING description[256];
-	STRING ipAddress[15];
-	STRING mac[17];
-	STRING building[8];
-	STRING roomNumber[8];
-	STRING lat[11];
-	STRING lon[11];
-	STRING flr[8];
-	STRING actor[30];
-	STRING desc[256];
-	STRING type[6];*/
 	STRING header1[1024],header2[1024],header3[1024],header4[1024],header5[1024],header6[1024];
-	//STRING innerMsg1[1024],innerMsg2[1024],innerMsg3[1024],innerMsg4[1024];
 	STRING CLString[1024];
-	//Print("Got to the HTTP Message Build\n");
-	/*if (EVENTHOSTNAME = "")
-		hostname = cleanString(HOSTNAME,"hostname");
-	else
-		hostname = cleanString(EVENTHOSTNAME,"hostname");
-    hostname = EVENTHOSTNAME;
-	description = "";
-	ipAddress = EVENTIP;
-	mac = EVENTMAC;
-	building = EVENTBLDG;
-	roomNumber = EVENTROOM;
-	lat = EVENTLAT;
-	lon = EVENTLON;
-	flr = EVENTFLOOR;
-	actor = EVENTACTOR;
-	desc = EVENTACTION;
-	type = userOrSystem;
-
-	
-	offset = GetGmtOffset();
-	mNum = GetMonthNum();
-	yNum = GetYearNum();
-	dNum = GetDateNum();
-	
-    // !!! TODO: Build in the DST offset
-	//timestamp = ITOA(yNum) + "-" + ITOA(mNum) + "-"+ ITOA(dNum) +"T"+ Time() +"Z"; // YYYY-MM-DDTHH:mm:ss.SSSZ
-
-	//innerMsg1 = "{\"" + type + "\": \"user\",\"timestamp\": \"" + timestamp +"\",\"device\": {\"hostname\": \"" + hostname +"\", \"description\": \"";
-	//innerMsg2 = "" + description +"\", \"ipAddress\": \"" + ipAddress +"\", \"macAddress\": \"" + mac +"\"}, \"room\": { \"building\": \"" + building;
-	//innerMsg3 = "\", \"roomNumber\": \"" + roomNumber +"\",\"coordinates\": \"" + lat +"," + lon +"\", \"floor\": \"" + flr + "\"";
-	//innerMsg4 = "},\"actions\": [{\"actor\": \"" + actor +"\", \"description\": \"" + desc +"\"}]}"; */
 	ContentLength = 0;
 	CLString = ITOA(ContentLength);
 
-	header1 = "GET configuration/device/" + HOSTNAME +"/_source/ HTTP/1.1" + NEWLINE;
+	header1 = "GET configuration/device/" + HOSTNAME +"?_source_include=" + field+ " HTTP/1.1" + NEWLINE;
 	header2 = "Host: " + REPORTINGHOST + ":" + ITOA(REPORTINGHOSTPORT) + NEWLINE;
 	header3 = "Connection: keep-alive" + NEWLINE;
 	header4 = "Content-Length: " + CLString + NEWLINE;
 	header5 = "Content-type: text/plain;charset=UTF-8" + NEWLINE;
 	header6 = "Accept: */*" + NEWLINE;
-/*	Print("%s",header1);
-	Print("%s",header1);
-	Print("%s",header2);
-	Print("%s",header3);
-	Print("%s",header4);
-	Print("%s",header5);
-	Print("%s",header6);
-	Print("%s",NEWLINE);
-	Print("%s",innerMsg1);
-	Print("%s",innerMsg2);
-	Print("%s",innerMsg3);
-	Print("%s",innerMsg4);*/
 
 	Send(header1);
 	Send(header2);
@@ -308,10 +284,6 @@ Function GetConfiguration()
 	Send(header5);
 	Send(header6);
 	Send(NEWLINE);
-	//Send(innerMsg1);
-	//Send(innerMsg2);
-	//Send(innerMsg3);
-	//Send(innerMsg4);
 }
 
 
@@ -320,6 +292,9 @@ Function GetConfiguration()
   (Uncomment and declare additional event handlers as needed)
 *******************************************************************************************/
 
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
 /******************
 //
 // !!! MOVE ACTIVE SIGNAL EVENTS INTO THIS SECTION !!!
@@ -328,18 +303,85 @@ Function GetConfiguration()
 
 RELEASE Startup_press // Start the session, turn system on
 {  
-	// Set startClient to High so it kicks off a socket
-	//_clientConnected = 1;
-	BuildHttpMessage(HOSTNAME, HOSTIP, dmpsMac, "ITB", "1100J", "1", "40.252619", "-111.657548", "touchpanel", "Startup_press", USER);
+	/*User Event*/
+	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Startup_press", USER);
 }
 
 RELEASE Confirm_System_Off  // End the session, turn system off
 {
-/*User Event*/
-	//_clientConnected = 0;
-	BuildHttpMessage(HOSTNAME, HOSTIP, dmpsMac, "ITB", "1100J", "1", "40.252619", "-111.657548", "touchpanel", "Confirm_System_Off", USER);
+	/*User Event*/
+	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Confirm_System_Off", USER);
 }
 
+Release Program_Volume_Down // Volume Down
+{
+	/*User Event*/
+	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Program_Volume_Down", USER);
+}
+
+Release Program_Volume_Up // Volume Down
+{
+	/*User Event*/
+	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Program_Volume_Up", USER);
+}
+
+Release Select_Blank // Blank
+{
+	/*User Event*/
+	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Select_Blank", USER);
+}
+
+Release Select_Device_Control_IPTV // IPTV Device Control
+{
+	/*User Event*/
+	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Select_Device_Control_IPTV", USER);
+}
+
+Release Select_HDMI_Cable // HDMI Cable
+{
+	/*User Event*/
+	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Select_HDMI_Cable", USER);
+}
+
+Release Select_HDMI_Jack // HDMI Jack
+{
+	/*User Event*/
+	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Select_HDMI_Jack", USER);
+}
+
+Release Select_IPTV // IPTV Input
+{
+	/*User Event*/
+	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Select_IPTV", USER);
+}
+
+Release Select_Local_Input // Local Input
+{
+	/*User Event*/
+	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Select_Local_Input", USER);
+}
+
+Release Select_Remote_Input1 // Remote Input 1
+{
+	/*User Event*/
+	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Select_Remote_Input1", USER);
+}
+
+Release Select_Remote_Input2 // Remote Input 2
+{
+	/*User Event*/
+	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Select_Remote_Input2", USER);
+}
+
+Release Select_VGA_Cable // VGA Input
+{
+	/*User Event*/
+	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Select_VGA_Cable", USER);
+}
+
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
 // !!!!!!!!! MOVE INACTIVE SIGNAL EVENTS HERE !!!!!!!!!!!!!!
 
 
@@ -364,11 +406,11 @@ CHANGE dmpsIp
 }
 
 // If system gets IP, set it in the global var
-CHANGE dmpsMac
+CHANGE dmpsMACAddr
 {
 	STRING trash[16];
-	trash = REMOVE(" ",dmpsMac);
-	HOSTMAC = dmpsMac;
+	trash = REMOVE(" ",dmpsMACAddr);
+	HOSTMAC = dmpsMACAddr;
 }
 
 // Start a socket session to handle whether a push is active or not 
@@ -434,9 +476,12 @@ SOCKETDISCONNECT client
 // Display the data received from the calls to the client and clear the buffer
 SOCKETRECEIVE client
 {
-	//LOG("SOCKET RECEIVING");
+	//STRING received$[1024];
+	//received$ = client.SocketRxBuf;
     if (Len(client.SocketRxBuf) < 256)
         Print("Rx: %s", client.SocketRxBuf);
+    
+    //storeGlobalVars(received$);    
 
     // send to serial output and clear buffer
     //clientRx = client.SocketRxBuf;
@@ -552,11 +597,9 @@ Function Main()
 	HOSTBLDG = "";
 	HOSTROOM = "";
 	HOSTFLOOR = "";
-	HOSTLAT = "40..249719";
+	HOSTLAT = "40.249719";
 	HOSTLON = "-111.649265";
-    
-    
-    
+    //GetConfigurationValue("room");    
 	// !!!!!!!!!! TODO: Use Configuration File to store Event Host Information
 	/*
 	CONFIGFILEHANDLE = FileOpen ( "\\NVRAM\\EVENTTARGET.TXT", _O_RDONLY );
