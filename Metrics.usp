@@ -96,7 +96,7 @@ Function Send(string msg)
 }
  
 // type can be default, hostname, ip (add other types as needed
-String_function cleanString(string $in, string type)
+/*String_function cleanString(string $in, string type)
 {
 	INTEGER intType;
 	STRING cleanedString[1024],temp[1024],LOWERTYPE[8],LINEFEED[4],CARRIAGE[4],TAB[4],SPACE[1],DOLLAR[4],COMMA[4],PERIOD[4],HYPHEN[4],APOSTROPHE[4];
@@ -140,7 +140,7 @@ String_function cleanString(string $in, string type)
 	} 	
 	
 	return (cleanedString);
-}
+}*/
 
 Function BuildHttpMessage(STRING EVENTHOSTNAME, STRING EVENTIP, STRING EVENTMAC, STRING EVENTBLDG, STRING EVENTROOM, STRING EVENTFLOOR, STRING EVENTLAT, STRING EVENTLON, STRING EVENTACTOR, string EVENTACTION, STRING userOrSystem)
 {
@@ -163,11 +163,11 @@ Function BuildHttpMessage(STRING EVENTHOSTNAME, STRING EVENTIP, STRING EVENTMAC,
 	STRING innerMsg1[1024],innerMsg2[1024],innerMsg3[1024],innerMsg4[1024];
 	STRING CLString[1024];
 	Print("Got to the HTTP Message Build\n");
-	if (EVENTHOSTNAME = "")
-		hostname = cleanString(HOSTNAME,"hostname");
-	else
-		hostname = cleanString(EVENTHOSTNAME,"hostname");
-
+	//if (EVENTHOSTNAME = "")
+	//	hostname = cleanString(HOSTNAME,"hostname");
+	//else
+	//	hostname = cleanString(EVENTHOSTNAME,"hostname");
+    hostname = EVENTHOSTNAME;
 	description = "";
 	ipAddress = EVENTIP;
 	mac = EVENTMAC;

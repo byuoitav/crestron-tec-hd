@@ -20224,11 +20224,7 @@ ObjTp=Bk
 Nm1=\
 Sx1=0
 Sy1=0
-<<<<<<< HEAD
 Mx1=1
-=======
-Mx1=0
->>>>>>> refs/remotes/origin/master
 Nm2=RoomView Connected Display1
 Sx2=0
 Sy2=0
@@ -20277,11 +20273,39 @@ Nm13=STB
 Sx13=0
 Sy13=0
 Mx13=0
-<<<<<<< HEAD
 Nm14=Metrics
 Sx14=0
 Sy14=0
 Mx14=1
+]
+[
+ObjTp=Bw
+H=1
+Lx=20
+Ly=20
+Rx=280
+Ry=220
+Xm=-1
+Ym=-1
+SH=595
+Z=100
+P=935
+Ht=1
+Hi=68
+]
+[
+ObjTp=Bw
+H=1
+Lx=20
+Ly=20
+Rx=280
+Ry=220
+Xm=-1
+Ym=-1
+SH=700
+Z=100
+Ht=4
+Hi=12
 ]
 [
 ObjTp=Bw
@@ -20296,8 +20320,6 @@ SH=754
 Z=100
 Ht=1
 Hi=12
-=======
->>>>>>> refs/remotes/origin/master
 ]
 [
 ObjTp=Bw
@@ -21880,7 +21902,6 @@ Ht=4
 Hi=1
 ]
 [
-<<<<<<< HEAD
 ObjTp=Bw
 H=14
 Lx=0
@@ -21895,8 +21916,6 @@ Ht=1
 Hi=8
 ]
 [
-=======
->>>>>>> refs/remotes/origin/master
 ObjTp=Et
 H=1
 DvH=992
@@ -22074,7 +22093,7 @@ SmC=156
 Nm=Logic
 ObjVer=1
 CF=2
-mC=11
+mC=12
 C1=659
 C2=57
 C3=96
@@ -22086,6 +22105,7 @@ C8=460
 C9=471
 C10=482
 C11=540
+C12=753
 ]
 [
 ObjTp=Sm
@@ -39703,13 +39723,8 @@ Nm=Make String Permanent
 ObjVer=1
 PrH=172
 CF=2
-<<<<<<< HEAD
-n1I=69
-mI=69
-=======
-n1I=67
-mI=67
->>>>>>> refs/remotes/origin/master
+n1I=68
+mI=68
 I1=4765
 I2=4766
 I3=4724
@@ -39777,11 +39792,7 @@ I64=4928
 I65=4906
 I66=4930
 I67=4929
-<<<<<<< HEAD
 I68=5036
-I69=5038
-=======
->>>>>>> refs/remotes/origin/master
 mP=1
 P1=70d
 ]
@@ -58275,23 +58286,16 @@ I4=4699
 I5=4764
 I6=4721
 I7=4723
-<<<<<<< HEAD
-mO=11
-tO=11
-=======
-mO=9
-tO=9
->>>>>>> refs/remotes/origin/master
+mO=12
+tO=12
 O5=4765
 O6=4766
 O7=4722
 O8=4905
 O9=4724
-<<<<<<< HEAD
-O10=6772
-O11=5036
-=======
->>>>>>> refs/remotes/origin/master
+O10=5036
+O11=6772
+O12=6772
 mP=1
 P1=
 ]
@@ -59811,7 +59815,6 @@ mP=1
 P1=20d
 ]
 [
-<<<<<<< HEAD
 ObjTp=Sm
 H=753
 SmC=156
@@ -59850,8 +59853,6 @@ mP=1
 P1=
 ]
 [
-=======
->>>>>>> refs/remotes/origin/master
 ObjTp=CED
 H=23
 SmH=618
@@ -90851,15 +90852,12 @@ Nm=IPTV_Power
 ]
 [
 ObjTp=Sg
-<<<<<<< HEAD
 H=5031
 Nm=clientBufferData
 SgTp=4
 ]
 [
 ObjTp=Sg
-=======
->>>>>>> refs/remotes/origin/master
 H=5032
 Nm=STB_Is_Supposed_to_be_off
 ]
@@ -90875,7 +90873,6 @@ Nm=IPTV_VideoOk_tt
 ]
 [
 ObjTp=Sg
-<<<<<<< HEAD
 H=5035
 Nm=clientConnection
 ]
@@ -90887,14 +90884,6 @@ SgTp=4
 ]
 [
 ObjTp=Sg
-H=5038
-Nm=//dmpsIP
-SgTp=4
-]
-[
-ObjTp=Sg
-=======
->>>>>>> refs/remotes/origin/master
 H=6719
 Nm=Source_name_5
 ]

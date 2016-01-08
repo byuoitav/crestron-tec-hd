@@ -27,7 +27,7 @@
 #define __S2_Add_or_Remove_Slave_IP_ADDRESS$_BUFFER_MAX_LEN 15
 CREATE_STRING_STRUCT( S2_Add_or_Remove_Slave, __IP_ADDRESS$, __S2_Add_or_Remove_Slave_IP_ADDRESS$_BUFFER_MAX_LEN );
 #define __S2_Add_or_Remove_Slave_FROM_CONSOLE$_BUFFER_INPUT 1
-#define __S2_Add_or_Remove_Slave_FROM_CONSOLE$_BUFFER_MAX_LEN 500
+#define __S2_Add_or_Remove_Slave_FROM_CONSOLE$_BUFFER_MAX_LEN 3000
 CREATE_STRING_STRUCT( S2_Add_or_Remove_Slave, __FROM_CONSOLE$, __S2_Add_or_Remove_Slave_FROM_CONSOLE$_BUFFER_MAX_LEN );
 
 
@@ -45,8 +45,9 @@ CREATE_STRING_STRUCT( S2_Add_or_Remove_Slave, __FROM_CONSOLE$, __S2_Add_or_Remov
 #define __S2_Add_or_Remove_Slave_TO_CONSOLE$_STRING_OUTPUT 2
 #define __S2_Add_or_Remove_Slave_IPTABLE$_STRING_OUTPUT 3
 #define __S2_Add_or_Remove_Slave_DMPSVER$_STRING_OUTPUT 4
-#define __S2_Add_or_Remove_Slave_DMPSIP$_STRING_OUTPUT 5
-#define __S2_Add_or_Remove_Slave_DMPSHOST$_STRING_OUTPUT 6
+#define __S2_Add_or_Remove_Slave_DMPSHOSTNAME$_STRING_OUTPUT 5
+#define __S2_Add_or_Remove_Slave_DMPSIP$_STRING_OUTPUT 6
+#define __S2_Add_or_Remove_Slave_DMPSMAC$_STRING_OUTPUT 7
 
 
 /*

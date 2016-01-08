@@ -28,8 +28,9 @@ namespace UserModule_ADD_OR_REMOVE_SLAVE
         Crestron.Logos.SplusObjects.StringOutput TO_CONSOLE__DOLLAR__;
         Crestron.Logos.SplusObjects.StringOutput IPTABLE__DOLLAR__;
         Crestron.Logos.SplusObjects.StringOutput DMPSVER__DOLLAR__;
+        Crestron.Logos.SplusObjects.StringOutput DMPSHOSTNAME__DOLLAR__;
         Crestron.Logos.SplusObjects.StringOutput DMPSIP__DOLLAR__;
-        Crestron.Logos.SplusObjects.StringOutput DMPSHOST__DOLLAR__;
+        Crestron.Logos.SplusObjects.StringOutput DMPSMAC__DOLLAR__;
         CrestronString IP_ID__DOLLAR__;
         CrestronString PORT__DOLLAR__;
         object ADD_SLAVE_OnPush_0 ( Object __EventInfo__ )
@@ -124,6 +125,10 @@ object GET_PROGRAM_INFO_OnPush_4 ( Object __EventInfo__ )
         TO_CONSOLE__DOLLAR__  .UpdateValue ( "ver\u000D"  ) ; 
         __context__.SourceCodeLine = 59;
         TO_CONSOLE__DOLLAR__  .UpdateValue ( "host\u000D"  ) ; 
+        __context__.SourceCodeLine = 60;
+        TO_CONSOLE__DOLLAR__  .UpdateValue ( "ipaddress\u000D"  ) ; 
+        __context__.SourceCodeLine = 61;
+        TO_CONSOLE__DOLLAR__  .UpdateValue ( "estatus\u000D"  ) ; 
         
         
     }
@@ -145,76 +150,104 @@ object FROM_CONSOLE__DOLLAR___OnChange_5 ( Object __EventInfo__ )
         CrestronString IN__DOLLAR__;
         CrestronString TEMPSTRING;
         CrestronString TRASH;
-        IN__DOLLAR__  = new CrestronString( Crestron.Logos.SplusObjects.CrestronStringEncoding.eEncodingASCII, 1000, this );
+        IN__DOLLAR__  = new CrestronString( Crestron.Logos.SplusObjects.CrestronStringEncoding.eEncodingASCII, 3000, this );
         TEMPSTRING  = new CrestronString( Crestron.Logos.SplusObjects.CrestronStringEncoding.eEncodingASCII, 100, this );
         TRASH  = new CrestronString( Crestron.Logos.SplusObjects.CrestronStringEncoding.eEncodingASCII, 250, this );
         
         
-        __context__.SourceCodeLine = 67;
+        __context__.SourceCodeLine = 69;
         IN__DOLLAR__  .UpdateValue ( Functions.Gather ( "DMPS-300-C>" , FROM_CONSOLE__DOLLAR__ )  ) ; 
-        __context__.SourceCodeLine = 68;
-        if ( Functions.TestForTrue  ( ( Functions.Find( "IP Table:" , IN__DOLLAR__ ))  ) ) 
+        __context__.SourceCodeLine = 72;
+        if ( Functions.TestForTrue  ( ( Functions.BoolToInt ( (Functions.TestForTrue ( Functions.Find( "IP Table:" , IN__DOLLAR__ ) ) && Functions.TestForTrue ( Functions.BoolToInt ( Functions.Length( IN__DOLLAR__ ) < 150 ) )) ))  ) ) 
             { 
-            __context__.SourceCodeLine = 70;
+            __context__.SourceCodeLine = 74;
+            Print( "Found IPTable ID:7") ; 
+            __context__.SourceCodeLine = 75;
             IPTABLE__DOLLAR__  .UpdateValue ( Functions.Left ( IN__DOLLAR__ ,  (int) ( (Functions.Find( "DMPS-300-C>" , IN__DOLLAR__ ) - 5) ) )  ) ; 
-            __context__.SourceCodeLine = 71;
+            __context__.SourceCodeLine = 76;
             IN__DOLLAR__  .UpdateValue ( ""  ) ; 
             } 
         
         else 
             {
-            __context__.SourceCodeLine = 73;
+            __context__.SourceCodeLine = 78;
             if ( Functions.TestForTrue  ( ( Functions.Find( "DMPS-300-C Cntrl Eng" , IN__DOLLAR__ ))  ) ) 
                 { 
-                __context__.SourceCodeLine = 75;
+                __context__.SourceCodeLine = 80;
                 DMPSVER__DOLLAR__  .UpdateValue ( Functions.Left ( IN__DOLLAR__ ,  (int) ( (Functions.Find( "DMPS-300-C>" , IN__DOLLAR__ ) - 5) ) )  ) ; 
-                __context__.SourceCodeLine = 76;
+                __context__.SourceCodeLine = 81;
                 IN__DOLLAR__  .UpdateValue ( ""  ) ; 
                 } 
             
             }
         
-        __context__.SourceCodeLine = 79;
+        __context__.SourceCodeLine = 84;
         while ( Functions.TestForTrue  ( ( Functions.Find( "\u000A" , IN__DOLLAR__ ))  ) ) 
             { 
-            __context__.SourceCodeLine = 81;
+            __context__.SourceCodeLine = 86;
             TEMPSTRING  .UpdateValue ( Functions.Remove ( "\u000A" , IN__DOLLAR__ )  ) ; 
-            __context__.SourceCodeLine = 82;
+            __context__.SourceCodeLine = 87;
             if ( Functions.TestForTrue  ( ( Functions.Find( "Program File:" , TEMPSTRING ))  ) ) 
                 { 
-                __context__.SourceCodeLine = 84;
+                __context__.SourceCodeLine = 89;
                 TRASH  .UpdateValue ( Functions.Remove ( "Program File: " , TEMPSTRING )  ) ; 
-                __context__.SourceCodeLine = 85;
-                PROGRAM_NAME__DOLLAR__  .UpdateValue ( Functions.Left ( TEMPSTRING ,  (int) ( (Functions.Find( "\u000A" , TEMPSTRING ) - 1) ) )  ) ; 
+                __context__.SourceCodeLine = 90;
+                PROGRAM_NAME__DOLLAR__  .UpdateValue ( Functions.Left ( TEMPSTRING ,  (int) ( (Functions.Find( "\u000A" , TEMPSTRING ) - 2) ) )  ) ; 
                 } 
             
             else 
                 {
-                __context__.SourceCodeLine = 88;
+                __context__.SourceCodeLine = 93;
                 if ( Functions.TestForTrue  ( ( Functions.Find( "Compiled On:" , TEMPSTRING ))  ) ) 
                     { 
-                    __context__.SourceCodeLine = 90;
+                    __context__.SourceCodeLine = 95;
                     TRASH  .UpdateValue ( Functions.Remove ( "Compiled On:  " , TEMPSTRING )  ) ; 
-                    __context__.SourceCodeLine = 91;
-                    COMPILE_DATE__DOLLAR__  .UpdateValue ( Functions.Left ( TEMPSTRING ,  (int) ( (Functions.Find( "\u000A" , TEMPSTRING ) - 1) ) )  ) ; 
+                    __context__.SourceCodeLine = 96;
+                    COMPILE_DATE__DOLLAR__  .UpdateValue ( Functions.Left ( TEMPSTRING ,  (int) ( (Functions.Find( "\u000A" , TEMPSTRING ) - 2) ) )  ) ; 
                     } 
                 
                 else 
                     {
-                    __context__.SourceCodeLine = 93;
+                    __context__.SourceCodeLine = 98;
                     if ( Functions.TestForTrue  ( ( Functions.Find( "Host Name:" , TEMPSTRING ))  ) ) 
                         { 
-                        __context__.SourceCodeLine = 95;
+                        __context__.SourceCodeLine = 100;
                         TRASH  .UpdateValue ( Functions.Remove ( "Host Name: " , TEMPSTRING )  ) ; 
-                        __context__.SourceCodeLine = 96;
-                        DMPSHOST__DOLLAR__  .UpdateValue ( Functions.Left ( TEMPSTRING ,  (int) ( (Functions.Find( "\u000A" , TEMPSTRING ) - 1) ) )  ) ; 
+                        __context__.SourceCodeLine = 101;
+                        DMPSHOSTNAME__DOLLAR__  .UpdateValue ( Functions.Left ( TEMPSTRING ,  (int) ( (Functions.Find( "\u000D" , TEMPSTRING ) - 1) ) )  ) ; 
                         } 
+                    
+                    else 
+                        {
+                        __context__.SourceCodeLine = 103;
+                        if ( Functions.TestForTrue  ( ( Functions.Find( "IP address:" , TEMPSTRING ))  ) ) 
+                            { 
+                            __context__.SourceCodeLine = 105;
+                            TRASH  .UpdateValue ( Functions.Remove ( "IP address:" , TEMPSTRING )  ) ; 
+                            __context__.SourceCodeLine = 106;
+                            DMPSIP__DOLLAR__  .UpdateValue ( Functions.Left ( TEMPSTRING ,  (int) ( (Functions.Find( "\u000D" , TEMPSTRING ) - 1) ) )  ) ; 
+                            } 
+                        
+                        else 
+                            {
+                            __context__.SourceCodeLine = 109;
+                            if ( Functions.TestForTrue  ( ( Functions.Find( "MAC Address(es):" , TEMPSTRING ))  ) ) 
+                                { 
+                                __context__.SourceCodeLine = 111;
+                                TRASH  .UpdateValue ( Functions.Remove ( "MAC Address(es): " , TEMPSTRING )  ) ; 
+                                __context__.SourceCodeLine = 113;
+                                DMPSMAC__DOLLAR__  .UpdateValue ( Functions.Left ( TEMPSTRING ,  (int) ( (Functions.Find( "\u000D" , TEMPSTRING ) - 1) ) )  ) ; 
+                                } 
+                            
+                            }
+                        
+                        }
                     
                     }
                 
                 }
             
-            __context__.SourceCodeLine = 79;
+            __context__.SourceCodeLine = 84;
             } 
         
         
@@ -232,15 +265,15 @@ public override object FunctionMain (  object __obj__ )
     {
         SplusExecutionContext __context__ = SplusFunctionMainStartCode();
         
-        __context__.SourceCodeLine = 107;
+        __context__.SourceCodeLine = 122;
         WaitForInitializationComplete ( ) ; 
-        __context__.SourceCodeLine = 108;
+        __context__.SourceCodeLine = 123;
         IP_ID__DOLLAR__  .UpdateValue ( "07"  ) ; 
-        __context__.SourceCodeLine = 109;
+        __context__.SourceCodeLine = 124;
         PORT__DOLLAR__  .UpdateValue ( "2202"  ) ; 
-        __context__.SourceCodeLine = 110;
+        __context__.SourceCodeLine = 125;
         PROGRAM_NAME__DOLLAR__  .UpdateValue ( ""  ) ; 
-        __context__.SourceCodeLine = 111;
+        __context__.SourceCodeLine = 126;
         COMPILE_DATE__DOLLAR__  .UpdateValue ( ""  ) ; 
         
         
@@ -289,16 +322,19 @@ public override void LogosSplusInitialize()
     DMPSVER__DOLLAR__ = new Crestron.Logos.SplusObjects.StringOutput( DMPSVER__DOLLAR____AnalogSerialOutput__, this );
     m_StringOutputList.Add( DMPSVER__DOLLAR____AnalogSerialOutput__, DMPSVER__DOLLAR__ );
     
+    DMPSHOSTNAME__DOLLAR__ = new Crestron.Logos.SplusObjects.StringOutput( DMPSHOSTNAME__DOLLAR____AnalogSerialOutput__, this );
+    m_StringOutputList.Add( DMPSHOSTNAME__DOLLAR____AnalogSerialOutput__, DMPSHOSTNAME__DOLLAR__ );
+    
     DMPSIP__DOLLAR__ = new Crestron.Logos.SplusObjects.StringOutput( DMPSIP__DOLLAR____AnalogSerialOutput__, this );
     m_StringOutputList.Add( DMPSIP__DOLLAR____AnalogSerialOutput__, DMPSIP__DOLLAR__ );
     
-    DMPSHOST__DOLLAR__ = new Crestron.Logos.SplusObjects.StringOutput( DMPSHOST__DOLLAR____AnalogSerialOutput__, this );
-    m_StringOutputList.Add( DMPSHOST__DOLLAR____AnalogSerialOutput__, DMPSHOST__DOLLAR__ );
+    DMPSMAC__DOLLAR__ = new Crestron.Logos.SplusObjects.StringOutput( DMPSMAC__DOLLAR____AnalogSerialOutput__, this );
+    m_StringOutputList.Add( DMPSMAC__DOLLAR____AnalogSerialOutput__, DMPSMAC__DOLLAR__ );
     
     IP_ADDRESS__DOLLAR__ = new Crestron.Logos.SplusObjects.BufferInput( IP_ADDRESS__DOLLAR____AnalogSerialInput__, 15, this );
     m_StringInputList.Add( IP_ADDRESS__DOLLAR____AnalogSerialInput__, IP_ADDRESS__DOLLAR__ );
     
-    FROM_CONSOLE__DOLLAR__ = new Crestron.Logos.SplusObjects.BufferInput( FROM_CONSOLE__DOLLAR____AnalogSerialInput__, 500, this );
+    FROM_CONSOLE__DOLLAR__ = new Crestron.Logos.SplusObjects.BufferInput( FROM_CONSOLE__DOLLAR____AnalogSerialInput__, 3000, this );
     m_StringInputList.Add( FROM_CONSOLE__DOLLAR____AnalogSerialInput__, FROM_CONSOLE__DOLLAR__ );
     
     
@@ -338,8 +374,9 @@ const uint COMPILE_DATE__DOLLAR____AnalogSerialOutput__ = 1;
 const uint TO_CONSOLE__DOLLAR____AnalogSerialOutput__ = 2;
 const uint IPTABLE__DOLLAR____AnalogSerialOutput__ = 3;
 const uint DMPSVER__DOLLAR____AnalogSerialOutput__ = 4;
-const uint DMPSIP__DOLLAR____AnalogSerialOutput__ = 5;
-const uint DMPSHOST__DOLLAR____AnalogSerialOutput__ = 6;
+const uint DMPSHOSTNAME__DOLLAR____AnalogSerialOutput__ = 5;
+const uint DMPSIP__DOLLAR____AnalogSerialOutput__ = 6;
+const uint DMPSMAC__DOLLAR____AnalogSerialOutput__ = 7;
 
 [SplusStructAttribute(-1, true, false)]
 public class SplusNVRAM : SplusStructureBase
