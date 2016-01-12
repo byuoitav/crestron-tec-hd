@@ -323,6 +323,8 @@
 | Wireless_Monitoring_Is_On | NO |
 
 ##ANALOG
+| Signal | Implemented |
+| --- | --- |
 | Display1_Lamp_hours_fb | NO |
 | Display1_Temp | NO |
 | Display2_Lamp_hours_fb | NO |
