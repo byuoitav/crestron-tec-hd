@@ -8,4 +8,4 @@ The current reporting infrastructure is an [ELK stack](https://www.elastic.co/pr
 
 ##Signal List
 
-A compiled signal list can be found at [signalAudit.md](https://github.com/byu-oit-appdev/crestron-tec-hd/blob/30f2321e2f9ad4f6321e3fe2197d9bedf5f6d66d/signalAudit.md)
+A compiled signal list can be found at [signalAudit.md](https://github.com/byu-oit-appdev/crestron-tec-hd/blob/MetricsModule/signalAudit.md)
