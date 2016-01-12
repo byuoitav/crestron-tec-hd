@@ -20,7 +20,7 @@
 | Blu-ray_Top_Menu | NO |
 | Blu-ray_Up | NO |
 | Confirm_Display_Off | NO |
-| Confirm_System_Off | NO |
+| Confirm_System_Off | YES |
 | Decline_Display_Off | NO |
 | Decline_System_Off | NO |
 | Device_Tab_Select | NO |
@@ -30,8 +30,8 @@
 | Display_Power_On_Button | NO |
 | Display_Tab_Select | NO |
 | Duplicate_Displays | NO |
-| Help_Menu_Press (add to digital 3) | NO |
-| Home_button | NO |
+| Help_Menu_Press | YES |
+| Home_button | YES |
 | IPTV_0 | NO |
 | IPTV_1 | NO |
 | IPTV_2 | NO |
@@ -83,24 +83,24 @@
 | Mic6_Volume_Mute | NO |
 | Mic6_Volume_Press | NO |
 | Mic6_Volume_Up | NO |
-| Program_Volume_Down | NO |
+| Program_Volume_Down | YES |
 | Program_Volume_Mute_Toggle | NO |
 | Program_Volume_Slider_Press | NO |
-| Program_Volume_Up | NO |
-| Select_A/V_Jack | NO |
-| Select_Blank | NO |
-| Select_Blu-ray | NO |
-| Select_Device_Control_Blu-ray | NO |
-| Select_Device_Control_IPTV | NO |
-| Select_HDMI_Cable | NO |
-| Select_HDMI_Jack | NO |
-| Select_IPTV | NO |
-| Select_Local_Input | NO |
-| Select_PA_Control | NO |
-| Select_Remote_Input1 | NO |
-| Select_Remote_Input2 | NO |
-| Select_VGA_Cable | NO |
-| Startup_Press | NO |
+| Program_Volume_Up | YES |
+| Select_A/V_Jack | YES |
+| Select_Blank | YES |
+| Select_Blu-ray | YES |
+| Select_Device_Control_Blu-ray | YES |
+| Select_Device_Control_IPTV | YES |
+| Select_HDMI_Cable | YES |
+| Select_HDMI_Jack | YES |
+| Select_IPTV | YES |
+| Select_Local_Input | YES |
+| Select_PA_Control | YES |
+| Select_Remote_Input1 | YES |
+| Select_Remote_Input2 | YES |
+| Select_VGA_Cable | YES |
+| Startup_Press | YES |
 | System_off | NO |
 
 ##System Events
