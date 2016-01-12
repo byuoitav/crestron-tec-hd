@@ -101,8 +101,7 @@
 | Select_Remote_Input2 | NO |
 | Select_VGA_Cable | NO |
 | Startup_Press | NO |
-| System_off
-| Signal | Implemented | NO |
+| System_off | NO |
 
 ##System Events
 | Signal | Implemented |
@@ -120,8 +119,7 @@
 | Projector2_Reset_Shutter_os | NO |
 | Projector2_Set_Shutter_or | NO |
 | Projector3_Reset_Shutter_os | NO |
-| Projector3_Set_Shutter_or
-| Signal | Implemented | NO |
+| Projector3_Set_Shutter_or | NO |
 
 ##System States - Configuration
 | Signal | Implemented |
@@ -322,8 +320,7 @@
 | Touchpanel2_Is_None | NO |
 | Touchpanel2_Is_TSW750 | NO |
 | Wireless_Monitoring_Is_Off | NO |
-| Wireless_Monitoring_Is_On
-| Signal | Implemented | NO |
+| Wireless_Monitoring_Is_On | NO |
 
 ##ANALOG
 | Display1_Lamp_hours_fb | NO |
