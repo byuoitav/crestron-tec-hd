@@ -1,376 +1,383 @@
 ##User Events
-
-* Audio_Only
-* Audio_Only_Press
-* Audio_Tab_Select
-* Blu-ray_Down
-* Blu-ray_Fast_Forward
-* Blu-ray_Fast_Reverse
-* Blu-ray_Left
-* Blu-ray_Next_Track
-* Blu-ray_OK
-* Blu-ray_Open/Close_Tray
-* Blu-ray_Pause
-* Blu-ray_Play
-* Blu-ray_Pop-up_Menu
-* Blu-ray_Previous_Track
-* Blu-ray_Right
-* Blu-ray_Stop
-* Blu-ray_Top_Menu
-* Blu-ray_Up
-* Confirm_Display_Off
-* Confirm_System_Off
-* Decline_Display_Off
-* Decline_System_Off
-* Device_Tab_Select
-* Display1_Select
-* Display2_Select
-* Display3_Select
-* Display_Power_On_Button
-* Display_Tab_Select
-* Duplicate_Displays
-* Help_Menu_Press (add to digital 3)
-* Home_button
-* IPTV_0
-* IPTV_1
-* IPTV_2
-* IPTV_3
-* IPTV_4
-* IPTV_5
-* IPTV_6
-* IPTV_7
-* IPTV_8
-* IPTV_9
-* IPTV_Blue
-* IPTV_CC
-* IPTV_CH+
-* IPTV_CH-
-* IPTV_Down_Arrow
-* IPTV_Green
-* IPTV_Home
-* IPTV_Last
-* IPTV_Left_Arrow
-* IPTV_OK
-* IPTV_Pg_Dn
-* IPTV_Pg_Up
-* IPTV_Red
-* IPTV_Refresh
-* IPTV_Right_Arrow
-* IPTV_Up_Arrow
-* IPTV_Yellow
-* Mic1_Volume_Down
-* Mic1_Volume_Mute
-* Mic1_Volume_Press
-* Mic1_Volume_Up
-* Mic2_Volume_Down
-* Mic2_Volume_Mute
-* Mic2_Volume_Press
-* Mic2_Volume_Up
-* Mic3_Volume_Down
-* Mic3_Volume_Mute
-* Mic3_Volume_Press
-* Mic3_Volume_Up
-* Mic4_Volume_Down
-* Mic4_Volume_Mute
-* Mic4_Volume_Press
-* Mic4_Volume_Up
-* Mic5_Volume_Down
-* Mic5_Volume_Mute
-* Mic5_Volume_Press
-* Mic5_Volume_Up
-* Mic6_Volume_Down
-* Mic6_Volume_Mute
-* Mic6_Volume_Press
-* Mic6_Volume_Up
-* Program_Volume_Down
-* Program_Volume_Mute_Toggle
-* Program_Volume_Slider_Press
-* Program_Volume_Up
-* Select_A/V_Jack
-* Select_Blank
-* Select_Blu-ray
-* Select_Device_Control_Blu-ray
-* Select_Device_Control_IPTV
-* Select_HDMI_Cable
-* Select_HDMI_Jack
-* Select_IPTV
-* Select_Local_Input
-* Select_PA_Control
-* Select_Remote_Input1
-* Select_Remote_Input2
-* Select_VGA_Cable
-* Startup_Press
-* System_off
+| Signal | Implemented |
+| --- | --- |
+| Audio_Only | NO |
+| Audio_Only_Press | NO |
+| Audio_Tab_Select | NO |
+| Blu-ray_Down | NO |
+| Blu-ray_Fast_Forward | NO |
+| Blu-ray_Fast_Reverse | NO |
+| Blu-ray_Left | NO |
+| Blu-ray_Next_Track | NO |
+| Blu-ray_OK | NO |
+| Blu-ray_Open/Close_Tray | NO |
+| Blu-ray_Pause | NO |
+| Blu-ray_Play | NO |
+| Blu-ray_Pop-up_Menu | NO |
+| Blu-ray_Previous_Track | NO |
+| Blu-ray_Right | NO |
+| Blu-ray_Stop | NO |
+| Blu-ray_Top_Menu | NO |
+| Blu-ray_Up | NO |
+| Confirm_Display_Off | NO |
+| Confirm_System_Off | NO |
+| Decline_Display_Off | NO |
+| Decline_System_Off | NO |
+| Device_Tab_Select | NO |
+| Display1_Select | NO |
+| Display2_Select | NO |
+| Display3_Select | NO |
+| Display_Power_On_Button | NO |
+| Display_Tab_Select | NO |
+| Duplicate_Displays | NO |
+| Help_Menu_Press (add to digital 3) | NO |
+| Home_button | NO |
+| IPTV_0 | NO |
+| IPTV_1 | NO |
+| IPTV_2 | NO |
+| IPTV_3 | NO |
+| IPTV_4 | NO |
+| IPTV_5 | NO |
+| IPTV_6 | NO |
+| IPTV_7 | NO |
+| IPTV_8 | NO |
+| IPTV_9 | NO |
+| IPTV_Blue | NO |
+| IPTV_CC | NO |
+| IPTV_CH+ | NO |
+| IPTV_CH- | NO |
+| IPTV_Down_Arrow | NO |
+| IPTV_Green | NO |
+| IPTV_Home | NO |
+| IPTV_Last | NO |
+| IPTV_Left_Arrow | NO |
+| IPTV_OK | NO |
+| IPTV_Pg_Dn | NO |
+| IPTV_Pg_Up | NO |
+| IPTV_Red | NO |
+| IPTV_Refresh | NO |
+| IPTV_Right_Arrow | NO |
+| IPTV_Up_Arrow | NO |
+| IPTV_Yellow | NO |
+| Mic1_Volume_Down | NO |
+| Mic1_Volume_Mute | NO |
+| Mic1_Volume_Press | NO |
+| Mic1_Volume_Up | NO |
+| Mic2_Volume_Down | NO |
+| Mic2_Volume_Mute | NO |
+| Mic2_Volume_Press | NO |
+| Mic2_Volume_Up | NO |
+| Mic3_Volume_Down | NO |
+| Mic3_Volume_Mute | NO |
+| Mic3_Volume_Press | NO |
+| Mic3_Volume_Up | NO |
+| Mic4_Volume_Down | NO |
+| Mic4_Volume_Mute | NO |
+| Mic4_Volume_Press | NO |
+| Mic4_Volume_Up | NO |
+| Mic5_Volume_Down | NO |
+| Mic5_Volume_Mute | NO |
+| Mic5_Volume_Press | NO |
+| Mic5_Volume_Up | NO |
+| Mic6_Volume_Down | NO |
+| Mic6_Volume_Mute | NO |
+| Mic6_Volume_Press | NO |
+| Mic6_Volume_Up | NO |
+| Program_Volume_Down | NO |
+| Program_Volume_Mute_Toggle | NO |
+| Program_Volume_Slider_Press | NO |
+| Program_Volume_Up | NO |
+| Select_A/V_Jack | NO |
+| Select_Blank | NO |
+| Select_Blu-ray | NO |
+| Select_Device_Control_Blu-ray | NO |
+| Select_Device_Control_IPTV | NO |
+| Select_HDMI_Cable | NO |
+| Select_HDMI_Jack | NO |
+| Select_IPTV | NO |
+| Select_Local_Input | NO |
+| Select_PA_Control | NO |
+| Select_Remote_Input1 | NO |
+| Select_Remote_Input2 | NO |
+| Select_VGA_Cable | NO |
+| Startup_Press | NO |
+| System_off
+| Signal | Implemented | NO |
 
 ##System Events
-
-* Audio_Page_Enable
-* Configuration_Page_Enable
-* Device_Page_Enable
-* Display1_Power_is_On
-* Display2_Power_is_On
-* Display3_Power_is_On
-* Display_Page_Enable
-* Program_Volume_Mute_On_fb
-* Projector1_Reset_Shutter_os
-* Projector1_Set_Shutter_or
-* Projector2_Reset_Shutter_os
-* Projector2_Set_Shutter_or
-* Projector3_Reset_Shutter_os
-* Projector3_Set_Shutter_or
+| Signal | Implemented |
+| --- | --- |
+| Audio_Page_Enable | NO |
+| Configuration_Page_Enable | NO |
+| Device_Page_Enable | NO |
+| Display1_Power_is_On | NO |
+| Display2_Power_is_On | NO |
+| Display3_Power_is_On | NO |
+| Display_Page_Enable | NO |
+| Program_Volume_Mute_On_fb | NO |
+| Projector1_Reset_Shutter_os | NO |
+| Projector1_Set_Shutter_or | NO |
+| Projector2_Reset_Shutter_os | NO |
+| Projector2_Set_Shutter_or | NO |
+| Projector3_Reset_Shutter_os | NO |
+| Projector3_Set_Shutter_or
+| Signal | Implemented | NO |
 
 ##System States - Configuration
-
-* Aux1_Program_is_Mono
-* Aux1_Program_is_None
-* Aux1_Program_is_Stereo
-* Display1_Is_Epson_G5450
-* Display1_Is_Epson_G5750
-* Display1_Is_Epson_G6750
-* Display1_Is_NEC_E-Series
-* Display1_Is_Panasonic_PT-DZ10K
-* Display1_Is_Panasonic_PT-DZ770
-* Display1_Is_Panasonic_PT-EZ570
-* Display1_Is_Panasonic_PT-EZ770
-* Display1_Is_Panasonic_TH-XXLF6
-* Display1_Is_Sharp_AQUOS_CEC
-* Display1_Is_Sharp_PN-E702
-* Display1_Is_Sharp_PN-E802
-* Display1_Is_Sony_Z65
-* Display2_Is_Epson_G5450
-* Display2_Is_Epson_G5750
-* Display2_Is_Epson_G6750
-* Display2_Is_NEC_E-Series
-* Display2_Is_Panasonic_PT-DZ10K
-* Display2_Is_Panasonic_PT-DZ770
-* Display2_Is_Panasonic_PT-EZ570
-* Display2_Is_Panasonic_PT-EZ770
-* Display2_Is_Panasonic_TH-XXLF6
-* Display2_Is_Sharp_AQUOS_CEC
-* Display2_Is_Sharp_PN-E702
-* Display2_Is_Sharp_PN-E802
-* Display2_Is_Sony_Z65
-* Display3_Is_Epson_G5450
-* Display3_Is_Epson_G5750
-* Display3_Is_Epson_G6750
-* Display3_Is_NEC_E-Series
-* Display3_Is_Panasonic_PT-DZ10K
-* Display3_Is_Panasonic_PT-DZ770
-* Display3_Is_Panasonic_PT-EZ570
-* Display3_Is_Panasonic_PT-EZ770
-* Display3_Is_Panasonic_TH-XXLF6
-* Display3_Is_Sharp_AQUOS_CEC
-* Display3_Is_Sharp_PN-E702
-* Display3_Is_Sharp_PN-E802
-* Display3_Is_Sony_Z65
-* Input1_Audio_Is_Analog
-* Input1_Audio_Is_Digital
-* Input1_Is_Apple_TV
-* Input1_Is_Department_Computer
-* Input1_Is_Desk_Document_Camera
-* Input1_Is_Local_Input
-* Input1_Is_None
-* Input1_Is_TEC_Computer1
-* Input2_Is_IPTV
-* Input2_Is_TEC_Computer2
-* Input3_Is_Blu-ray
-* Input3_Is_TEC_Computer3
-* Input4_Is_HDMI_Cable
-* Input4_Is_VGA_Cable
-* Input5_Composite_Is_A/V_Jack
-* Input5_Is_HDMI_Jack
-* Input6_Is_Apple_TV
-* Input6_Is_Ceiling_Document_Camera
-* Input6_Is_Custom_Input1
-* Input6_Is_Department_Computer
-* Input6_Is_Desk_Document_Camera
-* Input6_Is_None
-* Input6_Is_Overflow
-* Input6_Is_Remote_Input1
-* Input6_Is_Table_Input
-* Input6_Is_TEC_Computer2
-* Input7_Is_Apple_TV
-* Input7_Is_Ceiling_Document_Camera
-* Input7_Is_Custom_Input2
-* Input7_Is_Department_Computer
-* Input7_Is_Desk_Document_Camera
-* Input7_Is_None
-* Input7_Is_Overflow
-* Input7_Is_Remote_Input2
-* Input7_Is_Table_Input
-* Input7_Is_TEC_Computer2
-* Mic1_Is_Active
-* Mic1_Is_Floor_Mic
-* Mic1_Is_Lectern
-* Mic1_Is_Line_Input
-* Mic1_Is_Mic1
-* Mic1_Is_Mic2
-* Mic1_Is_Mic3
-* Mic1_Is_Mic4
-* Mic1_Is_None
-* Mic1_Is_Overflow
-* Mic1_Is_Overhead_Mic
-* Mic1_Is_Podium
-* Mic1_Is_Wireless
-* Mic1_Is_Wireless1
-* Mic1_Is_Wireless2
-* Mic1_Is_Wireless3
-* Mic1_Is_Wireless4
-* Mic2_Is_Active
-* Mic2_Is_Floor_Mic
-* Mic2_Is_Lectern
-* Mic2_Is_Line_Input
-* Mic2_Is_Mic1
-* Mic2_Is_Mic2
-* Mic2_Is_Mic3
-* Mic2_Is_Mic4
-* Mic2_Is_None
-* Mic2_Is_Overflow
-* Mic2_Is_Overhead_Mic
-* Mic2_Is_Podium
-* Mic2_Is_Wireless
-* Mic2_Is_Wireless1
-* Mic2_Is_Wireless2
-* Mic2_Is_Wireless3
-* Mic2_Is_Wireless4
-* Mic3_Is_Active
-* Mic3_Is_Floor_Mic
-* Mic3_Is_Lectern
-* Mic3_Is_Line_Input
-* Mic3_Is_Mic1
-* Mic3_Is_Mic2
-* Mic3_Is_Mic3
-* Mic3_Is_Mic4
-* Mic3_Is_None
-* Mic3_Is_Overflow
-* Mic3_Is_Overhead_Mic
-* Mic3_Is_Podium
-* Mic3_Is_Wireless
-* Mic3_Is_Wireless1
-* Mic3_Is_Wireless2
-* Mic3_Is_Wireless3
-* Mic3_Is_Wireless4
-* Mic4_Is_Active
-* Mic4_Is_Floor_Mic
-* Mic4_Is_Lectern
-* Mic4_Is_Line_Input
-* Mic4_Is_Mic1
-* Mic4_Is_Mic2
-* Mic4_Is_Mic3
-* Mic4_Is_Mic4
-* Mic4_Is_None
-* Mic4_Is_Overflow
-* Mic4_Is_Overhead_Mic
-* Mic4_Is_Podium
-* Mic4_Is_Wireless
-* Mic4_Is_Wireless1
-* Mic4_Is_Wireless2
-* Mic4_Is_Wireless3
-* Mic4_Is_Wireless4
-* Mic5_Is_Active
-* Mic5_Is_Floor_Mic
-* Mic5_Is_Lectern
-* Mic5_Is_Line_Input
-* Mic5_Is_Mic1
-* Mic5_Is_Mic2
-* Mic5_Is_Mic3
-* Mic5_Is_Mic4
-* Mic5_Is_None
-* Mic5_Is_Overflow
-* Mic5_Is_Overhead_Mic
-* Mic5_Is_Podium
-* Mic5_Is_Wireless
-* Mic5_Is_Wireless1
-* Mic5_Is_Wireless2
-* Mic5_Is_Wireless3
-* Mic5_Is_Wireless4
-* Mic6_Is_Active
-* Mic6_Is_Floor_Mic
-* Mic6_Is_Lectern
-* Mic6_Is_Line_Input
-* Mic6_Is_Mic1
-* Mic6_Is_Mic2
-* Mic6_Is_Mic3
-* Mic6_Is_Mic4
-* Mic6_Is_None
-* Mic6_Is_Overflow
-* Mic6_Is_Overhead_Mic
-* Mic6_Is_Podium
-* Mic6_Is_Wireless
-* Mic6_Is_Wireless1
-* Mic6_Is_Wireless2
-* Mic6_Is_Wireless3
-* Mic6_Is_Wireless4
-* Output1_HDMI_Audio
-* Output1_HDMI_Is_Crash_Cart
-* Output1_HDMI_No_Audio
-* Output2_HDMI_Is_Display3
-* Output2_HDMI_Is_None
-* Output3_DM_Is_Display1
-* Output4_DM_Is_Display2
-* Output4_DM_Is_None
-* Output4_DM_Is_Overflow
-* Output4_DM_Is_Surround_Receiver
-* PA_Is_Active
-* PA_Is_Inactive
-* Touchpanel1_Is_TSW750
-* Touchpanel2_Is_None
-* Touchpanel2_Is_TSW750
-* Wireless_Monitoring_Is_Off
-* Wireless_Monitoring_Is_On
+| Signal | Implemented |
+| --- | --- |
+| Aux1_Program_is_Mono | NO |
+| Aux1_Program_is_None | NO |
+| Aux1_Program_is_Stereo | NO |
+| Display1_Is_Epson_G5450 | NO |
+| Display1_Is_Epson_G5750 | NO |
+| Display1_Is_Epson_G6750 | NO |
+| Display1_Is_NEC_E-Series | NO |
+| Display1_Is_Panasonic_PT-DZ10K | NO |
+| Display1_Is_Panasonic_PT-DZ770 | NO |
+| Display1_Is_Panasonic_PT-EZ570 | NO |
+| Display1_Is_Panasonic_PT-EZ770 | NO |
+| Display1_Is_Panasonic_TH-XXLF6 | NO |
+| Display1_Is_Sharp_AQUOS_CEC | NO |
+| Display1_Is_Sharp_PN-E702 | NO |
+| Display1_Is_Sharp_PN-E802 | NO |
+| Display1_Is_Sony_Z65 | NO |
+| Display2_Is_Epson_G5450 | NO |
+| Display2_Is_Epson_G5750 | NO |
+| Display2_Is_Epson_G6750 | NO |
+| Display2_Is_NEC_E-Series | NO |
+| Display2_Is_Panasonic_PT-DZ10K | NO |
+| Display2_Is_Panasonic_PT-DZ770 | NO |
+| Display2_Is_Panasonic_PT-EZ570 | NO |
+| Display2_Is_Panasonic_PT-EZ770 | NO |
+| Display2_Is_Panasonic_TH-XXLF6 | NO |
+| Display2_Is_Sharp_AQUOS_CEC | NO |
+| Display2_Is_Sharp_PN-E702 | NO |
+| Display2_Is_Sharp_PN-E802 | NO |
+| Display2_Is_Sony_Z65 | NO |
+| Display3_Is_Epson_G5450 | NO |
+| Display3_Is_Epson_G5750 | NO |
+| Display3_Is_Epson_G6750 | NO |
+| Display3_Is_NEC_E-Series | NO |
+| Display3_Is_Panasonic_PT-DZ10K | NO |
+| Display3_Is_Panasonic_PT-DZ770 | NO |
+| Display3_Is_Panasonic_PT-EZ570 | NO |
+| Display3_Is_Panasonic_PT-EZ770 | NO |
+| Display3_Is_Panasonic_TH-XXLF6 | NO |
+| Display3_Is_Sharp_AQUOS_CEC | NO |
+| Display3_Is_Sharp_PN-E702 | NO |
+| Display3_Is_Sharp_PN-E802 | NO |
+| Display3_Is_Sony_Z65 | NO |
+| Input1_Audio_Is_Analog | NO |
+| Input1_Audio_Is_Digital | NO |
+| Input1_Is_Apple_TV | NO |
+| Input1_Is_Department_Computer | NO |
+| Input1_Is_Desk_Document_Camera | NO |
+| Input1_Is_Local_Input | NO |
+| Input1_Is_None | NO |
+| Input1_Is_TEC_Computer1 | NO |
+| Input2_Is_IPTV | NO |
+| Input2_Is_TEC_Computer2 | NO |
+| Input3_Is_Blu-ray | NO |
+| Input3_Is_TEC_Computer3 | NO |
+| Input4_Is_HDMI_Cable | NO |
+| Input4_Is_VGA_Cable | NO |
+| Input5_Composite_Is_A/V_Jack | NO |
+| Input5_Is_HDMI_Jack | NO |
+| Input6_Is_Apple_TV | NO |
+| Input6_Is_Ceiling_Document_Camera | NO |
+| Input6_Is_Custom_Input1 | NO |
+| Input6_Is_Department_Computer | NO |
+| Input6_Is_Desk_Document_Camera | NO |
+| Input6_Is_None | NO |
+| Input6_Is_Overflow | NO |
+| Input6_Is_Remote_Input1 | NO |
+| Input6_Is_Table_Input | NO |
+| Input6_Is_TEC_Computer2 | NO |
+| Input7_Is_Apple_TV | NO |
+| Input7_Is_Ceiling_Document_Camera | NO |
+| Input7_Is_Custom_Input2 | NO |
+| Input7_Is_Department_Computer | NO |
+| Input7_Is_Desk_Document_Camera | NO |
+| Input7_Is_None | NO |
+| Input7_Is_Overflow | NO |
+| Input7_Is_Remote_Input2 | NO |
+| Input7_Is_Table_Input | NO |
+| Input7_Is_TEC_Computer2 | NO |
+| Mic1_Is_Active | NO |
+| Mic1_Is_Floor_Mic | NO |
+| Mic1_Is_Lectern | NO |
+| Mic1_Is_Line_Input | NO |
+| Mic1_Is_Mic1 | NO |
+| Mic1_Is_Mic2 | NO |
+| Mic1_Is_Mic3 | NO |
+| Mic1_Is_Mic4 | NO |
+| Mic1_Is_None | NO |
+| Mic1_Is_Overflow | NO |
+| Mic1_Is_Overhead_Mic | NO |
+| Mic1_Is_Podium | NO |
+| Mic1_Is_Wireless | NO |
+| Mic1_Is_Wireless1 | NO |
+| Mic1_Is_Wireless2 | NO |
+| Mic1_Is_Wireless3 | NO |
+| Mic1_Is_Wireless4 | NO |
+| Mic2_Is_Active | NO |
+| Mic2_Is_Floor_Mic | NO |
+| Mic2_Is_Lectern | NO |
+| Mic2_Is_Line_Input | NO |
+| Mic2_Is_Mic1 | NO |
+| Mic2_Is_Mic2 | NO |
+| Mic2_Is_Mic3 | NO |
+| Mic2_Is_Mic4 | NO |
+| Mic2_Is_None | NO |
+| Mic2_Is_Overflow | NO |
+| Mic2_Is_Overhead_Mic | NO |
+| Mic2_Is_Podium | NO |
+| Mic2_Is_Wireless | NO |
+| Mic2_Is_Wireless1 | NO |
+| Mic2_Is_Wireless2 | NO |
+| Mic2_Is_Wireless3 | NO |
+| Mic2_Is_Wireless4 | NO |
+| Mic3_Is_Active | NO |
+| Mic3_Is_Floor_Mic | NO |
+| Mic3_Is_Lectern | NO |
+| Mic3_Is_Line_Input | NO |
+| Mic3_Is_Mic1 | NO |
+| Mic3_Is_Mic2 | NO |
+| Mic3_Is_Mic3 | NO |
+| Mic3_Is_Mic4 | NO |
+| Mic3_Is_None | NO |
+| Mic3_Is_Overflow | NO |
+| Mic3_Is_Overhead_Mic | NO |
+| Mic3_Is_Podium | NO |
+| Mic3_Is_Wireless | NO |
+| Mic3_Is_Wireless1 | NO |
+| Mic3_Is_Wireless2 | NO |
+| Mic3_Is_Wireless3 | NO |
+| Mic3_Is_Wireless4 | NO |
+| Mic4_Is_Active | NO |
+| Mic4_Is_Floor_Mic | NO |
+| Mic4_Is_Lectern | NO |
+| Mic4_Is_Line_Input | NO |
+| Mic4_Is_Mic1 | NO |
+| Mic4_Is_Mic2 | NO |
+| Mic4_Is_Mic3 | NO |
+| Mic4_Is_Mic4 | NO |
+| Mic4_Is_None | NO |
+| Mic4_Is_Overflow | NO |
+| Mic4_Is_Overhead_Mic | NO |
+| Mic4_Is_Podium | NO |
+| Mic4_Is_Wireless | NO |
+| Mic4_Is_Wireless1 | NO |
+| Mic4_Is_Wireless2 | NO |
+| Mic4_Is_Wireless3 | NO |
+| Mic4_Is_Wireless4 | NO |
+| Mic5_Is_Active | NO |
+| Mic5_Is_Floor_Mic | NO |
+| Mic5_Is_Lectern | NO |
+| Mic5_Is_Line_Input | NO |
+| Mic5_Is_Mic1 | NO |
+| Mic5_Is_Mic2 | NO |
+| Mic5_Is_Mic3 | NO |
+| Mic5_Is_Mic4 | NO |
+| Mic5_Is_None | NO |
+| Mic5_Is_Overflow | NO |
+| Mic5_Is_Overhead_Mic | NO |
+| Mic5_Is_Podium | NO |
+| Mic5_Is_Wireless | NO |
+| Mic5_Is_Wireless1 | NO |
+| Mic5_Is_Wireless2 | NO |
+| Mic5_Is_Wireless3 | NO |
+| Mic5_Is_Wireless4 | NO |
+| Mic6_Is_Active | NO |
+| Mic6_Is_Floor_Mic | NO |
+| Mic6_Is_Lectern | NO |
+| Mic6_Is_Line_Input | NO |
+| Mic6_Is_Mic1 | NO |
+| Mic6_Is_Mic2 | NO |
+| Mic6_Is_Mic3 | NO |
+| Mic6_Is_Mic4 | NO |
+| Mic6_Is_None | NO |
+| Mic6_Is_Overflow | NO |
+| Mic6_Is_Overhead_Mic | NO |
+| Mic6_Is_Podium | NO |
+| Mic6_Is_Wireless | NO |
+| Mic6_Is_Wireless1 | NO |
+| Mic6_Is_Wireless2 | NO |
+| Mic6_Is_Wireless3 | NO |
+| Mic6_Is_Wireless4 | NO |
+| Output1_HDMI_Audio | NO |
+| Output1_HDMI_Is_Crash_Cart | NO |
+| Output1_HDMI_No_Audio | NO |
+| Output2_HDMI_Is_Display3 | NO |
+| Output2_HDMI_Is_None | NO |
+| Output3_DM_Is_Display1 | NO |
+| Output4_DM_Is_Display2 | NO |
+| Output4_DM_Is_None | NO |
+| Output4_DM_Is_Overflow | NO |
+| Output4_DM_Is_Surround_Receiver | NO |
+| PA_Is_Active | NO |
+| PA_Is_Inactive | NO |
+| Touchpanel1_Is_TSW750 | NO |
+| Touchpanel2_Is_None | NO |
+| Touchpanel2_Is_TSW750 | NO |
+| Wireless_Monitoring_Is_Off | NO |
+| Wireless_Monitoring_Is_On
+| Signal | Implemented | NO |
 
 ##ANALOG
-* Display1_Lamp_hours_fb
-* Display1_Temp
-* Display2_Lamp_hours_fb
-* Display2_Temp
-* Display3_Lamp_hours_fb
-* Display3_Temp
-* Mic1_Volume
-* Mic2_Volume
-* Mic3_Volume
-* Mic4_Volume
-* Mic5_Volume
-* Mic6_Volume
-* Mode
-* Program_Volume_fb
+| Display1_Lamp_hours_fb | NO |
+| Display1_Temp | NO |
+| Display2_Lamp_hours_fb | NO |
+| Display2_Temp | NO |
+| Display3_Lamp_hours_fb | NO |
+| Display3_Temp | NO |
+| Mic1_Volume | NO |
+| Mic2_Volume | NO |
+| Mic3_Volume | NO |
+| Mic4_Volume | NO |
+| Mic5_Volume | NO |
+| Mic6_Volume | NO |
+| Mode | NO |
+| Program_Volume_fb | NO |
 
 ##SERIAL
-
-* Display1_Firmware_Version
-* Display1_ID_String_Fb
-* Display1_IP_Address_Fb
-* Display1_Lamp_Hours_Text_Fb (currently commented out)
-* Display1_MAC_Address_Fb (currently commented out)
-* Display1_Projector_Name_Fb
-* Display1_Resolution
-* Display1_Status_Message_Fb
-* Display2_Firmware_Version
-* Display2_ID_String_Fb
-* Display2_IP_Address_Fb
-* Display2_Lamp_Hours_Text_Fb (currently commented out)
-* Display2_MAC_Address_Fb (currently commented out)
-* Display2_Projector_Name_Fb
-* Display2_Resolution
-* Display2_Status_Message_Fb
-* Display3_Firmware_Version
-* Display3_ID_String_Fb
-* Display3_IP_Address_Fb
-* Display3_Lamp_Hours_Text_Fb (currently commented out)
-* Display3_MAC_Address_Fb (currently commented out)
-* Display3_Projector_Name_Fb
-* Display3_Resolution
-* Display3_Status_Message_Fb
-* DMPSver$
-* M1OffDateTime
-* M1OnDateTime
-* M2OffDateTime
-* M2OnDateTime
-* Program_Compile_Date$
-* Program_Name$
-* Remote_Input1_Custom$
-* Remote_Input2_Custom$
-* RV_B1_Time
-* RV_B2_Time
-* RV_M1_GrpChan
-* RV_M2_GrpChan
+| Signal | Implemented |
+| --- | --- |
+| Display1_Firmware_Version | NO |
+| Display1_ID_String_Fb | NO |
+| Display1_IP_Address_Fb | NO |
+| Display1_Lamp_Hours_Text_Fb (currently commented out) | NO |
+| Display1_MAC_Address_Fb (currently commented out) | NO |
+| Display1_Projector_Name_Fb | NO |
+| Display1_Resolution | NO |
+| Display1_Status_Message_Fb | NO |
+| Display2_Firmware_Version | NO |
+| Display2_ID_String_Fb | NO |
+| Display2_IP_Address_Fb | NO |
+| Display2_Lamp_Hours_Text_Fb (currently commented out) | NO |
+| Display2_MAC_Address_Fb (currently commented out) | NO |
+| Display2_Projector_Name_Fb | NO |
+| Display2_Resolution | NO |
+| Display2_Status_Message_Fb | NO |
+| Display3_Firmware_Version | NO |
+| Display3_ID_String_Fb | NO |
+| Display3_IP_Address_Fb | NO |
+| Display3_Lamp_Hours_Text_Fb (currently commented out) | NO |
+| Display3_MAC_Address_Fb (currently commented out) | NO |
+| Display3_Projector_Name_Fb | NO |
+| Display3_Resolution | NO |
+| Display3_Status_Message_Fb | NO |
+| DMPSver$ | NO |
+| M1OffDateTime | NO |
+| M1OnDateTime | NO |
+| M2OffDateTime | NO |
+| M2OnDateTime | NO |
+| Program_Compile_Date$ | NO |
+| Program_Name$ | NO |
+| Remote_Input1_Custom$ | NO |
+| Remote_Input2_Custom$ | NO |
+| RV_B1_Time | NO |
+| RV_B2_Time | NO |
+| RV_M1_GrpChan | NO |
+| RV_M2_GrpChan | NO |
