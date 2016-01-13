@@ -1,0 +1,175 @@
+/*******************************************************************************************
+  SIMPL+ Module Information
+  (Fill in comments below)
+*******************************************************************************************/
+/*
+Dealer Name:
+System Name:
+System Number:
+Programmer:
+Comments:
+*/
+
+/*******************************************************************************************
+  Compiler Directives
+  (Uncomment and declare compiler directives as needed)
+*******************************************************************************************/
+// #SYMBOL_NAME ""
+// #HINT ""
+#DEFINE_CONSTANT	MAXINPUTLENGTH		255
+#DEFINE_CONSTANT	MAXTAGLENGTH		24
+#DEFINE_CONSTANT	MAXVALUELENGTH		24
+#DEFINE_CONSTANT	MAXTAGS				100
+#DEFINE_CONSTANT	MAXCOMMANDLENGTH	24
+#CATEGORY "0" 
+#DEFAULT_VOLATILE
+// #DIGITAL_EXPAND 
+// #ANALOG_SERIAL_EXPAND 
+// #OUTPUT_SHIFT 
+// #DEFAULT_NONVOLATILE
+#ENABLE_STACK_CHECKING
+/*
+#HELP_BEGIN
+   (add additional lines of help lines)
+#HELP_END
+*/
+
+/*******************************************************************************************
+  Include Libraries
+  (Uncomment and include additional librarys as needed)
+*******************************************************************************************/
+// #CRESTRON_LIBRARY ""
+// #USER_LIBRARY ""
+
+/*******************************************************************************************
+  DIGITAL, ANALOG and SERIAL INPUTS and OUTPUTS
+  (Uncomment and declare inputs and outputs as needed)
+*******************************************************************************************/
+
+DIGITAL_INPUT AccessOk;
+ANALOG_INPUT SystemType;
+STRING_INPUT Version$[12];
+STRING_INPUT AccessErrorMsg$[200]; 
+STRING_INPUT In$[MAXINPUTLENGTH];
+STRING_INPUT TagList$[MAXTAGS][MAXTAGLENGTH]; 
+STRING_INPUT ValueListIn$[MAXTAGS][MAXTAGLENGTH];
+
+DIGITAL_OUTPUT ToolboxStarted;
+DIGITAL_OUTPUT ToolboxEnded;
+STRING_OUTPUT ValueListOut$[MAXTAGS];
+
+
+INTEGER_FUNCTION FindTag$(STRING Lookup$)
+	{
+	INTEGER Found;
+	INTEGER i;
+	
+	Found = 0;
+	for(i = 1 to MAXTAGS)
+		{
+		if(Lookup$ = Taglist$[i])
+			{
+			Found = i;
+			break;
+			}
+		}
+	return(Found);
+	}		
+		
+CHANGE In$
+	{
+	INTEGER Marker;
+	INTEGER Marker2;
+	INTEGER Index;
+	STRING Tag$[MAXTAGLENGTH];
+	STRING Command$[MAXCOMMANDLENGTH];
+	
+	if(In$ = "pgmver")
+		{
+		cswitch(SystemType)
+			{
+			case(0):
+				{
+				print("Unknown [%s]\n", Version$);
+				break;
+				}
+			case(1):
+				{
+				print("OOTBF [%s]\n", Version$);
+				break;
+				}
+			case(2):
+				{
+				print("System Builder [%s]\n", Version$);
+				break;
+				}
+			case(3):
+				{
+				print("Custom [%s]\n", Version$);
+				break;
+				}
+			}
+		}
+	else
+		{
+		Marker = find(" ", In$);
+		if(Marker > 0)
+			{
+			Command$ = left(In$, Marker - 1);
+			Command$ = lower(Command$);
+			if(Command$ = "getparamvalue")
+				{
+				Tag$ = right(In$, len(In$) - Marker);
+				Index = FindTag$(Tag$);
+				if(Index > 0)
+					Print("%s %s\n", Tag$, ValueListIn$[Index]);
+				else
+					print("ERROR: Unknown tag.\n");
+				}
+			else if(Command$ = "setparamvalue")
+				{
+				Marker2 = find(" ", In$, Marker + 1);
+				Tag$ = mid(In$, Marker + 1, Marker2 - Marker - 1);
+				Index = FindTag$(Tag$);
+				if(Index > 0)
+					{
+					print("Ok\n");
+					ValueListOut$[Index] = right(In$, len(In$) - Marker2);
+					}
+				else
+					print("ERROR: Unknown tag.\n");
+				}
+			else if(Command$ = "toolparamaccess")
+				{
+				Tag$ = right(In$, len(In$) - Marker);
+				if(Tag$ = "start")
+					{
+					if(AccessOk = 1)
+						{
+						print("Ok\n");
+						ToolboxStarted = 1;
+						ToolboxStarted = 0;
+						}
+					else
+						print("ERROR: %s\n", AccessErrorMsg$);
+					}
+				else if(Tag$ = "stop")
+					{
+					print("Ok\n");
+					ToolboxEnded = 1;
+					ToolboxEnded = 0;
+					}
+				}
+			}
+		}
+	print("PGM>");
+	}
+	
+Function Main()
+	{
+	waitforinitializationcomplete();
+	}
+			
+			
+				
+			 

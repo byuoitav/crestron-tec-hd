@@ -109,7 +109,6 @@ Change From_Console$
 		else if (Find("MAC Address(es):",TempString))
 			{
 			Trash = Remove("MAC Address(es): ",TempString);
-
 			DMPSMAC$ = Left(TempString,Find("\x0D",Tempstring) - 1);			
 			}
 

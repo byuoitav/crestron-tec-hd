@@ -1,0 +1,699 @@
+#SYMBOL_NAME "DMPS Text Router v1_0"
+
+#DEFINE_CONSTANT	MAX_INPUTS		7
+#DEFINE_CONSTANT	MAX_OUTPUTS		7
+#DEFINE_CONSTANT	MAXNAMELENGTH	24
+#DEFINE_CONSTANT	FIRSTOUTPUT		1
+#DEFINE_CONSTANT	LASTOUTPUT		7
+#DEFINE_CONSTANT	FIRSTINPUT		8
+#DEFINE_CONSTANT	LASTINPUT		14
+#DEFINE_CONSTANT	FIRSTVGAINPUT	10
+#DEFINE_CONSTANT	LASTVGAINPUT	12
+#DEFINE_CONSTANT	BNCINPUT		12
+#DEFINE_CONSTANT	MAX_VGAINPUTS		3
+#DEFINE_CONSTANT	MAX_BNCINPUTS		1
+#DEFINE_CONSTANT 	MAX_VAR_INPUTS 		3 //number of inputs w/ multiple sources
+
+#DEFINE_CONSTANT	HDMILINE2DISPLAYMAX 4
+#DEFINE_CONSTANT	HDMILINE2DISPLAYMIN	1
+#DEFINE_CONSTANT	VGALINE2DISPLAYMAX 3
+#DEFINE_CONSTANT	VGALINE2DISPLAYMIN	1
+#DEFINE_CONSTANT	BNCLINE2DISPLAYMAX 3
+#DEFINE_CONSTANT	BNCLINE2DISPLAYMIN	1
+
+
+
+
+
+
+#DEFINE_CONSTANT	ARROWNONE			"\x20"
+#DEFINE_CONSTANT	ARROWUP				"\x02"
+#DEFINE_CONSTANT	ARROWDOWN			"\x03"
+#DEFINE_CONSTANT	ARROWUPDOWN			"\x04"		
+
+
+#CATEGORY "0" 
+#DEFAULT_VOLATILE
+#ENABLE_STACK_CHECKING
+
+
+DIGITAL_INPUT Up;
+DIGITAL_INPUT Down;
+DIGITAL_INPUT RouteBtn;
+DIGITAL_INPUT ViewBtn;
+DIGITAL_INPUT InfoBtn;
+DIGITAL_INPUT SysPwrBtn;
+DIGITAL_INPUT SystemPowerState;
+DIGITAL_INPUT SystemReady;
+DIGITAL_INPUT Mode_Installer_Not_Active;
+DIGITAL_INPUT Front_Panel_Button_Pressed;
+DIGITAL_INPUT Input_DigitalVideoDetected[MAX_INPUTS];
+DIGITAL_INPUT Input_VGAVideoDetected[MAX_VGAINPUTS];
+DIGITAL_INPUT Input_BNCVideoDetected[MAX_BNCINPUTS];
+
+
+
+
+ANALOG_INPUT DestinationSelected;
+ANALOG_INPUT ViewModeDestination;
+ANALOG_INPUT SelectedInOut;
+ANALOG_INPUT VideoInput[MAX_OUTPUTS];
+ANALOG_INPUT AudioInput[MAX_OUTPUTS];
+
+ANALOG_INPUT Input_HDMIVerticalResolution[MAX_INPUTS];
+ANALOG_INPUT Input_HDMIHorizontalResolution[MAX_INPUTS];
+ANALOG_INPUT Input_HDMIRefreshRate[MAX_INPUTS];
+ANALOG_INPUT Input_HDCPEnabled[MAX_INPUTS];
+ANALOG_INPUT Output_HDCPEnabled[MAX_OUTPUTS];
+ANALOG_INPUT Input_VGAVerticalResolution[MAX_VGAINPUTS];
+ANALOG_INPUT Input_VGAHorizontalResolution[MAX_VGAINPUTS];
+ANALOG_INPUT Input_VGARefreshRate[MAX_VGAINPUTS];
+ANALOG_INPUT Input_BNCVerticalResolution[MAX_BNCINPUTS];
+ANALOG_INPUT Input_BNCHorizontalResolution[MAX_BNCINPUTS];
+ANALOG_INPUT Input_BNCRefreshRate[MAX_BNCINPUTS];
+ANALOG_INPUT Input_VideoSourceSelect[MAX_VAR_INPUTS];
+
+
+
+
+
+ANALOG_OUTPUT FrontPanelMode;//0 = "Route" 1="View" 2="Info"
+STRING_INPUT SourceNameIn$[MAX_INPUTS][MAXNAMELENGTH];
+STRING_INPUT DestinationNameIn$[MAX_OUTPUTS][MAXNAMELENGTH];
+STRING_INPUT Manf_String[4][MAXNAMELENGTH];
+STRING_INPUT Name_String[4][MAXNAMELENGTH];
+
+STRING_OUTPUT Line2ScrollArrow$;
+STRING_OUTPUT SerialOut$[2];
+//DIGITAL_OUTPUT InfoToggle;
+
+INTEGER Line2Display;  
+INTEGER ViewModeLine2Display;  
+INTEGER VIEWMODE; //0 = Outputs 1 = inputs
+INTEGER ViewModeSelection;
+INTEGER InputVideoDetected; //0 = no input video detected; 1 = input video detected;
+STRING HDMIDMMODE[4];
+                                   
+
+
+FUNCTION Evaluate(INTEGER Index)
+	{
+	if(Index > 0)
+		{
+		Makestring(SerialOut$[1], "OUT: %s", DestinationNameIn$[Index]);
+		//Makestring(SerialOut$[2], " IN: %s", SourceNameIn$[AudioInput[Index]]);
+
+		if (VideoInput[Index] > 0) 
+			{
+				Makestring(SerialOut$[2], "IN: %s", SourceNameIn$[VideoInput[Index]]);
+				Line2ScrollArrow$ = ARROWNONE;
+				Line2Display = 0;
+
+			}
+		else if (AudioInput[Index] > 0)
+			{
+			Makestring(SerialOut$[2], "IN: %s", SourceNameIn$[AudioInput[Index]]);
+			Line2ScrollArrow$ = ARROWNONE;
+			Line2Display = 0;
+
+
+			}
+
+
+		else
+			{
+			SerialOut$[2] = "Select  Input";
+			Line2ScrollArrow$ = ARROWNONE;
+			Line2Display = 0;
+			}
+		}
+	else
+		{
+		if (SystemReady = 1)
+		{
+			SerialOut$[1] = "   Select Output";
+			SerialOut$[2] = "     Then Input";
+			Line2ScrollArrow$ = ARROWNONE;
+			Line2Display = 0;
+		}
+
+		}
+
+
+	}
+
+Function DisplayInfo(INTEGER Selection)
+	{
+		INTEGER Name_String_length ;
+        ViewModeSelection = Selection;
+		if ((Selection >= FIRSTOUTPUT ) && (Selection <= LASTOUTPUT ))
+			{
+			Line2ScrollArrow$ = ARROWNONE;
+
+			Makestring(SerialOut$[1], "OUT: %s", DestinationNameIn$[Selection]);
+
+			if ((Selection >= FIRSTOUTPUT ) && (Selection <= (LASTOUTPUT-3) ))
+				{
+
+				Name_String_length = LEN(Name_String[Selection]);
+		         if( Name_String_length = 1)
+					{
+					Makestring(SerialOut$[2], "No Output Detected");
+                    }
+                        
+				else{
+					  Makestring(SerialOut$[2], "%s",Name_String[Selection]);
+					}
+				}
+			
+			else {
+                  Makestring(SerialOut$[2], " ");
+				}
+                         /*
+					if (Output_HDCPEnabled[ViewModeSelection] = 0 )
+						{
+                         Makestring(SerialOut$[2], "HDCP: Not Available");
+						}
+					else if (Output_HDCPEnabled[ViewModeSelection - 7] = 55 )
+						{
+                         Makestring(SerialOut$[2], "HDCP: Unauthenticated");
+						}
+ 					else if (Output_HDCPEnabled[ViewModeSelection - 7] = 56 )
+						{
+                         Makestring(SerialOut$[2], "HDCP: Waiting");
+						}
+ 					else if (Output_HDCPEnabled[ViewModeSelection - 7] = 57 )
+						{
+                         Makestring(SerialOut$[2], "HDCP: Authenticated");
+						}
+ 					else if (Output_HDCPEnabled[ViewModeSelection - 7] = 58 )
+						{
+                         Makestring(SerialOut$[2], "HDCP: No Source");
+						}
+ 					else 
+						{
+                         Makestring(SerialOut$[2], "HDCP: Unknown");
+						}
+
+                        */
+            VIEWMODE = 0;
+			Line2ScrollArrow$ = ARROWNONE;
+			ViewModeLine2Display = 1;
+
+			}
+	else if ((Selection >= FIRSTINPUT ) && (Selection <= LASTINPUT ))
+			{
+			Line2ScrollArrow$ = ARROWNONE;
+			VIEWMODE = 1;
+			InputVideoDetected = 1;
+			ViewModeLine2Display = 1;
+			if ( (ViewModeSelection = 13) || (ViewModeSelection = 14) ) //Set for SerialOut2
+				{
+				HDMIDMMODE = "DM";
+				}
+			else
+				HDMIDMMODE = "HDMI";
+
+
+			Makestring(SerialOut$[1], "IN: %s", SourceNameIn$[Selection - 7]);
+			 if ( (Selection >= FIRSTVGAINPUT) && (Selection <= LASTVGAINPUT) )
+				{
+                      //Check for any video detected on input 3 &4
+					if ( (Input_DigitalVideoDetected[Selection - 7] = 0) && (Input_VGAVideoDetected[Selection - 9] = 0) && (Selection !=  BNCINPUT) )
+						{
+						Makestring(SerialOut$[2], "No Video Detected");
+						InputVideoDetected = 0;
+						Line2ScrollArrow$ = ARROWNONE;
+						}
+                      //Check for any video detected on input 5
+					else if ((Input_DigitalVideoDetected[Selection - 7] = 0) && (Input_VGAVideoDetected[Selection - 9] = 0) && (Selection =  BNCINPUT) )
+                        {
+						if (Input_BNCVideoDetected[1] = 0)
+							{
+							Makestring(SerialOut$[2], "No Video Detected");
+							InputVideoDetected = 0;
+							Line2ScrollArrow$ = ARROWNONE;
+							}
+						}
+   
+					//check for  active HDMI source
+					else if (Input_VideoSourceSelect[Selection -9] = 1)
+						{
+						Makestring(SerialOut$[2], "%s VRes: %d",HDMIDMMODE,Input_HDMIVerticalResolution[Selection - 7]);// ", HRes: %d", Input_HorizontalResolution[Selection]);
+						Line2ScrollArrow$ = ARROWDOWN;
+						
+						}
+
+					//check for  active VGA source
+					else if (Input_VideoSourceSelect[Selection -9] = 2) // -9 to Offset ViewModeSelection to VGAVideoDetected Index
+						{
+						Makestring(SerialOut$[2], "VGA VRes: %d",Input_VGAVerticalResolution[Selection - 9]);
+						Line2ScrollArrow$ = ARROWDOWN;
+						}
+					//check for  active BNC source
+					else if ( (Selection =  BNCINPUT) && (Input_VideoSourceSelect[Selection -9] = 3) )
+						{
+						Makestring(SerialOut$[2], "BNC VRes: %d",Input_BNCVerticalResolution[1]);
+						Line2ScrollArrow$ = ARROWDOWN;
+
+						}
+					//base case; really just an error check
+					else
+						{
+						Makestring(SerialOut$[2], "No Video Detected");
+						InputVideoDetected = 0;
+						Line2ScrollArrow$ = ARROWNONE;
+						}
+
+				}
+                       
+			//only hdmi 1 and 2 are left after above logic. check for video detected
+			else	if 		(Input_DigitalVideoDetected[Selection - 7] = 1)
+				{
+				Makestring(SerialOut$[2], "%s VRes: %d",HDMIDMMODE,Input_HDMIVerticalResolution[Selection - 7]);// ", HRes: %d", Input_HorizontalResolution[Selection]);
+				Line2ScrollArrow$ = ARROWDOWN;
+				
+				}
+
+
+			//base case
+			else
+				{
+				Makestring(SerialOut$[2], "No Video Detected");
+				InputVideoDetected = 0;
+				}
+		//	Makestring(SerialOut$[2], "IN: %s", SourceNameIn$[VideoInput[Selection]]);
+
+			}
+
+		else 
+			{
+     		Makestring(SerialOut$[1], "Video Info");
+			Makestring(SerialOut$[2], "Select Input/Output");
+			Line2ScrollArrow$ = ARROWNONE;
+			ViewModeLine2Display = 0;
+
+		//	Line2Display = 0;
+
+			}
+
+//		}
+
+	}
+
+Function View(INTEGER Index)
+{
+if(Index > 0)
+		{
+		Makestring(SerialOut$[1], "OUT: %s", DestinationNameIn$[Index]);
+		//Makestring(SerialOut$[2], " IN: %s", SourceNameIn$[AudioInput[Index]]);
+
+		if(VideoInput[Index] > 0)
+		 //	if (Index > 0 && Index < 5) 
+			{
+				Makestring(SerialOut$[2], "IN: %s", SourceNameIn$[VideoInput[Index]]);
+				Line2ScrollArrow$ = ARROWNONE;
+				Line2Display = 0;
+
+			/*
+			if(VideoInput[Index] = AudioInput[Index])
+				{
+				Makestring(SerialOut$[2], " IN: %s", SourceNameIn$[VideoInput[Index]]);
+				Line2ScrollArrow$ = ARROWNONE;
+				Line2Display = 0;
+				}
+			else
+				{
+				if(VideoInput[Index] > 0)
+					{
+					Makestring(SerialOut$[2], " IN: %s-VID", SourceNameIn$[VideoInput[Index]]);
+					}
+				else
+					{
+					SerialOut$[2] = " IN: NONE-VID";
+					}
+				Line2ScrollArrow$ = ARROWDOWN;
+				Line2Display = 1;
+				}
+				*/
+			}
+		else if ( AudioInput[Index] > 0)
+			{
+     			Makestring(SerialOut$[2], "IN: %s", SourceNameIn$[AudioInput[Index]]);
+				Line2ScrollArrow$ = ARROWNONE;
+				Line2Display = 0;
+
+			}
+		else
+			{
+			SerialOut$[2] = "No Input";
+			Line2ScrollArrow$ = ARROWNONE;
+			Line2Display = 0;
+			}
+		}
+	else
+		{
+		SerialOut$[1] = "   Select Output";
+		SerialOut$[2] = "      ";
+		Line2ScrollArrow$ = ARROWNONE;
+		Line2Display = 0;
+
+		}
+
+
+}
+			 
+	
+CHANGE VideoInput
+	{
+	INTEGER Index;
+	
+	Index = getlastmodifiedarrayindex();
+	if(Index = DestinationSelected&& FrontPanelMode = 0 && Mode_Installer_Not_Active = 1 && SystemReady = 1){
+		Call Evaluate(Index);
+		}
+
+	}
+
+CHANGE AudioInput
+	{
+	INTEGER Index;
+	
+	Index = getlastmodifiedarrayindex();
+	if(Index = DestinationSelected && FrontPanelMode = 0 && Mode_Installer_Not_Active = 1 && SystemReady = 1)
+		Call Evaluate(Index);
+	}
+	
+CHANGE DestinationSelected
+	{
+	if (FrontPanelMode = 0)
+		{
+		Call Evaluate(DestinationSelected);
+		}
+	}
+
+
+CHANGE ViewModeDestination
+	{
+    if (FrontPanelMode = 1)
+		{
+		Call View(ViewModeDestination);
+		}
+	}
+
+CHANGE SelectedInOut
+	{
+	if( FrontPanelMode = 2)
+		{
+		Call DisplayInfo(SelectedInOut);
+		}
+	}
+
+
+PUSH Up
+	{
+
+	
+	if (FrontPanelMode = 0)
+		{
+			if(Line2Display = 2)
+			{
+			Makestring(SerialOut$[2], " IN: %s-VID", SourceNameIn$[VideoInput[DestinationSelected]]);
+			Line2ScrollArrow$ = ARROWDOWN;
+			Line2Display = 1;
+			}
+		}
+            
+	else if ( InputVideoDetected = 0)
+		{
+		SerialOut$[2] = "No Video Detected";
+		}
+                 
+	else if ( (FrontPanelMode = 2) && (VIEWMODE = 1) && (Input_DigitalVideoDetected[ViewModeSelection - 7] = 1))
+		{
+			ViewModeLine2Display = ViewModeLine2Display - 1;
+			if (ViewModeLine2Display < HDMILINE2DISPLAYMIN)
+				ViewModeLine2Display = HDMILINE2DISPLAYMIN;
+
+			if(ViewModeLine2Display = 1)
+				{
+					Makestring(SerialOut$[2], "%s VRes: %d",HDMIDMMODE,Input_HDMIVerticalResolution[ViewModeSelection - 7]);// ", HRes: %d", Input_HorizontalResolution[Selection]);
+					Line2ScrollArrow$ = ARROWDOWN;
+				}
+			else if(ViewModeLine2Display = 2)
+				{
+
+					Makestring(SerialOut$[2], "%s HRes: %d",HDMIDMMODE,Input_HDMIHorizontalResolution[ViewModeSelection - 7]);
+					Line2ScrollArrow$ = ARROWUPDOWN;
+				}
+
+			else if(ViewModeLine2Display = 3)
+				{
+					Makestring(SerialOut$[2], "%s Refresh: %d", HDMIDMMODE,Input_HDMIRefreshRate[ViewModeSelection - 7]);
+					Line2ScrollArrow$ = ARROWUPDOWN;
+				}
+		}
+
+
+
+	// check if VGA is active on inputs 3-5
+	else if ( (FrontPanelMode = 2) && (VIEWMODE = 1) && (Input_VideoSourceSelect[ViewModeSelection -9] = 2) && (ViewModeSelection >= FIRSTVGAINPUT) && (ViewModeSelection <= LASTVGAINPUT) )
+		{
+
+			ViewModeLine2Display = ViewModeLine2Display - 1;
+			if (ViewModeLine2Display < VGALINE2DISPLAYMIN)
+				ViewModeLine2Display = VGALINE2DISPLAYMIN;
+
+			if(ViewModeLine2Display = 1)
+				{
+					Makestring(SerialOut$[2], "VGA VRes: %d",Input_VGAVerticalResolution[ViewModeSelection - 9]);// ", HRes: %d", Input_HorizontalResolution[Selection]);
+					Line2ScrollArrow$ = ARROWDOWN;
+				}
+			else if(ViewModeLine2Display = 2)
+				{
+
+					Makestring(SerialOut$[2], "VGA HRes: %d",Input_VGAHorizontalResolution[ViewModeSelection - 9]);
+					Line2ScrollArrow$ = ARROWUPDOWN;
+				}
+
+			else if(ViewModeLine2Display = 3)
+				{
+					Makestring(SerialOut$[2], "VGA Refresh: %d", Input_VGARefreshRate[ViewModeSelection - 9]);
+					Line2ScrollArrow$ = ARROWUP;
+				}
+		}
+	//then check if BNC is active on input 5
+	else if ( (FrontPanelMode = 2) && (VIEWMODE = 1) && (Input_VideoSourceSelect[ViewModeSelection -9] = 3) && (ViewModeSelection = BNCINPUT)  )
+		{
+
+			ViewModeLine2Display = ViewModeLine2Display - 1;
+			if (ViewModeLine2Display < BNCLINE2DISPLAYMIN)
+				ViewModeLine2Display = BNCLINE2DISPLAYMIN;
+
+			if(ViewModeLine2Display = 1)
+				{
+					Makestring(SerialOut$[2], "BNC VRes: %d",Input_BNCVerticalResolution[1]);// ", HRes: %d", Input_HorizontalResolution[Selection]);
+					Line2ScrollArrow$ = ARROWDOWN;
+				}
+			else if(ViewModeLine2Display = 2)
+				{
+
+					Makestring(SerialOut$[2], "BNC HRes: %d",Input_BNCHorizontalResolution[1]);
+					Line2ScrollArrow$ = ARROWUPDOWN;
+				}
+
+			else if(ViewModeLine2Display = 3)
+				{
+					Makestring(SerialOut$[2], "BNC Refresh: %d", Input_BNCRefreshRate[1]);
+					Line2ScrollArrow$ = ARROWUP;
+				}
+
+		}
+	// hdmi inputs
+
+
+		
+
+
+	}
+
+PUSH Down
+	{
+           
+
+     //print ("PUSH DOWN");
+
+	if (FrontPanelMode = 0)
+		{
+			
+			if(Line2Display = 1)
+				{
+					Makestring(SerialOut$[2], " IN: %s-AUD", SourceNameIn$[AudioInput[DestinationSelected]]);
+					Line2ScrollArrow$ = ARROWUP;
+					Line2Display = 2;
+				}
+		}
+	else if ( InputVideoDetected = 0)
+		{
+		SerialOut$[2] = "No Video Detected";
+		}
+	
+    else if ( (FrontPanelMode = 2) && (VIEWMODE = 1)  && (Input_DigitalVideoDetected[ViewModeSelection - 7] = 1))
+		{
+     		ViewModeLine2Display = ViewModeLine2Display + 1;
+			if (ViewModeLine2Display > HDMILINE2DISPLAYMAX)
+				ViewModeLine2Display = HDMILINE2DISPLAYMAX;
+
+    	   	// print ("%d line2disp",ViewModeLine2Display);
+
+			if(ViewModeLine2Display = 2)
+				{
+                Makestring(SerialOut$[2], " ");
+				Makestring(SerialOut$[2], "%s HRes: %d",HDMIDMMODE,Input_HDMIHorizontalResolution[ViewModeSelection - 7]);// ", HRes: %d", Input_HorizontalResolution[Selection]);
+
+				Line2ScrollArrow$ = ARROWUPDOWN;
+				}
+			else if(ViewModeLine2Display = 3)
+				{
+					Makestring(SerialOut$[2], "%s Refresh: %d", HDMIDMMODE,Input_HDMIRefreshRate[ViewModeSelection - 7]);
+					Line2ScrollArrow$ = ARROWUPDOWN;
+				}
+			else if(ViewModeLine2Display = 4)
+				{
+							if (Input_HDCPEnabled[ViewModeSelection - 7] = 0 )
+						{
+                         Makestring(SerialOut$[2], "HDCP: not required");
+						}
+					else if (Input_HDCPEnabled[ViewModeSelection - 7] = 55 )
+						{
+                         Makestring(SerialOut$[2], "HDCP: Unauthenticated");
+						}
+ 					else if (Input_HDCPEnabled[ViewModeSelection - 7] = 56 )
+						{
+                         Makestring(SerialOut$[2], "HDCP: Waiting");
+						}
+ 					else if (Input_HDCPEnabled[ViewModeSelection - 7] = 57 )
+						{
+                         Makestring(SerialOut$[2], "HDCP: Authenticated");
+						}
+ 					else if (Input_HDCPEnabled[ViewModeSelection - 7] = 58 )
+						{
+                         Makestring(SerialOut$[2], "HDCP: No Source");
+						}
+ 					else 
+						{
+                         Makestring(SerialOut$[2], "HDCP: Unknown");
+						}
+					
+					Line2ScrollArrow$ = ARROWUP;
+				}
+		}
+
+
+	else if ( (FrontPanelMode = 2) && (VIEWMODE = 1) &&  (ViewModeSelection >= FIRSTVGAINPUT) && (ViewModeSelection <= LASTVGAINPUT) )
+      	{
+		
+		if		(Input_VideoSourceSelect[ViewModeSelection -9] = 2)
+			{
+			 ViewModeLine2Display = ViewModeLine2Display + 1;
+				if (ViewModeLine2Display > VGALINE2DISPLAYMAX)
+					ViewModeLine2Display = VGALINE2DISPLAYMAX;
+
+			if(ViewModeLine2Display = 2)
+				{
+            	    Makestring(SerialOut$[2], " ");
+					Makestring(SerialOut$[2], "VGA HRes: %d",Input_VGAHorizontalResolution[ViewModeSelection - 9]);// ", HRes: %d", Input_HorizontalResolution[Selection]);
+
+					Line2ScrollArrow$ = ARROWUPDOWN;
+				}
+			else if(ViewModeLine2Display = 3)
+					{
+					Makestring(SerialOut$[2], "VGA Refresh: %d", Input_VGARefreshRate[ViewModeSelection - 9]);
+					Line2ScrollArrow$ = ARROWUP;
+					}
+         	}
+		}
+	else if ( (FrontPanelMode = 2) && (VIEWMODE = 1)  && (ViewModeSelection = BNCINPUT)  )
+      	{
+		if (Input_VideoSourceSelect[ViewModeSelection -9] = 3)
+			{
+			 ViewModeLine2Display = ViewModeLine2Display + 1;
+			if (ViewModeLine2Display > BNCLINE2DISPLAYMAX)
+				ViewModeLine2Display = BNCLINE2DISPLAYMAX;
+
+
+			if(ViewModeLine2Display = 2)
+				{
+                Makestring(SerialOut$[2], " ");
+				Makestring(SerialOut$[2], "BNC HRes: %d",Input_BNCHorizontalResolution[1]);// ", HRes: %d", Input_HorizontalResolution[Selection]);
+				Line2ScrollArrow$ = ARROWUPDOWN;
+				}
+			else if(ViewModeLine2Display = 3)
+				{
+				Makestring(SerialOut$[2], "BNC Refresh: %d", Input_BNCRefreshRate[1]);
+				Line2ScrollArrow$ = ARROWUP;
+				}
+		    }
+		}
+    
+
+	
+	}
+
+Push ViewBtn{
+	INTEGER Index;
+	FrontPanelMode = 1;
+	
+	Index = getlastmodifiedarrayindex();
+	if(Index = DestinationSelected && FrontPanelMode = 0)
+	{
+		Call Evaluate(Index);
+	}
+
+	
+}
+
+PUSH RouteBtn
+	{
+     FrontPanelMode = 0;
+	}
+	
+PUSH InfoBtn
+	{
+
+//	Call DisplayInfo(0);
+
+	FrontPanelMode = 2;
+	ViewModeLine2Display = 1;
+	Call DisplayInfo(SelectedInOut);
+
+
+	}
+
+PUSH Front_Panel_Button_Pressed
+	{
+	if (FrontPanelMode = 2)
+		{
+		ViewModeLine2Display = 1;
+		Call DisplayInfo(SelectedInOut);
+		}
+
+	}
+
+PUSH SysPwrBtn
+	{
+	if (SystemPowerState = 0)
+		FrontPanelMode = 0;
+	}
+	
+FUNCTION Main()
+	{
+	Call Evaluate(0);
+	FrontPanelMode = 0;
+	Line2ScrollArrow$ = ARROWNONE;
+	SerialOut$[1] = "   Select Output";
+	SerialOut$[2] = "     Then Input";
+
+
+	}
+		

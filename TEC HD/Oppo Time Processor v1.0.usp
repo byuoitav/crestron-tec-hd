@@ -1,0 +1,510 @@
+/*******************************************************************************************
+  SIMPL+ Module Information
+  (Fill in comments below)
+*******************************************************************************************/
+/*
+Dealer Name:	Crestron Electronics, Inc.
+System Name:
+System Number:
+Programmer:		PAC
+Comments:
+*/
+/*******************************************************************************************
+  Compiler Directives
+  (Uncomment and declare compiler directives as needed)
+*******************************************************************************************/
+// #ENABLE_DYNAMIC
+#SYMBOL_NAME "Oppo Time Processor v1.0"
+// #HINT ""
+// #DEFINE_CONSTANT
+// #CATEGORY "" 
+// #PRINT_TO_TRACE
+// #DIGITAL_EXPAND 
+// #ANALOG_SERIAL_EXPAND 
+// #OUTPUT_SHIFT 
+// #HELP_PDF_FILE ""
+#DEFAULT_VOLATILE
+#ENABLE_STACK_CHECKING
+// #ENABLE_TRACE
+#ENCODING_INHERIT_FROM_PARENT
+// #ENCODING_ASCII
+// #ENCODING_UTF16
+// #ENCODING_INHERIT_FROM_PROGRAM
+/*
+#HELP_BEGIN
+   (add additional lines of help lines)
+#HELP_END
+*/
+/*******************************************************************************************
+  DIGITAL, ANALOG and SERIAL INPUTS and OUTPUTS
+  (Uncomment and declare inputs and outputs as needed)
+*******************************************************************************************/
+DIGITAL_INPUT	Process_From_Device,
+				Send_Title_Number, Send_Title_Time,
+				Send_Chapter_Number, Send_Chapter_Time,
+				Clear_Text, Key[13];
+BUFFER_INPUT	From_Device[500];
+
+// DIGITAL_OUTPUT
+ANALOG_OUTPUT	Title_Number_Analog, Chapter_Number_Analog, Audio_Track_Number_Analog,
+				Audio_Maximum_Tracks_Analog, Sub_Title_Number_Analog,
+				Maximum_Sub_Title_Analog, Total_Tracks_Titles_Analog, Total_Chapters_Analog;
+STRING_OUTPUT	Entered_Text,
+				Current_Title_Elapsed_Time_Text, Current_Title_Remaining_Time_Text,
+				Current_Chapter_Elapsed_Time_Text, Current_Chapter_Remaining_Time_Text,
+				Current_Total_Elapsed_Time_Text, Current_Total_Remaining_Time_Text,
+				Disc_Type_Text, Audio_Type_Text, Audio_Language_Text, Audio_Channels_Text,
+				Sub_Title_Language_Text,
+				To_Device;
+/*******************************************************************************************
+  Global Variables
+  (Uncomment and declare global variables as needed)
+  Note:  Be sure to initialize all declared STRING variables as needed
+         For example, in Function Main: myString = "";
+*******************************************************************************************/
+INTEGER	iFlag1, iMarker1, iMarker2, iMarker3, iMarker4, iMarker5, iMarker6, iMarker7, iTemp,
+		iTempTitle, iTempChapter, iTempTrackNumber, iTempMaxTracks, iTempSubNumber,
+		iTempMaxSubs, iCurrentTrack, iTotalTracks, iCurrentChapter, iTotalChapters;
+STRING	sEntered[25], sTemp[100], sType[5], sNewTime[20], sNewDiscType[20], sNewLanguage[25],
+		sNewAudioType[20], sNewChannels[10], sNewSubLanguage[20];
+/*******************************************************************************************
+  Event Handlers
+  (Uncomment and declare additional event handlers as needed)
+*******************************************************************************************/
+RELEASE Process_From_Device
+{
+	if(iFlag1 = 0)
+	{
+		iFlag1 = 1;
+		while(len(From_Device) > 0)
+		{
+			sTemp = remove("\x0D", From_Device);
+			if(len(sTemp) > 0)
+			{
+				switch(1)
+				{
+					case(find("@UTC", sTemp)):
+					{//@UTC 001 015 T 00:00:00 (title chapter type time)
+					 //Type: E=Elapsed Time, R=Remaining Time, T=Title Elapsed Time,
+					 //X=Title Remaining Time, C=Chapter/Track Elapsed Time, K=Chapter/Track Remaining Time
+						iMarker1 = find("@UTC", sTemp);
+						iMarker2 = find(" ", sTemp, iMarker1);		//Space before title #
+						iMarker3 = find(" ", sTemp, iMarker2 + 1);	//Space before chapter #
+						iMarker4 = find(" ", sTemp, iMarker3 + 1);	//Space before the type
+						iMarker5 = find(" ", sTemp, iMarker4 + 1);	//Space before the time
+						iMarker6 = find("\x0D", sTemp);
+						iTempTitle = atoi(mid(sTemp, iMarker2 + 1, iMarker3 - iMarker2 - 1));
+						Title_Number_Analog = iTempTitle;
+						iTempChapter = atoi(mid(sTemp, iMarker3 + 1, iMarker4 - iMarker3 - 1));
+						Chapter_Number_Analog = iTempChapter;
+						sType = mid(sTemp, iMarker4 + 1, iMarker5 - iMarker4 - 1);
+						sNewTime = mid(sTemp, iMarker5 + 1, iMarker6 - iMarker5 - 1);
+						iMarker1 = find(":", sNewTime);
+						iMarker2 = find(":", sNewTime, iMarker1 + 1);
+						if(iMarker2 = (iMarker1 + 2))//0:1:23
+						{
+							makestring(sNewTime, "%s0%s", left(sNewTime, iMarker1), right(sNewTime, len(sNewTime) - iMarker1));
+						}
+						iMarker2 = find(":", sNewTime, iMarker1 + 1);
+						if(len(sNewTime) = (iMarker2 + 1))//0:01:3
+						{
+							makestring(sNewTime, "%s0%s", left(sNewTime, iMarker2), right(sNewTime, 1));
+						}
+						if(sType = "E")
+						{
+							Current_Total_Elapsed_Time_Text = sNewTime;
+						}
+						else if(sType = "R")
+						{
+							Current_Total_Remaining_Time_Text = sNewTime;
+						}
+						else if(sType = "T")
+						{
+							Current_Title_Elapsed_Time_Text = sNewTime;
+						}
+						else if(sType = "X")
+						{
+							Current_Title_Remaining_Time_Text = sNewTime;
+						}
+						else if(sType = "C")
+						{
+							Current_Chapter_Elapsed_Time_Text = sNewTime;
+						}
+						else if(sType = "K")
+						{
+							Current_Total_Remaining_Time_Text = sNewTime;
+						}
+					}
+					case(find("@UDT", sTemp))://Disc Type
+					{//@UDT CDDA
+					 //BDMV - Blu-ray Disc; DVDV – DVD-Video; DVDA – DVD-Audio; SACD
+					 //CDDA; HDCD; DATA – Data disc; VCD2 – VCD 2.0; SVCD - SVCD
+					 	iMarker1 = find("@UDT", sTemp);
+					 	iMarker2 = find(" ", sTemp, iMarker1);
+					 	iMarker3 = find("\x0D", sTemp);
+					 	sNewDiscType = mid(sTemp, iMarker2 + 1, iMarker3 - iMarker2 - 1);
+					 	Disc_Type_Text = sNewDiscType;
+					}
+					case(find("@UAT", sTemp)):
+					{//@UAT DD 01/05 ENG 5.1 (type track_number language channels)
+						iMarker1 = find("@UAT", sTemp);
+						iMarker2 = find(" ", sTemp, iMarker1);
+						iMarker3 = find(" ", sTemp, iMarker2 + 1);
+						iMarker4 = find("/", sTemp, iMarker3 + 1);
+						iMarker5 = find(" ", sTemp, iMarker4 + 1);
+						iMarker6 = find(" ", sTemp, iMarker5 + 1);
+						iMarker7 = find("\x0D", sTemp);
+						sNewAudioType = mid(sTemp, iMarker2 + 1, iMarker3 - iMarker2 - 1);
+						Audio_Type_Text = sNewAudioType;
+						iTempTrackNumber = atoi(mid(sTemp, iMarker3 + 1, iMarker4 - iMarker3 - 1));
+						iTempMaxTracks = atoi(mid(sTemp, iMarker4 + 1, iMarker5 - iMarker4 - 1));
+						Audio_Track_Number_Analog = iTempTrackNumber;
+						Audio_Maximum_Tracks_Analog = iTempMaxTracks;
+						sNewLanguage = mid(sTemp, iMarker5 + 1, iMarker6 - iMarker5 - 1);
+						Audio_Language_Text = sNewLanguage;
+						sNewChannels = mid(sTemp, iMarker6 + 1, iMarker7 - iMarker6 - 1);
+						Audio_Channels_Text = sNewChannels;
+					}
+					case(find("@UST", sTemp)):
+					{//@UST 02/05 ENG (number language)
+						iMarker1 = find("@UST", sTemp);
+						iMarker2 = find(" ", sTemp, iMarker1);
+						iMarker3 = find("/", sTemp, iMarker2 + 1);
+						iMarker4 = find(" ", sTemp, iMarker3 + 1);
+						iMarker5 = find("\x0D", sTemp);
+						iTempSubNumber = atoi(mid(sTemp, iMarker2 + 1, iMarker3 - iMarker2 - 1));
+						iTempMaxSubs = atoi(mid(sTemp, iMarker3 + 1, iMarker4 - iMarker3 - 1));
+						Sub_Title_Number_Analog = iTempSubNumber;
+						Maximum_Sub_Title_Analog = iTempMaxSubs;
+						sNewSubLanguage = mid(sTemp, iMarker4 + 1, iMarker5 - iMarker4 - 1);
+						Sub_Title_Language_Text = sNewSubLanguage;
+					}
+					case(find("@QTK", sTemp)):
+					{//@QTK OK 2/10
+						iMarker1 = find("@QTK", sTemp);
+						iMarker2 = find(" ", sTemp, iMarker1);
+						iMarker3 = find(" ", sTemp, iMarker2 + 1);
+						iMarker4 = find("/", sTemp, iMarker3 + 1);
+						iMarker5 = find("\x0D", sTemp);
+						iCurrentTrack = atoi(mid(sTemp, iMarker3 + 1, iMarker4 - iMarker3 - 1));
+						iTotalTracks = atoi(mid(sTemp, iMarker4 + 1, iMarker5 - iMarker4 - 1));
+						Title_Number_Analog = iCurrentTrack;
+						Total_Tracks_Titles_Analog = iTotalTracks;
+					}
+					case(find("@QCH", sTemp)):
+					{//@QCH OK 2/10
+						iMarker1 = find("@QCH", sTemp);
+						iMarker2 = find(" ", sTemp, iMarker1);
+						iMarker3 = find(" ", sTemp, iMarker2 + 1);
+						iMarker4 = find("/", sTemp, iMarker3 + 1);
+						iMarker5 = find("\x0D", sTemp);
+						iCurrentChapter = atoi(mid(sTemp, iMarker3 + 1, iMarker4 - iMarker3 - 1));
+						iTotalChapters = atoi(mid(sTemp, iMarker4 + 1, iMarker5 - iMarker4 - 1));
+						Chapter_Number_Analog = iCurrentChapter;
+						Total_Chapters_Analog = iTotalChapters;
+					}
+					case(find("@QTE", sTemp)):
+					{//@QTE OK 00:00:00
+						iMarker1 = find("@QTE", sTemp);
+						iMarker2 = find(" ", sTemp, iMarker1);
+						iMarker3 = find(" ", sTemp, iMarker2 + 1);
+						iMarker4 = find("\x0D", sTemp);
+						sNewTime = mid(sTemp, iMarker3 + 1, iMarker4 - iMarker3 - 1);
+						iMarker1 = find(":", sNewTime);
+						iMarker2 = find(":", sNewTime, iMarker1 + 1);
+						if(iMarker2 = (iMarker1 + 2))//0:1:23
+						{
+							makestring(sNewTime, "%s0%s", left(sNewTime, iMarker1), right(sNewTime, len(sNewTime) - iMarker1));
+						}
+						iMarker2 = find(":", sNewTime, iMarker1 + 1);
+						if(len(sNewTime) = (iMarker2 + 1))//0:01:3
+						{
+							makestring(sNewTime, "%s0%s", left(sNewTime, iMarker2), right(sNewTime, 1));
+						}
+						Current_Title_Elapsed_Time_Text = sNewTime;
+					}
+					case(find("@QTR", sTemp)):
+					{//@QTR OK 00:00:00
+						iMarker1 = find("@QTR", sTemp);
+						iMarker2 = find(" ", sTemp, iMarker1);
+						iMarker3 = find(" ", sTemp, iMarker2 + 1);
+						iMarker4 = find("\x0D", sTemp);
+						sNewTime = mid(sTemp, iMarker3 + 1, iMarker4 - iMarker3 - 1);
+						iMarker1 = find(":", sNewTime);
+						iMarker2 = find(":", sNewTime, iMarker1 + 1);
+						if(iMarker2 = (iMarker1 + 2))//0:1:23
+						{
+							makestring(sNewTime, "%s0%s", left(sNewTime, iMarker1), right(sNewTime, len(sNewTime) - iMarker1));
+						}
+						iMarker2 = find(":", sNewTime, iMarker1 + 1);
+						if(len(sNewTime) = (iMarker2 + 1))//0:01:3
+						{
+							makestring(sNewTime, "%s0%s", left(sNewTime, iMarker2), right(sNewTime, 1));
+						}
+						Current_Title_Remaining_Time_Text = sNewTime;
+					}
+					case(find("@QCE", sTemp)):
+					{//@QCE OK 00:00:00
+						iMarker1 = find("@QCE", sTemp);
+						iMarker2 = find(" ", sTemp, iMarker1);
+						iMarker3 = find(" ", sTemp, iMarker2 + 1);
+						iMarker4 = find("\x0D", sTemp);
+						sNewTime = mid(sTemp, iMarker3 + 1, iMarker4 - iMarker3 - 1);
+						iMarker1 = find(":", sNewTime);
+						iMarker2 = find(":", sNewTime, iMarker1 + 1);
+						if(iMarker2 = (iMarker1 + 2))//0:1:23
+						{
+							makestring(sNewTime, "%s0%s", left(sNewTime, iMarker1), right(sNewTime, len(sNewTime) - iMarker1));
+						}
+						iMarker2 = find(":", sNewTime, iMarker1 + 1);
+						if(len(sNewTime) = (iMarker2 + 1))//0:01:3
+						{
+							makestring(sNewTime, "%s0%s", left(sNewTime, iMarker2), right(sNewTime, 1));
+						}
+						Current_Chapter_Elapsed_Time_Text = sNewTime;
+					}
+					case(find("@QCR", sTemp)):
+					{//@QCR OK 00:00:00
+						iMarker1 = find("@QCR", sTemp);
+						iMarker2 = find(" ", sTemp, iMarker1);
+						iMarker3 = find(" ", sTemp, iMarker2 + 1);
+						iMarker4 = find("\x0D", sTemp);
+						sNewTime = mid(sTemp, iMarker3 + 1, iMarker4 - iMarker3 - 1);
+						iMarker1 = find(":", sNewTime);
+						iMarker2 = find(":", sNewTime, iMarker1 + 1);
+						if(iMarker2 = (iMarker1 + 2))//0:1:23
+						{
+							makestring(sNewTime, "%s0%s", left(sNewTime, iMarker1), right(sNewTime, len(sNewTime) - iMarker1));
+						}
+						iMarker2 = find(":", sNewTime, iMarker1 + 1);
+						if(len(sNewTime) = (iMarker2 + 1))//0:01:3
+						{
+							makestring(sNewTime, "%s0%s", left(sNewTime, iMarker2), right(sNewTime, 1));
+						}
+						Current_Chapter_Remaining_Time_Text = sNewTime;
+					}
+					case(find("@QEL", sTemp)):
+					{//@QEL OK 00:00:00
+						iMarker1 = find("@QEL", sTemp);
+						iMarker2 = find(" ", sTemp, iMarker1);
+						iMarker3 = find(" ", sTemp, iMarker2 + 1);
+						iMarker4 = find("\x0D", sTemp);
+						sNewTime = mid(sTemp, iMarker3 + 1, iMarker4 - iMarker3 - 1);
+						iMarker1 = find(":", sNewTime);
+						iMarker2 = find(":", sNewTime, iMarker1 + 1);
+						if(iMarker2 = (iMarker1 + 2))//0:1:23
+						{
+							makestring(sNewTime, "%s0%s", left(sNewTime, iMarker1), right(sNewTime, len(sNewTime) - iMarker1));
+						}
+						iMarker2 = find(":", sNewTime, iMarker1 + 1);
+						if(len(sNewTime) = (iMarker2 + 1))//0:01:3
+						{
+							makestring(sNewTime, "%s0%s", left(sNewTime, iMarker2), right(sNewTime, 1));
+						}
+						Current_Total_Elapsed_Time_Text = sNewTime;
+					}
+					case(find("@QRE", sTemp)):
+					{//@QRE OK 00:00:00
+						iMarker1 = find("@QRE", sTemp);
+						iMarker2 = find(" ", sTemp, iMarker1);
+						iMarker3 = find(" ", sTemp, iMarker2 + 1);
+						iMarker4 = find("\x0D", sTemp);
+						sNewTime = mid(sTemp, iMarker3 + 1, iMarker4 - iMarker3 - 1);
+						iMarker1 = find(":", sNewTime);
+						iMarker2 = find(":", sNewTime, iMarker1 + 1);
+						if(iMarker2 = (iMarker1 + 2))//0:1:23
+						{
+							makestring(sNewTime, "%s0%s", left(sNewTime, iMarker1), right(sNewTime, len(sNewTime) - iMarker1));
+						}
+						iMarker2 = find(":", sNewTime, iMarker1 + 1);
+						if(len(sNewTime) = (iMarker2 + 1))//0:01:3
+						{
+							makestring(sNewTime, "%s0%s", left(sNewTime, iMarker2), right(sNewTime, 1));
+						}
+						Current_Total_Remaining_Time_Text = sNewTime;
+					}
+					case(find("@QDT", sTemp))://Disc Type
+					{//@QDT OK CDDA
+					 	iMarker1 = find("@QDT", sTemp);
+					 	iMarker2 = find(" ", sTemp, iMarker1);
+					 	iMarker3 = find(" ", sTemp, iMarker2 + 1);
+					 	iMarker4 = find("\x0D", sTemp);
+					 	sNewDiscType = mid(sTemp, iMarker3 + 1, iMarker4 - iMarker3 - 1);
+					 	Disc_Type_Text = sNewDiscType;
+					}
+				}
+			}
+			delay(10);
+		}
+		iFlag1 = 0;
+	}
+}
+
+PUSH Send_Title_Number
+{
+	if(find(":", sEntered) = 0)
+	{
+		makestring(To_Device, "#SRH T%s\x0D", sEntered);
+	}
+}
+
+PUSH Send_Title_Time
+{
+	if(len(sEntered) > 0)
+	{
+		if(len(sEntered) = 1)
+		{
+			sEntered = "0:00:0" + sEntered;
+			Entered_Text = sEntered;
+		}
+		else if(len(sEntered) = 2)
+		{
+			sEntered = "0:00:" + sEntered;
+			Entered_Text = sEntered;
+		}
+		else if(len(sEntered) = 3)
+		{
+			sEntered = "0:00" + sEntered;
+			Entered_Text = sEntered;
+		}
+		else if(len(sEntered) = 4)
+		{
+			sEntered = "0:0" + sEntered;
+			Entered_Text = sEntered;
+		}
+		else if(len(sEntered) = 5)
+		{
+			sEntered = "0:" + sEntered;
+			Entered_Text = sEntered;
+		}
+		else if(len(sEntered) = 6)
+		{
+			sEntered = "0" + sEntered;
+			Entered_Text = sEntered;
+		}
+		makestring(To_Device, "#SRH T %s\x0D", sEntered);
+	}
+}
+
+PUSH Send_Chapter_Number
+{
+	if(find(":", sEntered) = 0)
+	{
+		makestring(To_Device, "#SRH C%s\x0D", sEntered);
+	}
+}
+
+PUSH Send_Chapter_Time
+{
+	if(len(sEntered) > 0)
+	{
+		if(len(sEntered) = 1)
+		{
+			sEntered = "0:00:0" + sEntered;
+			Entered_Text = sEntered;
+		}
+		else if(len(sEntered) = 2)
+		{
+			sEntered = "0:00:" + sEntered;
+			Entered_Text = sEntered;
+		}
+		else if(len(sEntered) = 3)
+		{
+			sEntered = "0:00" + sEntered;
+			Entered_Text = sEntered;
+		}
+		else if(len(sEntered) = 4)
+		{
+			sEntered = "0:0" + sEntered;
+			Entered_Text = sEntered;
+		}
+		else if(len(sEntered) = 5)
+		{
+			sEntered = "0:" + sEntered;
+			Entered_Text = sEntered;
+		}
+		else if(len(sEntered) = 6)
+		{
+			sEntered = "0" + sEntered;
+			Entered_Text = sEntered;
+		}
+		makestring(To_Device, "#SRH C %s\x0D", sEntered);
+	}
+}
+
+RELEASE Clear_Text
+{
+	Title_Number_Analog	= 0;
+	Chapter_Number_Analog = 0;
+	Audio_Track_Number_Analog = 0;
+	Audio_Maximum_Tracks_Analog = 0;
+	Sub_Title_Number_Analog = 0;
+	Maximum_Sub_Title_Analog = 0;
+	Total_Tracks_Titles_Analog = 0;
+	Total_Chapters_Analog = 0;
+	Entered_Text = "";
+	Current_Title_Elapsed_Time_Text = "";
+	Current_Title_Remaining_Time_Text = "";
+	Current_Chapter_Elapsed_Time_Text = "";
+	Current_Chapter_Remaining_Time_Text = "";
+	Current_Total_Elapsed_Time_Text = "";
+	Current_Total_Remaining_Time_Text = "";
+	Disc_Type_Text = "";
+	Audio_Type_Text = "";
+	Audio_Language_Text = "";
+	Audio_Channels_Text = "";
+	Sub_Title_Language_Text = "";
+}
+
+PUSH Key
+{
+	iTemp = getlastmodifiedarrayindex();
+	if(iTemp = 13)//colon
+	{
+		if(len(sEntered) < 8)
+		{
+			sEntered = sEntered + ":";
+			Entered_Text = sEntered;
+		}
+	}
+	else if(iTemp = 12)//backspace
+	{
+		if(len(sEntered) < 8)
+		{
+			sEntered = left(sEntered, len(sEntered) - 1);
+			Entered_Text = sEntered;
+		}
+	}
+	else if(iTemp = 11)//clear
+	{
+		sEntered = "";
+		Entered_Text = sEntered;
+	}
+	else if(iTemp = 10)//Zero
+	{
+		if(len(sEntered) < 8)
+		{
+			sEntered = sEntered + "0";
+			Entered_Text = sEntered;
+		}
+	}
+	else
+	{
+		if(len(sEntered) < 8)
+		{
+			makestring(sEntered, "%s%d", sEntered, iTemp);
+			Entered_Text = sEntered;
+		}
+	}
+}
+/*******************************************************************************************
+  Main()
+  Uncomment and place one-time startup code here
+  (This code will get called when the system starts up)
+*******************************************************************************************/
+Function Main()
+{
+	WaitForInitializationComplete();
+	sEntered = "";
+	Entered_Text = sEntered;
+}

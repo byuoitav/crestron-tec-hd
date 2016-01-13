@@ -1,0 +1,204 @@
+#ifndef __S2_WIRELESS_MIC_MONITORING_H__
+#define __S2_WIRELESS_MIC_MONITORING_H__
+
+
+
+
+/*
+* Constructor and Destructor
+*/
+
+/*
+* DIGITAL_INPUT
+*/
+#define __S2_Wireless_Mic_Monitoring_GET_ALL_DIG_INPUT 0
+#define __S2_Wireless_Mic_Monitoring_TCP_IP_CLIENT_CONNECT_F_DIG_INPUT 1
+
+
+/*
+* ANALOG_INPUT
+*/
+
+
+#define __S2_Wireless_Mic_Monitoring_FROM_WIRELESS$_BUFFER_INPUT 0
+#define __S2_Wireless_Mic_Monitoring_FROM_WIRELESS$_BUFFER_MAX_LEN 5000
+CREATE_STRING_STRUCT( S2_Wireless_Mic_Monitoring, __FROM_WIRELESS$, __S2_Wireless_Mic_Monitoring_FROM_WIRELESS$_BUFFER_MAX_LEN );
+
+
+/*
+* DIGITAL_OUTPUT
+*/
+#define __S2_Wireless_Mic_Monitoring_TCP_IP_CLIENT_CONNECT_DIG_OUTPUT 0
+#define __S2_Wireless_Mic_Monitoring_MIC1_ON_DIG_OUTPUT 1
+#define __S2_Wireless_Mic_Monitoring_MIC1LESSTHEN5_DIG_OUTPUT 2
+#define __S2_Wireless_Mic_Monitoring_MIC1LESSTHEN3_DIG_OUTPUT 3
+#define __S2_Wireless_Mic_Monitoring_MIC1LESSTHEN1ANDAHALF_DIG_OUTPUT 4
+#define __S2_Wireless_Mic_Monitoring_MIC1_RF_INT_DET_DIG_OUTPUT 5
+#define __S2_Wireless_Mic_Monitoring_MIC2_ON_DIG_OUTPUT 6
+#define __S2_Wireless_Mic_Monitoring_MIC2LESSTHEN5_DIG_OUTPUT 7
+#define __S2_Wireless_Mic_Monitoring_MIC2LESSTHEN3_DIG_OUTPUT 8
+#define __S2_Wireless_Mic_Monitoring_MIC2LESSTHEN1ANDAHALF_DIG_OUTPUT 9
+#define __S2_Wireless_Mic_Monitoring_MIC2_RF_INT_DET_DIG_OUTPUT 10
+#define __S2_Wireless_Mic_Monitoring_MIC2_EXISTS_DIG_OUTPUT 11
+
+
+/*
+* ANALOG_OUTPUT
+*/
+#define __S2_Wireless_Mic_Monitoring_B1TIME_ANALOG_OUTPUT 0
+#define __S2_Wireless_Mic_Monitoring_B1PERCENT_ANALOG_OUTPUT 1
+#define __S2_Wireless_Mic_Monitoring_B1BARS_ANALOG_OUTPUT 2
+#define __S2_Wireless_Mic_Monitoring_B2TIME_ANALOG_OUTPUT 3
+#define __S2_Wireless_Mic_Monitoring_B2PERCENT_ANALOG_OUTPUT 4
+#define __S2_Wireless_Mic_Monitoring_B2BARS_ANALOG_OUTPUT 5
+#define __S2_Wireless_Mic_Monitoring_B1STATUS_ANALOG_OUTPUT 65
+#define __S2_Wireless_Mic_Monitoring_B2STATUS_ANALOG_OUTPUT 66
+
+#define __S2_Wireless_Mic_Monitoring_TO_WIRELESS$_STRING_OUTPUT 6
+#define __S2_Wireless_Mic_Monitoring_DEVICE_ID_STRING_OUTPUT 7
+#define __S2_Wireless_Mic_Monitoring_FREQUENCY_DIVERSITY_MODE_STRING_OUTPUT 8
+#define __S2_Wireless_Mic_Monitoring_AUDIO_SUMMING_MODE_STRING_OUTPUT 9
+#define __S2_Wireless_Mic_Monitoring_HIGH_DENSITY_STRING_OUTPUT 10
+#define __S2_Wireless_Mic_Monitoring_ENCRYPTION_STRING_OUTPUT 11
+#define __S2_Wireless_Mic_Monitoring_ENCRYPTION_REGENERATE_KEY_STRING_OUTPUT 12
+#define __S2_Wireless_Mic_Monitoring_CHAN_NAME1_STRING_OUTPUT 13
+#define __S2_Wireless_Mic_Monitoring_METER_RATE1_STRING_OUTPUT 14
+#define __S2_Wireless_Mic_Monitoring_AUDIO_GAIN1_STRING_OUTPUT 15
+#define __S2_Wireless_Mic_Monitoring_AUDIO_MUTE1_STRING_OUTPUT 16
+#define __S2_Wireless_Mic_Monitoring_AUDIO_LVL1_STRING_OUTPUT 17
+#define __S2_Wireless_Mic_Monitoring_GROUP_CHAN1_STRING_OUTPUT 18
+#define __S2_Wireless_Mic_Monitoring_FREQUENCY1_STRING_OUTPUT 19
+#define __S2_Wireless_Mic_Monitoring_RF_INT_DET1_STRING_OUTPUT 20
+#define __S2_Wireless_Mic_Monitoring_RX_RF_LVL1_STRING_OUTPUT 21
+#define __S2_Wireless_Mic_Monitoring_RF_ANTENNA1_STRING_OUTPUT 22
+#define __S2_Wireless_Mic_Monitoring_BATT_BARS1_STRING_OUTPUT 23
+#define __S2_Wireless_Mic_Monitoring_TX_OFFSET1_STRING_OUTPUT 24
+#define __S2_Wireless_Mic_Monitoring_TX_RF_PWR1_STRING_OUTPUT 25
+#define __S2_Wireless_Mic_Monitoring_TX_TYPE1_STRING_OUTPUT 26
+#define __S2_Wireless_Mic_Monitoring_BATT_TYPE1_STRING_OUTPUT 27
+#define __S2_Wireless_Mic_Monitoring_BATT_RUN_TIME1_STRING_OUTPUT 28
+#define __S2_Wireless_Mic_Monitoring_BATT_CHARGE1_STRING_OUTPUT 29
+#define __S2_Wireless_Mic_Monitoring_BATT_CYCLE1_STRING_OUTPUT 30
+#define __S2_Wireless_Mic_Monitoring_BATT_TEMP_C1_STRING_OUTPUT 31
+#define __S2_Wireless_Mic_Monitoring_BATT_TEMP_F1_STRING_OUTPUT 32
+#define __S2_Wireless_Mic_Monitoring_TX_PWR_LOCK1_STRING_OUTPUT 33
+#define __S2_Wireless_Mic_Monitoring_TX_MENU_LOCK1_STRING_OUTPUT 34
+#define __S2_Wireless_Mic_Monitoring_ENCRYPTION_WARNING1_STRING_OUTPUT 35
+#define __S2_Wireless_Mic_Monitoring_B1HRMIN_STRING_OUTPUT 36
+#define __S2_Wireless_Mic_Monitoring_M1ONDAT_STRING_OUTPUT 37
+#define __S2_Wireless_Mic_Monitoring_M1OFFDAT_STRING_OUTPUT 38
+#define __S2_Wireless_Mic_Monitoring_CHAN_NAME2_STRING_OUTPUT 39
+#define __S2_Wireless_Mic_Monitoring_METER_RATE2_STRING_OUTPUT 40
+#define __S2_Wireless_Mic_Monitoring_AUDIO_GAIN2_STRING_OUTPUT 41
+#define __S2_Wireless_Mic_Monitoring_AUDIO_MUTE2_STRING_OUTPUT 42
+#define __S2_Wireless_Mic_Monitoring_AUDIO_LVL2_STRING_OUTPUT 43
+#define __S2_Wireless_Mic_Monitoring_GROUP_CHAN2_STRING_OUTPUT 44
+#define __S2_Wireless_Mic_Monitoring_FREQUENCY2_STRING_OUTPUT 45
+#define __S2_Wireless_Mic_Monitoring_RF_INT_DET2_STRING_OUTPUT 46
+#define __S2_Wireless_Mic_Monitoring_RX_RF_LVL2_STRING_OUTPUT 47
+#define __S2_Wireless_Mic_Monitoring_RF_ANTENNA2_STRING_OUTPUT 48
+#define __S2_Wireless_Mic_Monitoring_BATT_BARS2_STRING_OUTPUT 49
+#define __S2_Wireless_Mic_Monitoring_TX_OFFSET2_STRING_OUTPUT 50
+#define __S2_Wireless_Mic_Monitoring_TX_RF_PWR2_STRING_OUTPUT 51
+#define __S2_Wireless_Mic_Monitoring_TX_TYPE2_STRING_OUTPUT 52
+#define __S2_Wireless_Mic_Monitoring_BATT_TYPE2_STRING_OUTPUT 53
+#define __S2_Wireless_Mic_Monitoring_BATT_RUN_TIME2_STRING_OUTPUT 54
+#define __S2_Wireless_Mic_Monitoring_BATT_CHARGE2_STRING_OUTPUT 55
+#define __S2_Wireless_Mic_Monitoring_BATT_CYCLE2_STRING_OUTPUT 56
+#define __S2_Wireless_Mic_Monitoring_BATT_TEMP_C2_STRING_OUTPUT 57
+#define __S2_Wireless_Mic_Monitoring_BATT_TEMP_F2_STRING_OUTPUT 58
+#define __S2_Wireless_Mic_Monitoring_TX_PWR_LOCK2_STRING_OUTPUT 59
+#define __S2_Wireless_Mic_Monitoring_TX_MENU_LOCK2_STRING_OUTPUT 60
+#define __S2_Wireless_Mic_Monitoring_ENCRYPTION_WARNING2_STRING_OUTPUT 61
+#define __S2_Wireless_Mic_Monitoring_B2HRMIN_STRING_OUTPUT 62
+#define __S2_Wireless_Mic_Monitoring_M2ONDAT_STRING_OUTPUT 63
+#define __S2_Wireless_Mic_Monitoring_M2OFFDAT_STRING_OUTPUT 64
+
+
+/*
+* Direct Socket Variables
+*/
+
+
+
+
+/*
+* INTEGER_PARAMETER
+*/
+/*
+* SIGNED_INTEGER_PARAMETER
+*/
+/*
+* LONG_INTEGER_PARAMETER
+*/
+/*
+* SIGNED_LONG_INTEGER_PARAMETER
+*/
+/*
+* INTEGER_PARAMETER
+*/
+/*
+* SIGNED_INTEGER_PARAMETER
+*/
+/*
+* LONG_INTEGER_PARAMETER
+*/
+/*
+* SIGNED_LONG_INTEGER_PARAMETER
+*/
+/*
+* STRING_PARAMETER
+*/
+
+
+/*
+* INTEGER
+*/
+
+
+/*
+* LONG_INTEGER
+*/
+
+
+/*
+* SIGNED_INTEGER
+*/
+
+
+/*
+* SIGNED_LONG_INTEGER
+*/
+
+
+/*
+* STRING
+*/
+#define __S2_Wireless_Mic_Monitoring_BATTTYPE1$_STRING_MAX_LEN 10
+CREATE_STRING_STRUCT( S2_Wireless_Mic_Monitoring, __BATTTYPE1$, __S2_Wireless_Mic_Monitoring_BATTTYPE1$_STRING_MAX_LEN );
+#define __S2_Wireless_Mic_Monitoring_BATTTYPE2$_STRING_MAX_LEN 10
+CREATE_STRING_STRUCT( S2_Wireless_Mic_Monitoring, __BATTTYPE2$, __S2_Wireless_Mic_Monitoring_BATTTYPE2$_STRING_MAX_LEN );
+
+/*
+* STRUCTURE
+*/
+
+START_GLOBAL_VAR_STRUCT( S2_Wireless_Mic_Monitoring )
+{
+   void* InstancePtr;
+   struct GenericOutputString_s sGenericOutStr;
+   unsigned short LastModifiedArrayIndex;
+
+   DECLARE_STRING_STRUCT( S2_Wireless_Mic_Monitoring, __BATTTYPE1$ );
+   DECLARE_STRING_STRUCT( S2_Wireless_Mic_Monitoring, __BATTTYPE2$ );
+   DECLARE_STRING_STRUCT( S2_Wireless_Mic_Monitoring, __FROM_WIRELESS$ );
+};
+
+START_NVRAM_VAR_STRUCT( S2_Wireless_Mic_Monitoring )
+{
+};
+
+
+
+#endif //__S2_WIRELESS_MIC_MONITORING_H__
+

@@ -42,7 +42,6 @@ DIGITAL_OUTPUT _clientConnected;
 
 STRING_OUTPUT  _skip_,_skip_,_skip_,_skip_,toDevBuilding,toDevRoom,toDevFloor,toDevLat,toDevLon,toClientBuffer$;
 
-
 /*******************************************************************************************
   SOCKETS
 *******************************************************************************************/
@@ -280,7 +279,6 @@ Function GetConfigurationValue(string field)
 	Send(header6);
 	Send(NEWLINE);
 }
-
 
 /*******************************************************************************************
   Event Handlers
