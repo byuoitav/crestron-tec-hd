@@ -5,7 +5,7 @@
 /*
 Dealer Name: Brigham Young University
 System Name: Metrics Proxy
-System Number: 0.0.4
+System Number: 1.0.0
 Programmer: Dan Clegg
 Comments: Forwards Metrics Events
 */
@@ -195,12 +195,8 @@ Function BuildHttpMessage(STRING EVENTHOSTNAME, STRING EVENTIP, STRING EVENTMAC,
 	STRING header1[1024],header2[1024],header3[1024],header4[1024],header5[1024],header6[1024];
 	STRING innerMsg1[1024],innerMsg2[1024],innerMsg3[1024],innerMsg4[1024];
 	STRING CLString[1024];
-	Print("Got to the HTTP Message Build\n");
-	//if (EVENTHOSTNAME = "")
-	//	hostname = cleanString(HOSTNAME,"hostname");
-	//else
-	//	hostname = cleanString(EVENTHOSTNAME,"hostname");
-    hostname = EVENTHOSTNAME;
+	
+	hostname = EVENTHOSTNAME;
 	description = "";
 	ipAddress = EVENTIP;
 	mac = EVENTMAC;
@@ -213,7 +209,6 @@ Function BuildHttpMessage(STRING EVENTHOSTNAME, STRING EVENTIP, STRING EVENTMAC,
 	desc = EVENTACTION;
 	type = userOrSystem;
 
-	
 	offset = GetGmtOffset();
 	mNum = GetMonthNum();
 	yNum = GetYearNum();
