@@ -28,13 +28,13 @@ Comments: Forwards Metrics Events
   DIGITAL_INPUT, ANALOG_INPUT, STRING_INPUT, BUFFER_INPUT inputs and DIGITAL_OUTPUT, 
   ANALOG_OUTPUT, STRING_OUTPUT and SERIAL_OUTPUT outputs
 *******************************************************************************************/
-DIGITAL_INPUT Startup_press,Confirm_System_Off,Program_Volume_Down,Program_Volume_Up,Select_AV_Jack,Select_Blank,Select_BluRay,Select_Device_Control_Bluray,Select_Device_Control_IPTV,Select_HDMI_Cable,Select_HDMI_Jack,Select_IPTV,Select_Local_Input,Select_PA_Control,Select_Remote_Input1,Select_Remote_Input2,Select_VGA_Cable,Help_Menu_Press,Home_button;
+DIGITAL_INPUT Startup_press,Confirm_System_Off,Program_Volume_Down,Program_Volume_Up,Select_AV_Jack,Select_Blank,Select_BluRay,Select_Device_Control_Bluray,Select_Device_Control_IPTV,Select_HDMI_Cable,Select_HDMI_Jack,Select_IPTV,Select_Local_Input,Select_PA_Control,Select_Remote_Input1,Select_Remote_Input2,Select_VGA_Cable,Help_Menu_Press,Home_button,Program_Volume_Slider_Press;
 
 DIGITAL_INPUT _skip_,_skip_,_skip_,_skip_,_skip_;
  
 DIGITAL_INPUT clientConnected,systemReady;   
 
-STRING_INPUT dmpsHostName[32],dmpsIp[15],dmpsMACAddr[18],devBuilding[8],devRoom[16],devFloor[2],devLatitude[11],devLongitude[11];
+STRING_INPUT dmpsHostName[32],dmpsIp[15],dmpsMACAddr[18],devBuilding[8],devRoom[16],devFloor[2],devLatitude[11],devLongitude[11],volumeLevel[4];
                                
 BUFFER_INPUT clientBuffer[100];
 
@@ -74,7 +74,7 @@ STRUCTURE QUEUEDEVENT
 SIGNED_INTEGER CONFIGFILEHANDLE;
 STRING REPORTINGHOST[30],HOSTNAME[30],HOSTIP[15],HOSTMAC[18],HOSTBLDG[8],HOSTROOM[16],HOSTFLOOR[2],HOSTLAT[11],HOSTLON[11];
 STRING MESSAGE[BIGGESTSIZE];
-INTEGER REPORTINGHOSTPORT;
+INTEGER REPORTINGHOSTPORT,RECONNECTTIME;
 
 /*******************************************************************************************
   Functions -- No Editing
@@ -217,7 +217,7 @@ Function BuildHttpMessage(STRING EVENTHOSTNAME, STRING EVENTIP, STRING EVENTMAC,
     // !!! TODO: Build in the DST offset
 	timestamp = ITOA(yNum) + "-" + ITOA(mNum) + "-"+ ITOA(dNum) +"T"+ Time() +"Z"; // YYYY-MM-DDTHH:mm:ss.SSSZ
 
-	innerMsg1 = "{\"" + type + "\": \"user\",\"timestamp\": \"" + timestamp +"\",\"device\": {\"hostname\": \"" + hostname +"\", \"description\": \"";
+	innerMsg1 = "{\"type\": \"" + type + "\",\"timestamp\": \"" + timestamp +"\",\"device\": {\"hostname\": \"" + hostname +"\", \"description\": \"";
 	innerMsg2 = "" + description +"\", \"ipAddress\": \"" + ipAddress +"\", \"macAddress\": \"" + mac +"\"}, \"room\": { \"building\": \"" + building;
 	innerMsg3 = "\", \"roomNumber\": \"" + roomNumber +"\",\"coordinates\": \"" + lat +"," + lon +"\", \"floor\": \"" + flr + "\"";
 	innerMsg4 = "},\"actions\": [{\"actor\": \"" + actor +"\", \"description\": \"" + desc +"\"}]}";
@@ -410,6 +410,12 @@ Release Select_PA_Control // PA Control
 	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Select_PA_Control", USER);
 }
 
+Release Program_Volume_Slider_Press // Slider volume control
+{
+	/* User Event */
+	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Program_Volume_Slider_Press", USER);
+}
+
 
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
@@ -470,6 +476,7 @@ RELEASE clientConnected
 PUSH systemReady
 {
 	_clientConnected = 1;
+	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "controlProcessor", "System rebooted", SYSTEM);
 }
 
 // The SOCKETCONNECT event is called when a socket connection is completed on a TCP_CLIENT or  TCP_SERVER variable.
@@ -493,6 +500,13 @@ THREADSAFE SOCKETCONNECT client
         Print("Error getting client port number. %ld\n", REPORTINGHOSTPORT);
     else
 		Print("OnConnect: Connected to port %ld on address %s\n", REPORTINGHOSTPORT, REPORTINGHOST);
+	
+	// Starts timer to force reconnect of stale session
+	WAIT (RECONNECTTIME, ReconnectTimer)
+	{
+		_clientConnected = 0;
+		_clientConnected = 1;
+	}
 }
 
 // The SOCKETDISCONNECT event is called when a TCP_CLIENT or  TCP_SERVER socket is disconnected. Determine if this was done remotely (i.e. network, remote server, etc.) or locally via this module
@@ -503,11 +517,15 @@ SOCKETDISCONNECT client
 	else
 		Print("Local socket disconnect complete.");
 	_clientConnected = 1;
+	
+	CancelWait(ReconnectTimer);
 }
 
 // Display the data received from the calls to the client and clear the buffer
 SOCKETRECEIVE client
 {
+	RetimeWait(RECONNECTTIME, ReconnectTimer);
+	
 	//STRING received$[1024];
 	//received$ = client.SocketRxBuf;
     if (Len(client.SocketRxBuf) < 256)
@@ -623,6 +641,7 @@ Function Main()
 
 	REPORTINGHOST = "avreports.byu.edu";
 	REPORTINGHOSTPORT = 9200;
+	RECONNECTTIME = 9000; // Set reconnect timer for 90 seconds.
 	HOSTNAME = "";
 	HOSTIP = "";
 	HOSTMAC = "";
