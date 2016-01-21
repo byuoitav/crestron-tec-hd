@@ -67,11 +67,11 @@ Change From_Console$
 	String in$[3000], TempString[100], Trash[250];
 	
 	in$ = Gather("DMPS-300-C>", From_Console$);
-	Print("in$ = %s",in$);
-	Print("Length of in$ = %d\n", Len(in$));
+//	Print("in$ = %s",in$);
+//	Print("Length of in$ = %d\n", Len(in$));
 	if (Find("IP Table:",in$)&& (len(in$)<150))
 		{
-		Print("Found IPTable ID:7");
+		//Print("Found IPTable ID:7");
 		IPTable$ = Left(in$,(Find("DMPS-300-C>",in$) - 5));
 		in$ = "";
 		}

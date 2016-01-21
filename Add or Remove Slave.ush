@@ -17,7 +17,7 @@
   Name=Add or Remove Slave
   SmplCName=Add or Remove Slave.usp
   Code=1
-  SysRev5=4.000
+  SysRev5=3.090
   SMWRev=2.02.05
   InputCue1=Add_Slave
   InputSigType1=Digital
