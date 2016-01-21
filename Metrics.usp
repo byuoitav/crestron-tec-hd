@@ -229,7 +229,7 @@ Function BuildHttpMessage(STRING EVENTHOSTNAME, STRING EVENTIP, STRING EVENTMAC,
 	header3 = "Connection: keep-alive" + NEWLINE;
 	header4 = "Content-Length: " + CLString + NEWLINE;
 	header5 = "Content-type: text/plain;charset=UTF-8" + NEWLINE;
-	header6 = "Accept: */*" + NEWLINE;
+	header6 = "Accept: */*" + NEWLINE;	
 	Print("%s",header1);
 	Print("%s",header1);
 	Print("%s",header2);
@@ -446,8 +446,8 @@ CHANGE dmpsIp
 // If system gets IP, set it in the global var
 CHANGE dmpsMACAddr
 {
-	STRING trash[16];
-	trash = REMOVE(" ",dmpsMACAddr);
+	STRING trash[32];
+	//trash = REMOVE(" ",dmpsMACAddr);
 	HOSTMAC = dmpsMACAddr;
 }
 
