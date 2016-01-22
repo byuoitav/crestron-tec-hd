@@ -71,7 +71,7 @@ Change From_Console$
 //	Print("Length of in$ = %d\n", Len(in$));
 	if (Find("IP Table:",in$)&& (len(in$)<150))
 		{
-		//Print("Found IPTable ID:7");
+//		Print("Found IPTable ID:7");
 		IPTable$ = Left(in$,(Find("DMPS-300-C>",in$) - 5));
 		in$ = "";
 		}
