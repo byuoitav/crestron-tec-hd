@@ -28,7 +28,7 @@ Comments: Forwards Metrics Events
   DIGITAL_INPUT, ANALOG_INPUT, STRING_INPUT, BUFFER_INPUT inputs and DIGITAL_OUTPUT, 
   ANALOG_OUTPUT, STRING_OUTPUT and SERIAL_OUTPUT outputs
 *******************************************************************************************/
-DIGITAL_INPUT Startup_press,Confirm_System_Off,Program_Volume_Down,Program_Volume_Up,Select_AV_Jack,Select_Blank,Select_BluRay,Select_Device_Control_Bluray,Select_Device_Control_IPTV,Select_HDMI_Cable,Select_HDMI_Jack,Select_IPTV,Select_Local_Input,Select_PA_Control,Select_Remote_Input1,Select_Remote_Input2,Select_VGA_Cable,Help_Menu_Press,Home_button,Program_Volume_Slider_Press;
+DIGITAL_INPUT Startup_press,Confirm_System_Off,Program_Volume_Down,Program_Volume_Up,Select_AV_Jack,Select_Blank,Select_BluRay,Select_Device_Control_Bluray,Select_Device_Control_IPTV,Select_HDMI_Cable,Select_HDMI_Jack,Select_IPTV,Select_Local_Input,Select_PA_Control,Select_Remote_Input1,Select_Remote_Input2,Select_VGA_Cable,Help_Menu_Press,Home_button,Program_Volume_Slider_Press,Audio_Only_Press;
 
 DIGITAL_INPUT _skip_,_skip_,_skip_,_skip_,_skip_;
  
@@ -298,6 +298,10 @@ Function GetConfigurationValue(string field)
 
 RELEASE Startup_press // Start the session, turn system on
 {  
+	
+	/* Designated Session Start */	
+	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "session", "Session START", USER);
+	
 	/*User Event*/
 	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Startup_press", USER);
 }
@@ -306,6 +310,9 @@ RELEASE Confirm_System_Off  // End the session, turn system off
 {
 	/*User Event*/
 	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Confirm_System_Off", USER);
+	
+	/* Designated Session Start */	
+	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "session", "Session STOP", USER);
 }
 
 Release Program_Volume_Down // Volume Down
@@ -414,6 +421,15 @@ Release Program_Volume_Slider_Press // Slider volume control
 {
 	/* User Event */
 	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Program_Volume_Slider_Press", USER);
+}
+
+Release Audio_Only_Press // Audio Only button on init screen
+{
+	/* Designated Session Start */	
+	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "session", "Session START", USER);
+
+	/* User Event */
+	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Audio_Only_Press", USER);
 }
 
 

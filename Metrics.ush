@@ -59,7 +59,7 @@
   InputSigType19=Digital
   InputCue20=Program_Volume_Slider_Press
   InputSigType20=Digital
-  InputCue21=[~UNUSED~]
+  InputCue21=Audio_Only_Press
   InputSigType21=Digital
   InputCue22=[~UNUSED~]
   InputSigType22=Digital
@@ -69,10 +69,12 @@
   InputSigType24=Digital
   InputCue25=[~UNUSED~]
   InputSigType25=Digital
-  InputCue26=clientConnected
+  InputCue26=[~UNUSED~]
   InputSigType26=Digital
-  InputCue27=systemReady
+  InputCue27=clientConnected
   InputSigType27=Digital
+  InputCue28=systemReady
+  InputSigType28=Digital
   OutputCue1=_clientConnected
   OutputSigType1=Digital
   InputList2Cue1=dmpsHostName
@@ -116,8 +118,8 @@
   OutputList2Cue10=toClientBuffer$
   OutputList2SigType10=Serial
   ParamCue1=[Reference Name]
-  MinVariableInputs=27
-  MaxVariableInputs=27
+  MinVariableInputs=28
+  MaxVariableInputs=28
   MinVariableInputsList2=10
   MaxVariableInputsList2=10
   MinVariableOutputs=1
