@@ -22,7 +22,7 @@ CmVr=3.03
 DbVr=54.00.012.00
 DvcDbVr=71.00.003.00
 OpVr=DMPS-300-C 4.007.0021 (Mar 26 2013)
-PgmNm=Bradley T. Streeter/David Allred
+PgmNm=Bradley T. Streeter/David Allred/Dan Clegg
 DlrNm=BYU
 CltNm=TEC HD
 JpNo=1
@@ -42,7 +42,6 @@ PIT=AV
 TargetFusionProcessor=1
 SgRefresh=1
 SGMethod=1
-Cmn1=David Allred added RoomView6 and RoomViewSE Monitoring
 ]
 [
 ObjTp=Dv
@@ -20289,7 +20288,6 @@ Xm=-1
 Ym=-1
 SH=754
 Z=100
-P=207
 Ht=1
 Hi=1
 ]
