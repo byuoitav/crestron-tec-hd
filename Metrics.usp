@@ -34,13 +34,13 @@ DIGITAL_INPUT _skip_,_skip_,_skip_,_skip_,_skip_;
  
 DIGITAL_INPUT clientConnected,systemReady;   
 
-STRING_INPUT dmpsHostName[32],dmpsIp[15],dmpsMACAddr[18],devBuilding[8],devRoom[16],devFloor[2],devLatitude[11],devLongitude[11],volumeLevel[4];
+STRING_INPUT dmpsHostName[32],dmpsIp[15],dmpsMACAddr[18],devBuilding[8],devRoom[16],devFloor[2],devLatitude[11],devLongitude[11],volumeLevel[4],sessionId[256];
                                
 BUFFER_INPUT clientBuffer[100];
 
 DIGITAL_OUTPUT _clientConnected;
 
-STRING_OUTPUT  _skip_,_skip_,_skip_,_skip_,toDevBuilding,toDevRoom,toDevFloor,toDevLat,toDevLon,toClientBuffer$;
+STRING_OUTPUT  _skip_,_skip_,_skip_,_skip_,toDevBuilding,toDevRoom,toDevFloor,toDevLat,toDevLon,toClientBuffer$,storeSessionId;
 
 
 /*******************************************************************************************
@@ -72,7 +72,7 @@ STRUCTURE QUEUEDEVENT
 *******************************************************************************************/
 
 SIGNED_INTEGER CONFIGFILEHANDLE;
-STRING REPORTINGHOST[30],HOSTNAME[30],HOSTIP[15],HOSTMAC[18],HOSTBLDG[8],HOSTROOM[16],HOSTFLOOR[2],HOSTLAT[11],HOSTLON[11];
+STRING REPORTINGHOST[30],HOSTNAME[30],HOSTIP[15],HOSTMAC[30],HOSTBLDG[8],HOSTROOM[16],HOSTFLOOR[2],HOSTLAT[11],HOSTLON[11],SESSION[256];
 STRING MESSAGE[BIGGESTSIZE];
 INTEGER REPORTINGHOSTPORT,RECONNECTTIME;
 
@@ -128,6 +128,7 @@ Function storeGlobalVars(string inputString)
 		HOSTBLDG = Remove("\"",temp);		
 	}
 }
+
 // type can be default, hostname, ip (add other types as needed
 /*String_function cleanString(string $in, string type)
 {
@@ -174,8 +175,9 @@ Function storeGlobalVars(string inputString)
 	
 	return (cleanedString);
 }*/
-
-Function BuildHttpMessage(STRING EVENTHOSTNAME, STRING EVENTIP, STRING EVENTMAC, STRING EVENTBLDG, STRING EVENTROOM, STRING EVENTFLOOR, STRING EVENTLAT, STRING EVENTLON, STRING EVENTACTOR, string EVENTACTION, STRING userOrSystem)
+        
+//Function BuildHttpMessage(STRING EVENTHOSTNAME, STRING EVENTIP, STRING EVENTMAC, STRING EVENTBLDG, STRING EVENTROOM, STRING EVENTFLOOR, STRING EVENTLAT, STRING EVENTLON, STRING EVENTACTOR, string EVENTACTION, STRING userOrSystem)
+Function BuildHttpMessage(STRING EVENTACTOR, STRING EVENTACTION, STRING userOrSystem, STRING sessn)
 {
 	SIGNED_INTEGER offset,mNum,yNum,dNum,ContentLength;
     SIGNED_LONG_INTEGER PortNumber;
@@ -196,15 +198,15 @@ Function BuildHttpMessage(STRING EVENTHOSTNAME, STRING EVENTIP, STRING EVENTMAC,
 	STRING innerMsg1[1024],innerMsg2[1024],innerMsg3[1024],innerMsg4[1024];
 	STRING CLString[1024];
 	
-	hostname = EVENTHOSTNAME;
+	hostname = HOSTNAME;
 	description = "";
-	ipAddress = EVENTIP;
-	mac = EVENTMAC;
-	building = EVENTBLDG;
-	roomNumber = EVENTROOM;
-	lat = EVENTLAT;
-	lon = EVENTLON;
-	flr = EVENTFLOOR;
+	ipAddress = HOSTIP;
+	mac = HOSTMAC;
+	building = HOSTBLDG;
+	roomNumber = HOSTROOM;
+	lat = HOSTLAT;
+	lon = HOSTLON;
+	flr = HOSTFLOOR;
 	actor = EVENTACTOR;
 	desc = EVENTACTION;
 	type = userOrSystem;
@@ -220,7 +222,7 @@ Function BuildHttpMessage(STRING EVENTHOSTNAME, STRING EVENTIP, STRING EVENTMAC,
 	innerMsg1 = "{\"type\": \"" + type + "\",\"timestamp\": \"" + timestamp +"\",\"device\": {\"hostname\": \"" + hostname +"\", \"description\": \"";
 	innerMsg2 = "" + description +"\", \"ipAddress\": \"" + ipAddress +"\", \"macAddress\": \"" + mac +"\"}, \"room\": { \"building\": \"" + building;
 	innerMsg3 = "\", \"roomNumber\": \"" + roomNumber +"\",\"coordinates\": \"" + lat +"," + lon +"\", \"floor\": \"" + flr + "\"";
-	innerMsg4 = "},\"actions\": [{\"actor\": \"" + actor +"\", \"description\": \"" + desc +"\"}]}";
+	innerMsg4 = "},\"action\": {\"actor\": \"" + actor +"\", \"description\": \"" + desc +"\"}, \"session\": \""+ SESSION + "\"}";
 	ContentLength = Len(innerMsg1) + Len(innerMsg2) + Len(innerMsg3) + Len(innerMsg4);
 	CLString = ITOA(ContentLength);
 
@@ -254,6 +256,80 @@ Function BuildHttpMessage(STRING EVENTHOSTNAME, STRING EVENTIP, STRING EVENTMAC,
 	Send(innerMsg2);
 	Send(innerMsg3);
 	Send(innerMsg4);
+}
+
+
+Function StartSession()
+{
+	SIGNED_INTEGER mNum,yNum,dNum;
+	INTEGER ticks,ch,counter,period;
+	STRING genSession[256], msg[256],tmpMac[30],leftover[30],tmp[30];
+	tmp = "";
+	leftover = "";
+	ticks = GetTicks();
+	// PATTERN : SERIAL 
+	genSession = ITOA(ticks);
+	tmpMac = HOSTMAC;
+	mNum = GetMonthNum();
+	yNum = GetYearNum();
+	dNum = GetDateNum();	
+	
+	if (len(tmpMac) > 0 && FIND(".",tmpMac) > 0)
+	{
+		ch = GetC(tmpMac);		
+		leftover = leftover + CHR(ch);
+		ch = GetC(tmpMac);	
+		leftover = leftover + CHR(ch);
+		period = GetC(tmpMac);
+		
+		ch = GetC(tmpMac);
+		leftover = leftover + CHR(ch);
+		ch = GetC(tmpMac);
+		leftover = leftover + CHR(ch);
+		period = GetC(tmpMac);
+		
+		ch = GetC(tmpMac);
+		leftover = leftover + CHR(ch);
+		ch = GetC(tmpMac);
+		leftover = leftover + CHR(ch);
+		period = GetC(tmpMac);
+		
+		ch = GetC(tmpMac);
+		leftover = leftover + CHR(ch);
+		ch = GetC(tmpMac);
+		leftover = leftover + CHR(ch);
+		period = GetC(tmpMac);
+		
+		ch = GetC(tmpMac);
+		leftover = leftover + CHR(ch);
+		ch = GetC(tmpMac);
+		leftover = leftover + CHR(ch);
+		period = GetC(tmpMac);
+		
+		ch = GetC(tmpMac);
+		leftover = leftover + CHR(ch);
+		ch = GetC(tmpMac);
+		leftover = leftover + CHR(ch);
+	}
+	tmpMac = leftover;
+	HOSTMAC = tmpMac;
+	//Print("Finished the MAC parse");
+	storeSessionId = tmpMac + "-" + genSession + "-" + ITOA(yNum) + ITOA(mNum) + ITOA(dNum);
+	msg = "Session START: " + genSession; 	
+	/* Designated Session Start */	
+	BuildHttpMessage("session",msg,USER,SESSION);
+}
+
+Function EndSession()
+{
+	STRING msg[256];
+	
+	msg = "Session STOP: " + SESSION;
+	
+	storeSessionId = " ";
+
+	/* Designated Session Stop */	
+	BuildHttpMessage("session",msg,USER,SESSION);	
 }
 
 Function GetConfigurationValue(string field)
@@ -298,138 +374,136 @@ Function GetConfigurationValue(string field)
 
 RELEASE Startup_press // Start the session, turn system on
 {  
-	
-	/* Designated Session Start */	
-	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "session", "Session START", USER);
+	StartSession();
 	
 	/*User Event*/
-	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Startup_press", USER);
+	BuildHttpMessage("touchpanel", "Startup_press",USER,SESSION);
 }
 
 RELEASE Confirm_System_Off  // End the session, turn system off
 {
 	/*User Event*/
-	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Confirm_System_Off", USER);
+	BuildHttpMessage("touchpanel", "Confirm_System_Off",USER,SESSION);
 	
-	/* Designated Session Start */	
-	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "session", "Session STOP", USER);
+	/* Designated Session Stop */	
+	EndSession();
 }
 
 Release Program_Volume_Down // Volume Down
 {
 	/*User Event*/
-	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Program_Volume_Down", USER);
+	BuildHttpMessage("touchpanel", "Startup_press",USER,SESSION);
 }
 
 Release Program_Volume_Up // Volume Down
 {
 	/*User Event*/
-	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Program_Volume_Up", USER);
+	BuildHttpMessage("touchpanel", "Startup_press",USER,SESSION);
 }
 
 Release Select_Blank // Blank
 {
 	/*User Event*/
-	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Select_Blank", USER);
+	BuildHttpMessage("touchpanel", "Startup_press",USER,SESSION);
 }
 
 Release Select_Device_Control_IPTV // IPTV Device Control
 {
 	/*User Event*/
-	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Select_Device_Control_IPTV", USER);
+	BuildHttpMessage("touchpanel", "Startup_press",USER,SESSION);
 }
 
 Release Select_HDMI_Cable // HDMI Cable
 {
 	/*User Event*/
-	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Select_HDMI_Cable", USER);
+	BuildHttpMessage("touchpanel", "Startup_press",USER,SESSION);
 }
 
 Release Select_HDMI_Jack // HDMI Jack
 {
 	/*User Event*/
-	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Select_HDMI_Jack", USER);
+	BuildHttpMessage("touchpanel", "Startup_press",USER,SESSION);
 }
 
 Release Select_IPTV // IPTV Input
 {
 	/*User Event*/
-	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Select_IPTV", USER);
+	BuildHttpMessage("touchpanel", "Startup_press",USER,SESSION);
 }
 
 Release Select_Local_Input // Local Input
 {
 	/*User Event*/
-	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Select_Local_Input", USER);
+	BuildHttpMessage("touchpanel", "Startup_press",USER,SESSION);
 }
 
 Release Select_Remote_Input1 // Remote Input 1
 {
 	/*User Event*/
-	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Select_Remote_Input1", USER);
+	BuildHttpMessage("touchpanel", "Startup_press",USER,SESSION);
 }
 
 Release Select_Remote_Input2 // Remote Input 2
 {
 	/*User Event*/
-	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Select_Remote_Input2", USER);
+	BuildHttpMessage("touchpanel", "Startup_press",USER,SESSION);
 }
 
 Release Select_VGA_Cable // VGA Input
 {
 	/*User Event*/
-	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Select_VGA_Cable", USER);
+	BuildHttpMessage("touchpanel", "Startup_press",USER,SESSION);
 }
 
 Release Help_Menu_Press // Help
 {
 	/*User Event*/
-	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Help_Menu_Press", USER);
+	BuildHttpMessage("touchpanel", "Startup_press",USER,SESSION);
 }
 
 Release Home_button // Home
 {
 	/*User Event*/
-	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Home_button", USER);
+	BuildHttpMessage("touchpanel", "Startup_press",USER,SESSION);
 }
 
 Release Select_AV_Jack // AV Jack Input
 {
 	/*User Event*/
-	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Select_AV_Jack", USER);
+	BuildHttpMessage("touchpanel", "Startup_press",USER,SESSION);
 }
 
 Release Select_BluRay // Blu-ray Input
 {
 	/*User Event*/
-	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Select_Blu-Ray", USER);
+	BuildHttpMessage("touchpanel", "Startup_press",USER,SESSION);
 }
 
 Release Select_Device_Control_Bluray // Device Control Blu-ray
 {
 	/*User Event*/
-	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Select_Device_Control_Blu-Ray", USER);
+	BuildHttpMessage("touchpanel", "Startup_press",USER,SESSION);
 }
 
 Release Select_PA_Control // PA Control
 {
 	/*User Event*/
-	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Select_PA_Control", USER);
+	BuildHttpMessage("touchpanel", "Startup_press",USER,SESSION);
 }
 
 Release Program_Volume_Slider_Press // Slider volume control
 {
 	/* User Event */
-	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Program_Volume_Slider_Press", USER);
+	BuildHttpMessage("touchpanel", "Startup_press",USER,SESSION);
 }
 
 Release Audio_Only_Press // Audio Only button on init screen
 {
-	/* Designated Session Start */	
-	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "session", "Session START", USER);
+	/* Designated Session Start */
+	StartSession();
 
 	/* User Event */
-	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "touchpanel", "Audio_Only_Press", USER);
+	BuildHttpMessage("touchpanel", "Startup_press",USER,SESSION);
 }
 
 
@@ -473,6 +547,11 @@ CHANGE dmpsMACAddr
 		HOSTMAC = dmpsMACAddr;
 	}
 }
+// Generate/store SessionID
+CHANGE sessionId
+{
+	SESSION = sessionId;
+}
 
 // Start a socket session to handle whether a push is active or not 
 PUSH clientConnected
@@ -499,7 +578,8 @@ RELEASE clientConnected
 PUSH systemReady
 {
 	_clientConnected = 1;
-	BuildHttpMessage(HOSTNAME, HOSTIP, HOSTMAC, HOSTBLDG, HOSTROOM, HOSTFLOOR, HOSTLAT, HOSTLON, "controlProcessor", "System rebooted", SYSTEM);
+	BuildHttpMessage("controlProcessor", "System rebooted",SYSTEM,"");
+	
 }
 
 // The SOCKETCONNECT event is called when a socket connection is completed on a TCP_CLIENT or  TCP_SERVER variable.
@@ -673,6 +753,7 @@ Function Main()
 	HOSTFLOOR = "";
 	HOSTLAT = "40.249719";
 	HOSTLON = "-111.649265";
+	SESSION = "";
     //GetConfigurationValue("room");    
 	// !!!!!!!!!! TODO: Use Configuration File to store Event Host Information
 	/*
