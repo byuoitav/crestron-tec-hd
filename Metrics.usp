@@ -262,13 +262,16 @@ Function BuildHttpMessage(STRING EVENTACTOR, STRING EVENTACTION, STRING userOrSy
 Function StartSession()
 {
 	SIGNED_INTEGER mNum,yNum,dNum;
-	INTEGER ticks,ch,counter,period;
+	INTEGER ticks,ch,counter,period,sec,m,h;
 	STRING genSession[256], msg[256],tmpMac[30],leftover[30],tmp[30];
 	tmp = "";
 	leftover = "";
 	ticks = GetTicks();
+	sec = GETSECONDSNUM();
+	m = GETMINUTESNUM();
+	h = GETHOURNUM();
 	// PATTERN : SERIAL 
-	genSession = ITOA(ticks);
+	genSession = ITOA(h) + ITOA(m) + ITOA(sec) + ITOA(ticks);
 	tmpMac = HOSTMAC;
 	mNum = GetMonthNum();
 	yNum = GetYearNum();
@@ -314,7 +317,7 @@ Function StartSession()
 	tmpMac = leftover;
 	HOSTMAC = tmpMac;
 	//Print("Finished the MAC parse");
-	storeSessionId = tmpMac + "-" + genSession + "-" + ITOA(yNum) + ITOA(mNum) + ITOA(dNum);
+	storeSessionId = tmpMac + "-" + ITOA(yNum) + ITOA(mNum) + ITOA(dNum) + "-" + genSession;
 	msg = "Session START: " + genSession; 	
 	/* Designated Session Start */	
 	BuildHttpMessage("session",msg,USER,SESSION);
