@@ -128,53 +128,6 @@ Function storeGlobalVars(string inputString)
 		HOSTBLDG = Remove("\"",temp);		
 	}
 }
-
-// type can be default, hostname, ip (add other types as needed
-/*String_function cleanString(string $in, string type)
-{
-	INTEGER intType;
-	STRING cleanedString[1024],temp[1024],LOWERTYPE[8],LINEFEED[4],CARRIAGE[4],TAB[4],SPACE[1],DOLLAR[4],COMMA[4],PERIOD[4],HYPHEN[4],APOSTROPHE[4];
-	LINEFEED = "\x0A";
-	CARRIAGE = "\x0D";
-	PERIOD = "\x2E";
-	LOWERTYPE = LOWER(type);
-	if (LOWERTYPE = "hostname")
-		intType = 1;
-	else if (LOWERTYPE = "ip")
-		intType = 2;
-	else
-		intType = 0;
-		
-	Print("%s - %d",LOWERTYPE,intType);
-			
-	cleanedString = $in;
-	switch(intType)
-	{
-		case(1):
-		{
-			while ( FIND(LINEFEED,cleanedString) > 0)
-			{
-				Print("While LINEFEED");
-				SETSTRING("",FIND(LINEFEED,cleanedString),cleanedString);
-			}
-			while ( FIND(CARRIAGE,cleanedString) > 0)
-			{
-				Print("While CARRIAGE");
-				SETSTRING("",FIND(CARRIAGE,cleanedString),cleanedString);
-			}
-			while ( FIND(PERIOD,cleanedString) > 0)
-			{
-				Print("While PERIOD");
-				SETSTRING("",FIND(PERIOD,cleanedString),cleanedString);
-			}
-		}
-		default:
-		{
-		}	
-	} 	
-	
-	return (cleanedString);
-}*/
         
 //Function BuildHttpMessage(STRING EVENTHOSTNAME, STRING EVENTIP, STRING EVENTMAC, STRING EVENTBLDG, STRING EVENTROOM, STRING EVENTFLOOR, STRING EVENTLAT, STRING EVENTLON, STRING EVENTACTOR, string EVENTACTION, STRING userOrSystem)
 Function BuildHttpMessage(STRING EVENTACTOR, STRING EVENTACTION, STRING userOrSystem, STRING sessn)
@@ -182,7 +135,8 @@ Function BuildHttpMessage(STRING EVENTACTOR, STRING EVENTACTION, STRING userOrSy
 	SIGNED_INTEGER offset,mNum,yNum,dNum,ContentLength;
     SIGNED_LONG_INTEGER PortNumber;
 	STRING timestamp[24];
-	STRING hostname[30];
+	STRING dateStr[24];
+	STRING timeStr[24];
 	STRING description[256];
 	STRING ipAddress[15];
 	STRING mac[17];
@@ -197,8 +151,9 @@ Function BuildHttpMessage(STRING EVENTACTOR, STRING EVENTACTION, STRING userOrSy
 	STRING header1[1024],header2[1024],header3[1024],header4[1024],header5[1024],header6[1024];
 	STRING innerMsg1[1024],innerMsg2[1024],innerMsg3[1024],innerMsg4[1024];
 	STRING CLString[1024];
+	INTEGER spacePosition;
 	
-	hostname = HOSTNAME;
+	//hostname = HOSTNAME;
 	description = "";
 	ipAddress = HOSTIP;
 	mac = HOSTMAC;
@@ -210,16 +165,23 @@ Function BuildHttpMessage(STRING EVENTACTOR, STRING EVENTACTION, STRING userOrSy
 	actor = EVENTACTOR;
 	desc = EVENTACTION;
 	type = userOrSystem;
+	
+	spacePosition = Find(" ",HOSTNAME);
+	if(spacePosition = 1){
+		HOSTNAME = RIGHT(HOSTNAME, LEN(HOSTNAME) - 1);
+	}
 
 	offset = GetGmtOffset();
 	mNum = GetMonthNum();
 	yNum = GetYearNum();
 	dNum = GetDateNum();
 	
-    // !!! TODO: Build in the DST offset
-	timestamp = ITOA(yNum) + "-" + ITOA(mNum) + "-"+ ITOA(dNum) +"T"+ Time() +"Z"; // YYYY-MM-DDTHH:mm:ss.SSSZ
+	dateStr = ITOA(yNum) + "-" + ITOA(mNum) + "-"+ ITOA(dNum);
+	timeStr = Time();
+	
+	timestamp = dateStr +"T"+ timeStr +"Z"; // YYYY-MM-DDTHH:mm:ss.SSSZ
 
-	innerMsg1 = "{\"type\": \"" + type + "\",\"timestamp\": \"" + timestamp +"\",\"device\": {\"hostname\": \"" + hostname +"\", \"description\": \"";
+	innerMsg1 = "{\"type\": \"" + type + "\",\"timestamp\": \"" + timestamp +"\",\"eventTime\": \"" + timeStr +"\",\"eventDate\": \"" + dateStr +"\",\"device\": {\"hostname\": \"" + HOSTNAME +"\", \"description\": \"";
 	innerMsg2 = "" + description +"\", \"ipAddress\": \"" + ipAddress +"\", \"macAddress\": \"" + mac +"\"}, \"room\": { \"building\": \"" + building;
 	innerMsg3 = "\", \"roomNumber\": \"" + roomNumber +"\",\"coordinates\": \"" + lat +"," + lon +"\", \"floor\": \"" + flr + "\"";
 	innerMsg4 = "},\"action\": {\"actor\": \"" + actor +"\", \"description\": \"" + desc +"\"}, \"session\": \""+ SESSION + "\"}";
@@ -312,8 +274,7 @@ Function StartSession()
 		leftover = leftover + CHR(ch);
 	}
 	tmpMac = leftover;
-	HOSTMAC = tmpMac;
-	//Print("Finished the MAC parse");
+	HOSTMAC = tmpMac;	
 	storeSessionId = tmpMac + "-" + genSession + "-" + ITOA(yNum) + ITOA(mNum) + ITOA(dNum);
 	msg = "Session START: " + genSession; 	
 	/* Designated Session Start */	
@@ -517,11 +478,11 @@ Release Audio_Only_Press // Audio Only button on init screen
 // If system gets hostname, set it in the global var
 CHANGE dmpsHostName
 {
-	STRING trash[16];
-	if(FIND(" ",dmpsHostName) <= 1)
-	{
-		trash = REMOVE(" ",dmpsHostName); // remove preceding space if there
-	}
+//	STRING trash[16];
+//	if(FIND(" ",dmpsHostName) <= 1)
+//	{
+//		trash = REMOVE(" ",dmpsHostName); // remove preceding space if there
+//	}
 	HOSTNAME = dmpsHostName;
 }
 
