@@ -1,0 +1,324 @@
+/*******************************************************************************************
+  SIMPL+ Module Information
+  (Fill in comments below)
+*******************************************************************************************/
+/*
+Dealer Name:
+System Name:
+System Number:
+Programmer:
+Comments:
+*/
+
+/*******************************************************************************************
+  Compiler Directives
+  (Uncomment and declare compiler directives as needed)
+*******************************************************************************************/
+// #ENABLE_DYNAMIC
+#SYMBOL_NAME "GetConfig"
+// #HINT ""
+#DEFINE_CONSTANT ANALOG "Analog"
+#DEFINE_CONSTANT DIGITAL "Digital"
+#DEFINE_CONSTANT DEPTCOMP "Department Device"
+#DEFINE_CONSTANT APPLETV "Apple TV"
+#DEFINE_CONSTANT DESKCAM "Document Camera (desk)"
+#DEFINE_CONSTANT CEILINGCAM "Document Camera (ceiling)"
+#DEFINE_CONSTANT TECPC "TEC PC"
+#DEFINE_CONSTANT TECPC2 "TEC PC2"
+#DEFINE_CONSTANT IPTV "IPTV"
+#DEFINE_CONSTANT BLURAY "Blu-ray"
+#DEFINE_CONSTANT HDMIJACK "HDMI Jack"
+#DEFINE_CONSTANT HDMICable "HDMI Cable"
+#DEFINE_CONSTANT COMP2 "Computer 2"
+#DEFINE_CONSTANT COMP3 "Computer 3"
+#DEFINE_CONSTANT AVINPUT "AV Jack"
+#DEFINE_CONSTANT VGA "VGA"
+#DEFINE_CONSTANT TABLE "Table Input"
+#DEFINE_CONSTANT OVERFLOW "Overflow"
+#DEFINE_CONSTANT NONE "None"
+
+#CATEGORY "46" "Metrics" 
+// #PRINT_TO_TRACE
+// #DIGITAL_EXPAND 
+// #ANALOG_SERIAL_EXPAND 
+// #OUTPUT_SHIFT 
+// #HELP_PDF_FILE ""
+#DEFAULT_VOLATILE
+#ENABLE_STACK_CHECKING
+#ENABLE_TRACE
+// #ENCODING_ASCII
+// #ENCODING_UTF16
+// #ENCODING_INHERIT_FROM_PARENT
+// #ENCODING_INHERIT_FROM_PROGRAM
+/*
+#HELP_BEGIN
+   (add additional lines of help lines)
+#HELP_END
+*/
+
+/*******************************************************************************************
+  Include Libraries
+  (Uncomment and include additional libraries as needed)
+*******************************************************************************************/
+// #CRESTRON_LIBRARY ""
+// #USER_LIBRARY ""
+
+/*******************************************************************************************
+  DIGITAL, ANALOG and SERIAL INPUTS and OUTPUTS
+  (Uncomment and declare inputs and outputs as needed)
+*******************************************************************************************/
+DIGITAL_INPUT Input1_Audio_Is_Analog,Input1_Audio_Is_Digital,Input1_Is_Apple_TV,Input1_Is_Department_Computer,Input1_Is_Desk_Document_Camera,Input1_Is_Local_Input,Input1_Is_None,Input1_Is_TEC_Computer1,Input2_Is_IPTV,Input2_Is_TEC_Computer2,Input3_Is_BluRay,Input3_Is_TEC_Computer3,Input4_Is_HDMI_Cable,Input4_Is_VGA_Cable,Input5_Composite_Is_AV_Jack,Input5_Is_HDMI_Jack;
+DIGITAL_INPUT Input6_Is_Apple_TV,Input6_Is_Ceiling_Document_Camera,Input6_Is_Custom_Input1,Input6_Is_Department_Computer,Input6_Is_Desk_Document_Camera,Input6_Is_None,Input6_Is_Overflow,Input6_Is_Remote_Input1,Input6_Is_Table_Input,Input6_Is_TEC_Computer2;
+DIGITAL_INPUT Input7_Is_Apple_TV,Input7_Is_Ceiling_Document_Camera,Input7_Is_Custom_Input2,Input7_Is_Department_Computer,Input7_Is_Desk_Document_Camera,Input7_Is_None,Input7_Is_Overflow,Input7_Is_Remote_Input2,Input7_Is_Table_Input,Input7_Is_TEC_Computer2;
+STRING_INPUT Custom6[100],Custom7[100];
+// ANALOG_INPUT 
+// STRING_INPUT 
+// BUFFER_INPUT 
+
+// DIGITAL_OUTPUT 
+// ANALOG_OUTPUT 
+STRING_OUTPUT Input1AudioMode,Input1Label,Input2Label,Input3Label,Input4Label,Input5Label,Input6Label,Input7Label;
+
+/*******************************************************************************************
+  SOCKETS
+  (Uncomment and define socket definitions as needed)
+*******************************************************************************************/
+// TCP_CLIENT
+// TCP_SERVER
+// UDP_SOCKET
+
+/*******************************************************************************************
+  Parameters
+  (Uncomment and declare parameters as needed)
+*******************************************************************************************/
+// INTEGER_PARAMETER
+// SIGNED_INTEGER_PARAMETER
+// LONG_INTEGER_PARAMETER
+// SIGNED_LONG_INTEGER_PARAMETER
+// STRING_PARAMETER
+
+/*******************************************************************************************
+  Parameter Properties
+  (Uncomment and declare parameter properties as needed)
+*******************************************************************************************/
+/*
+#BEGIN_PARAMETER_PROPERTIES parameter_variable, parameter_variable, ...
+   // propValidUnits = // unitString or unitDecimal|unitHex|unitPercent|unitCharacter|unitTime|unitTicks;
+   // propDefaultUnit = // unitString, unitDecimal, unitHex, unitPercent, unitCharacter, unitTime or unitTicks;
+   // propBounds = lower_bound , upper_bound;
+   // propDefaultValue = ;  // or, propDefaultValue = "";
+   // propList = // { "value" , "label" } , { "value" , "label" } , ... ;
+   // propShortDescription = "status_bar_hint_text";
+   // #BEGIN_PROP_FULL_DESCRIPTION  line_1...  line_2...  line_n  #END_PROP_FULL_DESCRIPTION
+   // #BEGIN_PROP_NOTES line_1...  line_2...  line_n  #END_PROP_NOTES
+#END_PARAMETER_PROPERTIES
+*/
+
+/*******************************************************************************************
+  Structure Definitions
+  (Uncomment and define structure definitions as needed)
+  Note:  Be sure to initialize all declared STRING variables as needed
+         For example, in Function Main: struct.myString = "";
+*******************************************************************************************/
+/*
+STRUCTURE MyStruct1
+{
+};
+
+MyStruct1 struct;
+*/
+
+/*******************************************************************************************
+  Global Variables
+  (Uncomment and declare global variables as needed)
+  Note:  Be sure to initialize all declared STRING variables as needed
+         For example, in Function Main: myString = "";
+*******************************************************************************************/
+// INTEGER
+// LONG_INTEGER
+// SIGNED_INTEGER
+// SIGNED_LONG_INTEGER
+// STRING
+
+/*******************************************************************************************
+  Functions
+  (Add any additional functions here)
+  Note:  Functions must be physically placed before the location in
+         the code that calls them.
+*******************************************************************************************/
+/*
+Function MyFunction1()
+{
+    // TODO:  Add local variable declarations here
+
+    // TODO:  Add code here
+}
+*/
+
+/*
+Integer_Function MyIntFunction1()
+{
+    // TODO:  Add local variable declarations here
+
+    // TODO:  Add code here
+
+    Return (0);
+}
+*/
+
+/*
+String_Function MyStrFunction1()
+{
+    // TODO:  Add local variable declarations here
+
+    // TODO:  Add code here
+
+    Return ("");
+}
+*/
+
+/*******************************************************************************************
+  Event Handlers
+  (Uncomment and declare additional event handlers as needed)
+*******************************************************************************************/
+PUSH Input1_Audio_Is_Analog {
+	Input1AudioMode = ANALOG;	
+}
+PUSH Input1_Audio_Is_Digital { 
+	Input1AudioMode = DIGITAL;
+}
+PUSH Input1_Is_Apple_TV {
+	Input1Label = APPLETV;
+	}
+PUSH Input1_Is_Department_Computer {
+	Input1Label = DEPTCOMP;
+}
+PUSH Input1_Is_Desk_Document_Camera {
+	Input1Label = DESKCAM;
+}
+PUSH Input1_Is_Local_Input {
+	Input1Label = TECPC;
+}
+PUSH Input1_Is_None {
+	Input1Label = NONE;
+}
+PUSH Input1_Is_TEC_Computer1 {
+	Input1Label = TECPC;
+}
+PUSH Input2_Is_IPTV {
+	Input2Label = IPTV;
+}
+PUSH Input2_Is_TEC_Computer2 {
+	Input2Label = TECPC2;
+}
+PUSH Input3_Is_BluRay {
+	Input3Label = BLURAY;
+}
+PUSH Input3_Is_TEC_Computer3 {
+	Input3Label = TECPC2;
+}
+PUSH Input4_Is_HDMI_Cable {
+	Input4Label = HDMICable;
+}
+PUSH Input4_Is_VGA_Cable {
+	Input4Label = VGA;
+}
+PUSH Input5_Composite_Is_AV_Jack {
+	Input5Label = AVINPUT;
+}
+PUSH Input5_Is_HDMI_Jack {
+	Input5Label = HDMIJACK;
+}
+
+PUSH Input6_Is_Apple_TV {
+	Input6Label = APPLETV;
+}
+PUSH Input6_Is_Ceiling_Document_Camera {
+	Input6Label = CEILINGCAM;
+}
+/*PUSH Input6_Is_Custom_Input1 {
+	Input6Label = Custom6;
+}*/
+PUSH Input6_Is_Department_Computer {
+	Input6Label = DEPTCOMP;
+}
+PUSH Input6_Is_Desk_Document_Camera {
+	Input6Label = DESKCAM;
+}
+PUSH Input6_Is_None {
+	Input6Label = NONE;
+}
+PUSH Input6_Is_Overflow {
+	Input6Label = OVERFLOW;
+}
+PUSH Input6_Is_Remote_Input1 {
+	Input6Label = Custom6;
+}
+PUSH Input6_Is_Table_Input {
+	Input6Label = TABLE;
+}
+PUSH Input6_Is_TEC_Computer2 {
+	Input6Label = TECPC2;
+}
+PUSH Input7_Is_Apple_TV {
+	Input7Label = APPLETV;
+}
+PUSH Input7_Is_Ceiling_Document_Camera {
+	Input7Label = CEILINGCAM;
+}
+/*PUSH Input7_Is_Custom_Input2 {
+	Input7Label = Custom7;
+}*/
+PUSH Input7_Is_Department_Computer {
+	Input7Label = DEPTCOMP;
+}
+PUSH Input7_Is_Desk_Document_Camera {
+	Input7Label = DESKCAM;
+}
+PUSH Input7_Is_None {
+	Input7Label = NONE;
+}
+PUSH Input7_Is_Overflow {
+	Input7Label = OVERFLOW;
+}
+PUSH Input7_Is_Remote_Input2 {
+	Input7Label = Custom7;
+}
+PUSH Input7_Is_Table_Input {
+	Input7Label = TABLE;
+}
+PUSH Input7_Is_TEC_Computer2 {
+	Input7Label = TECPC2;
+}
+
+/*CHANGE Custom6
+{
+	
+}
+ 
+CHANGE Custom7
+{
+	
+}*/
+
+/*
+/*******************************************************************************************
+  Main()
+  Uncomment and place one-time startup code here
+  (This code will get called when the system starts up)
+*******************************************************************************************/
+
+Function Main()
+{
+    // TODO:  Add code here
+    // Initialize declared global and local variables/arrays as needed.
+
+    // WaitForInitializationComplete();
+    // If you are reading any Input or Output variables, uncomment
+    //   the WaitForInitializationComplete statement above and read
+    //   them afterwards.  Input/Output variables will not have
+    //   their correct values set until after the logic processor
+    //   runs and propagates the values to them.
+}
+
+
