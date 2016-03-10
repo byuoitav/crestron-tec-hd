@@ -83,7 +83,6 @@ INTEGER REPORTINGHOSTPORT,RECONNECTTIME;
 Function Log(string msg)
 {	
 	Print("\n%s",msg);
-
 }
 
 Function Error(string msg)
@@ -132,6 +131,10 @@ Function storeGlobalVars(string inputString)
 //Function BuildHttpMessage(STRING EVENTHOSTNAME, STRING EVENTIP, STRING EVENTMAC, STRING EVENTBLDG, STRING EVENTROOM, STRING EVENTFLOOR, STRING EVENTLAT, STRING EVENTLON, STRING EVENTACTOR, string EVENTACTION, STRING userOrSystem)
 Function BuildHttpMessage(STRING EVENTACTOR, STRING EVENTACTION, STRING userOrSystem, STRING sessn)
 {
+	// Testing strip() temporarily
+	string testMessage[1024],strippedMessage[1024],evilCharacters[1024][1],char[1];
+	integer i,j;
+
 	SIGNED_INTEGER dst,mNum,yNum,dNum,ContentLength;
     SIGNED_LONG_INTEGER PortNumber;
 	STRING timestamp[24];
@@ -152,7 +155,26 @@ Function BuildHttpMessage(STRING EVENTACTOR, STRING EVENTACTION, STRING userOrSy
 	STRING innerMsg1[1024],innerMsg2[1024],innerMsg3[1024],innerMsg4[1024];
 	STRING CLString[1024];
 	INTEGER spacePosition;
-	
+    
+	evilCharacters[0] = " ";
+	evilCharacters[1] = "_";
+	testMessage = "poots are_awesome yo";
+     
+	for (i = 1 to 2)) // The length of evilCharacters[]
+	{	
+		for (j = 1 to len(testMessage))
+		{
+			char = mid(testMessage, j, 1);
+
+			if (char != evilCharacters[i])
+			{
+				strippedMesage = strippedMessage + char;
+			}
+		}
+	}
+
+	print("%s", strippedMesage);
+
 	//hostname = HOSTNAME;
 	description = "";
 	ipAddress = HOSTIP;
@@ -210,6 +232,9 @@ Function BuildHttpMessage(STRING EVENTACTOR, STRING EVENTACTION, STRING userOrSy
 	Print("%s",innerMsg2);
 	Print("%s",innerMsg3);
 	Print("%s",innerMsg4);
+
+	// Testing strip() temporarily
+	Print("%s\n", testMessage);
 
 	Send(header1);
 	Send(header2);
