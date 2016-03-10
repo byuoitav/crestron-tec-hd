@@ -128,6 +128,56 @@ Function storeGlobalVars(string inputString)
 		HOSTBLDG = Remove("\"",temp);		
 	}
 }
+
+//So we're assuming that message is a string that is smaller that 1,024,000 bytes long. 
+//I'm not sure if that is even possible. Yeah....
+Function dynamicHTTPMessageConstruction(STRING message, STRING method, STRING path)
+{ 
+	INTEGER length, iterations, i;
+	STRING messagesForSend$[100][1024];
+	STRING header1[1024],header2[1024],header3[1024],header4[1024],header5[1024],header6[1024];
+	STRING curMessage[1024];
+
+	length = len(message);
+
+	//Calculate the number of individual packets we'll be creating. 
+	iterations = length / 1024;
+	if (length % 1024 != 0){
+		iterations = iterations +1;
+	}
+	
+	//Create our array of strings that will be sent.
+	//split out the message string passed in into the smaller pieces and store them in the array. 
+	for( i = 0 TO iterations){
+    	messagesForSend$[i] = MID(message, i*1024, 1024);
+	} 
+
+	//Build our headers. Since it's an HTTP packet we can do this statically. We assume we're going to 
+	// REPORTINGHOST:REPORTINGHOSTPORT. The path and method are passed into this function. We use length 
+	// as found above to set the length of the packets. 
+	header1 = method + " " + path + " HTTP/1.1" + NEWLINE;
+	header2 = "Host: " + REPORTINGHOST + ":" + ITOA(REPORTINGHOSTPORT) + NEWLINE;
+	header3 = "Connection: keep-alive" + NEWLINE;
+	header4 = "Content-Length: " + itoa(length) + NEWLINE;
+	header5 = "Content-type: text/plain;charset=UTF-8" + NEWLINE;
+	header6 = "Accept: */*" + NEWLINE;
+
+	//send it. 
+	Send(header1);
+	Send(header2);
+	Send(header3);
+	Send(header4);
+	Send(header5);
+	Send(header6);
+	Send(NEWLINE);
+	for ( i = 0 TO iterations){
+		curMessage = messagesForSend$[i];
+		print("%s",curMessage);
+    	send(curMessage);
+	}
+	print("\n"); 	
+
+}
         
 //Function BuildHttpMessage(STRING EVENTHOSTNAME, STRING EVENTIP, STRING EVENTMAC, STRING EVENTBLDG, STRING EVENTROOM, STRING EVENTFLOOR, STRING EVENTLAT, STRING EVENTLON, STRING EVENTACTOR, string EVENTACTION, STRING userOrSystem)
 Function BuildHttpMessage(STRING EVENTACTOR, STRING EVENTACTION, STRING userOrSystem, STRING sessn)
@@ -149,10 +199,11 @@ Function BuildHttpMessage(STRING EVENTACTOR, STRING EVENTACTION, STRING userOrSy
 	STRING desc[256];
 	STRING type[6];
 	STRING header1[1024],header2[1024],header3[1024],header4[1024],header5[1024],header6[1024];
-	STRING innerMsg1[1024],innerMsg2[1024],innerMsg3[1024],innerMsg4[1024];
+	STRING innerMsg[10000];
 	STRING CLString[1024];
 	INTEGER spacePosition;
-	
+	STRING Method[64];
+	STRING Path[1025];
 	//hostname = HOSTNAME;
 	description = "";
 	ipAddress = HOSTIP;
@@ -181,44 +232,17 @@ Function BuildHttpMessage(STRING EVENTACTOR, STRING EVENTACTION, STRING userOrSy
 	
 	timestamp = dateStr +"T"+ timeStr +"Z"; // YYYY-MM-DDTHH:mm:ss.SSSZ
 
-	innerMsg1 = "{\"type\": \"" + type + "\",\"timestamp\": \"" + timestamp +"\",\"eventTime\": \"" + timeStr +"\",\"eventDate\": \"" + dateStr +"\",\"device\": {\"hostname\": \"" + HOSTNAME +"\", \"description\": \"";
-	innerMsg2 = "" + description +"\", \"ipAddress\": \"" + ipAddress +"\", \"macAddress\": \"" + mac +"\"}, \"room\": { \"building\": \"" + building;
-	innerMsg3 = "\", \"roomNumber\": \"" + roomNumber +"\",\"coordinates\": \"" + lat +"," + lon +"\", \"floor\": \"" + flr + "\"";
-	innerMsg4 = "},\"action\": {\"actor\": \"" + actor +"\", \"description\": \"" + desc +"\"}, \"session\": \""+ SESSION + "\"}";
-	ContentLength = Len(innerMsg1) + Len(innerMsg2) + Len(innerMsg3) + Len(innerMsg4);
-	CLString = ITOA(ContentLength);
+	innerMsg = "{\"type\": \"" + type + "\",\"timestamp\": \"" + timestamp +"\",\"eventTime\": \"" + timeStr +"\",\"eventDate\": \"" + dateStr +"\",\"device\": {\"hostname\": \"" + HOSTNAME +"\", \"description\": \"" +
+ 		"" + description +"\", \"ipAddress\": \"" + ipAddress +"\", \"macAddress\": \"" + mac +"\"}, \"room\": { \"building\": \"" + building +
+		"\", \"roomNumber\": \"" + roomNumber +"\",\"coordinates\": \"" + lat +"," + lon +"\", \"floor\": \"" + flr + "\"" +
+	 	"},\"action\": {\"actor\": \"" + actor +"\", \"description\": \"" + desc +"\"}, \"session\": \""+ SESSION + "\"}";
+    Method = "POST";
+	Path = "testevents/" + userOrSystem +"/";
+ 	Print("\n%s\n",innerMsg);
 
-	header1 = "POST events/" + userOrSystem +"/ HTTP/1.1" + NEWLINE;
-	header2 = "Host: " + REPORTINGHOST + ":" + ITOA(REPORTINGHOSTPORT) + NEWLINE;
-	header3 = "Connection: keep-alive" + NEWLINE;
-	header4 = "Content-Length: " + CLString + NEWLINE;
-	header5 = "Content-type: text/plain;charset=UTF-8" + NEWLINE;
-	header6 = "Accept: */*" + NEWLINE;	
-	Print("%s",header1);
-	Print("%s",header1);
-	Print("%s",header2);
-	Print("%s",header3);
-	Print("%s",header4);
-	Print("%s",header5);
-	Print("%s",header6);
-	Print("%s",NEWLINE);
-	Print("%s",innerMsg1);
-	Print("%s",innerMsg2);
-	Print("%s",innerMsg3);
-	Print("%s",innerMsg4);
-
-	Send(header1);
-	Send(header2);
-	Send(header3);
-	Send(header4);
-	Send(header5);
-	Send(header6);
-	Send(NEWLINE);
-	Send(innerMsg1);
-	Send(innerMsg2);
-	Send(innerMsg3);
-	Send(innerMsg4);
+	dynamicHTTPMessageConstruction(innerMsg, Method, Path);
 }
+ 
 
 
 Function StartSession()
