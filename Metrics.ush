@@ -150,7 +150,7 @@
   Expand2=expand_separately
   OffsetOutputs=25
   ProgramTree=Logic
-  SymbolTree=46
+  SymbolTree=32
   UserSymTreeName=Metrics
   Hint=
   PdfHelp=
@@ -178,8 +178,4 @@
   H=1
   Tp=1
   NoS=False
-[END]
-[BEGIN]
-ObjTp=Status
-HeaderCompatible=False
 [END]

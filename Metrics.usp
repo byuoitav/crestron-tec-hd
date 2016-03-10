@@ -132,8 +132,8 @@ Function storeGlobalVars(string inputString)
 Function BuildHttpMessage(STRING EVENTACTOR, STRING EVENTACTION, STRING userOrSystem, STRING sessn)
 {
 	// Testing strip() temporarily
-	string testMessage[1024],strippedMessage[1024],evilCharacters[1024][1],char[1];
-	integer i,j;
+	string testMessage[1024],strippedMessage1[1024],strippedMessage2[1024],char[1];
+	integer i;
 
 	SIGNED_INTEGER dst,mNum,yNum,dNum,ContentLength;
     SIGNED_LONG_INTEGER PortNumber;
@@ -156,24 +156,31 @@ Function BuildHttpMessage(STRING EVENTACTOR, STRING EVENTACTION, STRING userOrSy
 	STRING CLString[1024];
 	INTEGER spacePosition;
     
-	evilCharacters[0] = " ";
-	evilCharacters[1] = "_";
 	testMessage = "poots are_awesome yo";
-     
-	for (i = 1 to 2)) // The length of evilCharacters[]
-	{	
-		for (j = 1 to len(testMessage))
-		{
-			char = mid(testMessage, j, 1);
+	strippedMessage1 = "";
+	strippedMessage2 = "";   
 
-			if (char != evilCharacters[i])
-			{
-				strippedMesage = strippedMessage + char;
-			}
+	for (i = 1 to len(testMessage))
+	{
+		char = mid(testMessage, i, 1);
+
+		if (char != " ")
+		{
+			strippedMessage1 = strippedMessage1 + char;
 		}
 	}
 
-	print("%s", strippedMesage);
+	for (i = 1 to len(strippedMessage1))
+	{
+		char = mid(strippedMessage1, i, 1);
+
+		if (char != "_")
+		{
+			strippedMessage2 = strippedMessage2 + char;
+		}
+	}
+
+	print("\n!!!!! %s\n", strippedMessage2);
 
 	//hostname = HOSTNAME;
 	description = "";
@@ -232,9 +239,6 @@ Function BuildHttpMessage(STRING EVENTACTOR, STRING EVENTACTION, STRING userOrSy
 	Print("%s",innerMsg2);
 	Print("%s",innerMsg3);
 	Print("%s",innerMsg4);
-
-	// Testing strip() temporarily
-	Print("%s\n", testMessage);
 
 	Send(header1);
 	Send(header2);
