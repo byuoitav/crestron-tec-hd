@@ -156,15 +156,22 @@ Function BuildHttpMessage(STRING EVENTACTOR, STRING EVENTACTION, STRING userOrSy
 	STRING CLString[1024];
 	INTEGER spacePosition;
     
-	testMessage = "poots are_awesome yo";
+	testMessage = " poots are_awesome /yo ";
 	strippedMessage1 = "";
 	strippedMessage2 = "";   
+                       
+	if (mid(testMessage, 1, 1) = " ")
+	{
+    	// TODO: Remove leading space
+	}
+     
+	// TODO: Remove trailing space
 
-	for (i = 1 to len(testMessage))
+	for (i = 1 to len(testMessage)) // This will become defunct and be removed once the above TODOs are completed
 	{
 		char = mid(testMessage, i, 1);
 
-		if (char != " ")
+		if (char != " ") // Kill spaces
 		{
 			strippedMessage1 = strippedMessage1 + char;
 		}
@@ -174,13 +181,24 @@ Function BuildHttpMessage(STRING EVENTACTOR, STRING EVENTACTION, STRING userOrSy
 	{
 		char = mid(strippedMessage1, i, 1);
 
-		if (char != "_")
+		if (char != "_") // Kill underscores
 		{
 			strippedMessage2 = strippedMessage2 + char;
 		}
 	}
+                  
+	strippedMessage1 = ""; // Clear the first stripped message so we can continue the "ghetto loop"
+	for (i = 1 to len(strippedMessage2))
+	{
+		char = mid(strippedMessage2, i, 1);
 
-	print("\n!!!!! %s\n", strippedMessage2);
+		if (char != "/") // Kill slashes
+		{
+			strippedMessage1 = strippedMessage1 + char;
+		}
+	}
+
+	print("\n!!!!! %s\n", strippedMessage1); // Make sure we print the correct strippedMessage[1-2] here depending on current spot in "ghetto loop"
 
 	//hostname = HOSTNAME;
 	description = "";
