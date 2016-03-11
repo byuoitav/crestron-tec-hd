@@ -14,7 +14,7 @@ Linker script and memory map
                 0x00000000                PROVIDE (software_init_hook, 0x0)
                 0x00000000                PROVIDE (_software_init_hook, 0x0)
 
-.text           0x80000000    0x8a160
+.text           0x80000000    0x8a6a0
  *(.text)
  .text          0x80000000      0x258 S2_String_Check.o
                 0x80000000                S2_String_Check_EventHandler
@@ -253,360 +253,359 @@ Linker script and memory map
                 0x8006c342                S2_Input_NameEventHandler00001
                 0x8006c77a                S2_Input_NameEventHandler00005
  *fill*         0x8006cad6        0x2
- .text          0x8006cad8     0xb3a2 S2_Metrics.o
-                0x8007379a                S2_MetricsEventHandler0000C
-                0x80074172                S2_MetricsEventHandler00012
-                0x80077782                S2_MetricsEventHandler0001C
-                0x800771f6                S2_MetricsEventHandler0000B
-                0x80072700                S2_MetricsEventHandler00000
-                0x8007310a                S2_MetricsEventHandler00006
-                0x80072f66                S2_MetricsEventHandler00005
-                0x80074316                S2_MetricsEventHandler00013
-                0x80077050                S2_MetricsRECONNECTTIMER
-                0x80073c86                S2_MetricsEventHandler0000F
-                0x80074676                S2_MetricsEventHandler00016
-                0x800762a8                S2_Metrics_main
-                0x80077860                S2_MetricsEventHandler0001D
-                0x80077d8a                S2_MetricsEventHandler00025
-                0x80073e2a                S2_MetricsEventHandler00010
-                0x80074bfc                S2_MetricsEventHandler00022
-                0x80076188                S2_Metrics_EventHandler
-                0x80073452                S2_MetricsEventHandler00008
-                0x80073fce                S2_MetricsEventHandler00011
-                0x8007393e                S2_MetricsEventHandler0000D
-                0x80072c1e                S2_MetricsEventHandler00003
-                0x80077046                S2_Metrics_QUEUEDEVENT_Destructor
-                0x8007732c                S2_MetricsEventHandler00015
-                0x80077bb8                S2_MetricsEventHandler00021
-                0x800735f6                S2_MetricsEventHandler00009
-                0x800770c0                S2_MetricsEventHandler0000A
-                0x80072dc2                S2_MetricsEventHandler00004
-                0x800776a4                S2_MetricsEventHandler0001B
-                0x8007793e                S2_MetricsEventHandler0001E
-                0x80077afa                S2_MetricsEventHandler00020
-                0x80073ae2                S2_MetricsEventHandler0000E
-                0x800775c6                S2_MetricsEventHandler0001A
-                0x800744ba                S2_MetricsEventHandler00014
-                0x80077a1c                S2_MetricsEventHandler0001F
-                0x80074e34                S2_MetricsEventHandler00023
-                0x80075c4c                S2_Metrics_QUEUEDEVENT_Constructor
-                0x8007500a                S2_MetricsEventHandler00026
-                0x800748c4                S2_MetricsEventHandler00017
-                0x80072a7a                S2_MetricsEventHandler00002
-                0x800732ae                S2_MetricsEventHandler00007
-                0x800728bc                S2_MetricsEventHandler00001
-                0x800774e8                S2_MetricsEventHandler00019
-                0x8007740a                S2_MetricsEventHandler00018
-                0x80077c66                S2_MetricsEventHandler00024
- *fill*         0x80077e7a        0x2
- .text          0x80077e7c     0x289e S2_GetConfig.o
-                0x800784e8                S2_GetConfigEventHandler00001
-                0x80078926                S2_GetConfigEventHandler00005
-                0x80079b36                S2_GetConfigEventHandler00016
-                0x800795e6                S2_GetConfigEventHandler00011
-                0x80079a26                S2_GetConfigEventHandler00015
-                0x8007a458                S2_GetConfigEventHandler0001F
-                0x800783da                S2_GetConfigEventHandler00000
-                0x8007a018                S2_GetConfigEventHandler0001B
-                0x80078816                S2_GetConfigEventHandler00004
-                0x80078d66                S2_GetConfigEventHandler00009
-                0x80079f08                S2_GetConfigEventHandler0001A
-                0x800782b0                S2_GetConfig_main
-                0x800796f6                S2_GetConfigEventHandler00012
-                0x800791a6                S2_GetConfigEventHandler0000D
-                0x80079df8                S2_GetConfigEventHandler00019
-                0x800793c6                S2_GetConfigEventHandler0000F
-                0x80078c56                S2_GetConfigEventHandler00008
-                0x800794d6                S2_GetConfigEventHandler00010
-                0x8007a238                S2_GetConfigEventHandler0001D
-                0x80078e76                S2_GetConfigEventHandler0000A
-                0x800785f6                S2_GetConfigEventHandler00002
-                0x8007a4fa                S2_GetConfigEventHandler00020
-                0x80079096                S2_GetConfigEventHandler0000C
-                0x80079ce8                S2_GetConfigEventHandler00018
-                0x80078f86                S2_GetConfigEventHandler0000B
-                0x80079916                S2_GetConfigEventHandler00014
-                0x80078b46                S2_GetConfigEventHandler00007
-                0x80078a36                S2_GetConfigEventHandler00006
-                0x8007a60a                S2_GetConfigEventHandler00021
-                0x80078706                S2_GetConfigEventHandler00003
-                0x80079806                S2_GetConfigEventHandler00013
-                0x8007a348                S2_GetConfigEventHandler0001E
-                0x80079bd8                S2_GetConfigEventHandler00017
-                0x800792b6                S2_GetConfigEventHandler0000E
-                0x8007a128                S2_GetConfigEventHandler0001C
-                0x80078350                S2_GetConfig_EventHandler
- *fill*         0x8007a71a        0x2
- .text          0x8007a71c     0x5836 library.o
-                0x8007e908                RotateRightLong
-                0x8007ef16                IsSystem
-                0x8007e86c                Seed
-                0x8007c164                Remove
-                0x8007e4e8                Ltoa
-                0x8007e214                Atoi
-                0x8007d57c                InitRampInfoArray
-                0x8007ecc2                Right
-                0x8007fcf2                LockInputSema
-                0x8007e796                Mod
-                0x8007e97e                Getc
-                0x8007e6ca                SMuldiv
-                0x8007eef8                IsHidden
-                0x8007e5ae                Min
-                0x8007fb06                hextosi
-                0x8007f09c                WriteIntegerArray
-                0x8007f612                GetSignedIntArrayElementPtr
-                0x8007df36                CheckStructArray
-                0x8007fb1a                hextosl
-                0x8007f222                WriteSignedIntegerArray
-                0x8007dbfe                InitStringParamArray
-                0x8007ced0                ReadSignedLongIntegerArray
-                0x8007bdf2                GatherToDelimiter
-                0x8007da22                InitStringArray
-                0x8007e588                Max
-                0x8007ef52                IsReadOnly
-                0x8007e692                SMax
-                0x8007bf96                GatherByLength
-                0x8007e422                Chr
-                0x8007f074                ReadSignedLongInteger
-                0x8007e4a0                Itohex
-                0x8007dea8                GetStructArrayElement
-                0x8007e19c                UNS_SetByte
-                0x8007ec96                ReverseFindi
-                0x8007d378                ReadStringArray
-                0x8007f422                GetIntArrayElementPtr
-                0x8007ead2                Lower
-                0x8007e888                RotateLeft
-                0x8007fc3a                ResizeIfAutogrow
-                0x8007d6a8                CheckInputArray
-                0x8007ac8a                ResizeStringArray
-                0x8007e3b4                Atosl
-                0x8007e1dc                High
-                0x8007e838                Rnd
-                0x8007e75a                UMod
-                0x8007e8de                RotateLeftLong
-                0x8007fd66                FindNumericChar
-                0x8007f86a                CheckIOArrayBounds2
-                0x8007eeb0                MakeProgramFilename
-                0x8007e6ae                SMin
-                0x8007ea06                Left
-                0x8007e948                CheckBufferThreshold
-                0x8007f02c                ReadSignedInteger
-                0x8007e206                LowWord
-                0x8007a71c                Bit
-                0x8007efdc                ReadLongInteger
-                0x8007e01a                Byte
-                0x8007f51a                GetLongArrayElementPtr
-                0x8007ec68                ReverseFind
-                0x8007eec6                GetSeries
-                0x8007fe32                InitTcpServer
-                0x8007eaba                Len
-                0x8007f93a                InitializeRampInfoInternal
-                0x8007e5d4                Divide
-                0x8007e320                Atol
-                0x8007eebc                GetModelNumber
-                0x8007f802                CheckIOArrayBounds
-                0x8007d702                CheckStringInputArray
-                0x8007f2e4                WriteSignedLongIntegerArray
-                0x8007ddf2                GetStringArrayElement
-                0x8007e52c                Ltohex
-                0x8007e458                Itoa
-                0x8007e8b2                RotateRight
-                0x8007c452                InternalReverseFind
-                0x8007efbc                WriteLongInteger
-                0x8007d926                InitDynamicStringStruct
-                0x8007d818                SetStringArray
-                0x8007ccae                ReadSignedIntegerArray
-                0x8007d75c                SetOutputArray
-                0x8007ef6c                WriteInteger
-                0x8007dd86                InitStructDynamicArray
-                0x8007c6dc                SetString
-                0x8007e7d2                Random
-                0x8007f004                WriteSignedInteger
-                0x8007a980                Find
-                0x8007eed0                GetProgramNumber
-                0x8007eba6                Mid
-                0x8007fda4                InitTcpClient
-                0x8007b86e                ResizeStructArray
-                0x8007f70a                GetSignedLongArrayElementPtr
-                0x8007fb2c                hextol
-                0x8007d0f2                ReadString
-                0x8007dab8                InitDynamicStringArray
-                0x8007fc12                UpperChar
-                0x8007e2b0                Atosi
-                0x8007ef94                ReadInteger
-                0x8007e646                Muldiv
-                0x8007d7ca                SetStringOutputArray
-                0x8007f3a8                WriteString
-                0x8007b2e2                ResizeIntegerArray
-                0x8007d670                InitInOutArray
-                0x8007dcc6                InitNvramStringArray
-                0x8007e570                Abs
-                0x8007e716                SDivide
-                0x8007c86c                ReadIntegerArray
-                0x8007a82c                CompareStrings
-                0x8007fbea                LowerChar
-                0x8007fec2                InitUdpSocket
-                0x8007e930                ClearBuffer
-                0x8007ed7e                Upper
-                0x8007dd62                InitStructArray
-                0x8007ee54                MakeLower
-                0x8007ef34                IsVolume
-                0x8007c2be                RemoveByLength
-                0x8007dfb2                CheckStringOutputArrayIndex
-                0x8007f15e                WriteLongIntegerArray
-                0x8007f9e6                InitRampInfoStructArray
-                0x8007e1f8                HighWord
-                0x8007aaf4                ResizeString
-                0x8007eeda                IsDirectory
-                0x8007ca8c                ReadLongIntegerArray
-                0x8007e1ea                Low
-                0x8007bc98                Gather
-                0x8007ee82                MakeUpper
-                0x8007d8e8                InitStringStruct
-                0x8007f8d2                CheckStringArrayBounds
-                0x8007e618                CheckDenominator
-                0x8007faee                hextoi
-                0x8007d210                WriteStringArray
-                0x8007e0da                SetByte
-                0x8007f990                InitializeRampInfo
-                0x8007fd2c                UnLockInputSema
-                0x8007f054                WriteSignedLongInteger
-                0x8007d9da                InitNvramStringStruct
- *fill*         0x8007ff52        0xe
-                0x8007ff60                .=ALIGN(0x10)
+ .text          0x8006cad8     0xb8ac S2_Metrics.o
+                0x80073ca4                S2_MetricsEventHandler0000C
+                0x8007467c                S2_MetricsEventHandler00012
+                0x80077c8c                S2_MetricsEventHandler0001C
+                0x80077700                S2_MetricsEventHandler0000B
+                0x80072c0a                S2_MetricsEventHandler00000
+                0x80073614                S2_MetricsEventHandler00006
+                0x80073470                S2_MetricsEventHandler00005
+                0x80074820                S2_MetricsEventHandler00013
+                0x8007755a                S2_MetricsRECONNECTTIMER
+                0x80074190                S2_MetricsEventHandler0000F
+                0x80074b80                S2_MetricsEventHandler00016
+                0x800767b2                S2_Metrics_main
+                0x80077d6a                S2_MetricsEventHandler0001D
+                0x80078294                S2_MetricsEventHandler00025
+                0x80074334                S2_MetricsEventHandler00010
+                0x80075106                S2_MetricsEventHandler00022
+                0x80076692                S2_Metrics_EventHandler
+                0x8007395c                S2_MetricsEventHandler00008
+                0x800744d8                S2_MetricsEventHandler00011
+                0x80073e48                S2_MetricsEventHandler0000D
+                0x80073128                S2_MetricsEventHandler00003
+                0x80077550                S2_Metrics_QUEUEDEVENT_Destructor
+                0x80077836                S2_MetricsEventHandler00015
+                0x800780c2                S2_MetricsEventHandler00021
+                0x80073b00                S2_MetricsEventHandler00009
+                0x800775ca                S2_MetricsEventHandler0000A
+                0x800732cc                S2_MetricsEventHandler00004
+                0x80077bae                S2_MetricsEventHandler0001B
+                0x80077e48                S2_MetricsEventHandler0001E
+                0x80078004                S2_MetricsEventHandler00020
+                0x80073fec                S2_MetricsEventHandler0000E
+                0x80077ad0                S2_MetricsEventHandler0001A
+                0x800749c4                S2_MetricsEventHandler00014
+                0x80077f26                S2_MetricsEventHandler0001F
+                0x8007533e                S2_MetricsEventHandler00023
+                0x80076156                S2_Metrics_QUEUEDEVENT_Constructor
+                0x80075514                S2_MetricsEventHandler00026
+                0x80074dce                S2_MetricsEventHandler00017
+                0x80072f84                S2_MetricsEventHandler00002
+                0x800737b8                S2_MetricsEventHandler00007
+                0x80072dc6                S2_MetricsEventHandler00001
+                0x800779f2                S2_MetricsEventHandler00019
+                0x80077914                S2_MetricsEventHandler00018
+                0x80078170                S2_MetricsEventHandler00024
+ .text          0x80078384     0x289e S2_GetConfig.o
+                0x800789f0                S2_GetConfigEventHandler00001
+                0x80078e2e                S2_GetConfigEventHandler00005
+                0x8007a03e                S2_GetConfigEventHandler00016
+                0x80079aee                S2_GetConfigEventHandler00011
+                0x80079f2e                S2_GetConfigEventHandler00015
+                0x8007a960                S2_GetConfigEventHandler0001F
+                0x800788e2                S2_GetConfigEventHandler00000
+                0x8007a520                S2_GetConfigEventHandler0001B
+                0x80078d1e                S2_GetConfigEventHandler00004
+                0x8007926e                S2_GetConfigEventHandler00009
+                0x8007a410                S2_GetConfigEventHandler0001A
+                0x800787b8                S2_GetConfig_main
+                0x80079bfe                S2_GetConfigEventHandler00012
+                0x800796ae                S2_GetConfigEventHandler0000D
+                0x8007a300                S2_GetConfigEventHandler00019
+                0x800798ce                S2_GetConfigEventHandler0000F
+                0x8007915e                S2_GetConfigEventHandler00008
+                0x800799de                S2_GetConfigEventHandler00010
+                0x8007a740                S2_GetConfigEventHandler0001D
+                0x8007937e                S2_GetConfigEventHandler0000A
+                0x80078afe                S2_GetConfigEventHandler00002
+                0x8007aa02                S2_GetConfigEventHandler00020
+                0x8007959e                S2_GetConfigEventHandler0000C
+                0x8007a1f0                S2_GetConfigEventHandler00018
+                0x8007948e                S2_GetConfigEventHandler0000B
+                0x80079e1e                S2_GetConfigEventHandler00014
+                0x8007904e                S2_GetConfigEventHandler00007
+                0x80078f3e                S2_GetConfigEventHandler00006
+                0x8007ab12                S2_GetConfigEventHandler00021
+                0x80078c0e                S2_GetConfigEventHandler00003
+                0x80079d0e                S2_GetConfigEventHandler00013
+                0x8007a850                S2_GetConfigEventHandler0001E
+                0x8007a0e0                S2_GetConfigEventHandler00017
+                0x800797be                S2_GetConfigEventHandler0000E
+                0x8007a630                S2_GetConfigEventHandler0001C
+                0x80078858                S2_GetConfig_EventHandler
+ *fill*         0x8007ac22        0x2
+ .text          0x8007ac24     0x5836 library.o
+                0x8007ee10                RotateRightLong
+                0x8007f41e                IsSystem
+                0x8007ed74                Seed
+                0x8007c66c                Remove
+                0x8007e9f0                Ltoa
+                0x8007e71c                Atoi
+                0x8007da84                InitRampInfoArray
+                0x8007f1ca                Right
+                0x800801fa                LockInputSema
+                0x8007ec9e                Mod
+                0x8007ee86                Getc
+                0x8007ebd2                SMuldiv
+                0x8007f400                IsHidden
+                0x8007eab6                Min
+                0x8008000e                hextosi
+                0x8007f5a4                WriteIntegerArray
+                0x8007fb1a                GetSignedIntArrayElementPtr
+                0x8007e43e                CheckStructArray
+                0x80080022                hextosl
+                0x8007f72a                WriteSignedIntegerArray
+                0x8007e106                InitStringParamArray
+                0x8007d3d8                ReadSignedLongIntegerArray
+                0x8007c2fa                GatherToDelimiter
+                0x8007df2a                InitStringArray
+                0x8007ea90                Max
+                0x8007f45a                IsReadOnly
+                0x8007eb9a                SMax
+                0x8007c49e                GatherByLength
+                0x8007e92a                Chr
+                0x8007f57c                ReadSignedLongInteger
+                0x8007e9a8                Itohex
+                0x8007e3b0                GetStructArrayElement
+                0x8007e6a4                UNS_SetByte
+                0x8007f19e                ReverseFindi
+                0x8007d880                ReadStringArray
+                0x8007f92a                GetIntArrayElementPtr
+                0x8007efda                Lower
+                0x8007ed90                RotateLeft
+                0x80080142                ResizeIfAutogrow
+                0x8007dbb0                CheckInputArray
+                0x8007b192                ResizeStringArray
+                0x8007e8bc                Atosl
+                0x8007e6e4                High
+                0x8007ed40                Rnd
+                0x8007ec62                UMod
+                0x8007ede6                RotateLeftLong
+                0x8008026e                FindNumericChar
+                0x8007fd72                CheckIOArrayBounds2
+                0x8007f3b8                MakeProgramFilename
+                0x8007ebb6                SMin
+                0x8007ef0e                Left
+                0x8007ee50                CheckBufferThreshold
+                0x8007f534                ReadSignedInteger
+                0x8007e70e                LowWord
+                0x8007ac24                Bit
+                0x8007f4e4                ReadLongInteger
+                0x8007e522                Byte
+                0x8007fa22                GetLongArrayElementPtr
+                0x8007f170                ReverseFind
+                0x8007f3ce                GetSeries
+                0x8008033a                InitTcpServer
+                0x8007efc2                Len
+                0x8007fe42                InitializeRampInfoInternal
+                0x8007eadc                Divide
+                0x8007e828                Atol
+                0x8007f3c4                GetModelNumber
+                0x8007fd0a                CheckIOArrayBounds
+                0x8007dc0a                CheckStringInputArray
+                0x8007f7ec                WriteSignedLongIntegerArray
+                0x8007e2fa                GetStringArrayElement
+                0x8007ea34                Ltohex
+                0x8007e960                Itoa
+                0x8007edba                RotateRight
+                0x8007c95a                InternalReverseFind
+                0x8007f4c4                WriteLongInteger
+                0x8007de2e                InitDynamicStringStruct
+                0x8007dd20                SetStringArray
+                0x8007d1b6                ReadSignedIntegerArray
+                0x8007dc64                SetOutputArray
+                0x8007f474                WriteInteger
+                0x8007e28e                InitStructDynamicArray
+                0x8007cbe4                SetString
+                0x8007ecda                Random
+                0x8007f50c                WriteSignedInteger
+                0x8007ae88                Find
+                0x8007f3d8                GetProgramNumber
+                0x8007f0ae                Mid
+                0x800802ac                InitTcpClient
+                0x8007bd76                ResizeStructArray
+                0x8007fc12                GetSignedLongArrayElementPtr
+                0x80080034                hextol
+                0x8007d5fa                ReadString
+                0x8007dfc0                InitDynamicStringArray
+                0x8008011a                UpperChar
+                0x8007e7b8                Atosi
+                0x8007f49c                ReadInteger
+                0x8007eb4e                Muldiv
+                0x8007dcd2                SetStringOutputArray
+                0x8007f8b0                WriteString
+                0x8007b7ea                ResizeIntegerArray
+                0x8007db78                InitInOutArray
+                0x8007e1ce                InitNvramStringArray
+                0x8007ea78                Abs
+                0x8007ec1e                SDivide
+                0x8007cd74                ReadIntegerArray
+                0x8007ad34                CompareStrings
+                0x800800f2                LowerChar
+                0x800803ca                InitUdpSocket
+                0x8007ee38                ClearBuffer
+                0x8007f286                Upper
+                0x8007e26a                InitStructArray
+                0x8007f35c                MakeLower
+                0x8007f43c                IsVolume
+                0x8007c7c6                RemoveByLength
+                0x8007e4ba                CheckStringOutputArrayIndex
+                0x8007f666                WriteLongIntegerArray
+                0x8007feee                InitRampInfoStructArray
+                0x8007e700                HighWord
+                0x8007affc                ResizeString
+                0x8007f3e2                IsDirectory
+                0x8007cf94                ReadLongIntegerArray
+                0x8007e6f2                Low
+                0x8007c1a0                Gather
+                0x8007f38a                MakeUpper
+                0x8007ddf0                InitStringStruct
+                0x8007fdda                CheckStringArrayBounds
+                0x8007eb20                CheckDenominator
+                0x8007fff6                hextoi
+                0x8007d718                WriteStringArray
+                0x8007e5e2                SetByte
+                0x8007fe98                InitializeRampInfo
+                0x80080234                UnLockInputSema
+                0x8007f55c                WriteSignedLongInteger
+                0x8007dee2                InitNvramStringStruct
+ *fill*         0x8008045a        0x6
+                0x80080460                .=ALIGN(0x10)
  *(.eh_frame)
-                0x8007ff60                .=ALIGN(0x10)
+                0x80080460                .=ALIGN(0x10)
  *(.gnu.linkonce.t.*)
-                0x8007ff60                .=ALIGN(0x4)
-                0x8007ff60                __CTOR_LIST__=.
-                0x8007ff60                ___CTOR_LIST__=.
-                0x8007ff60        0x4 LONG 0x0 (((__CTOR_END__-__CTOR_LIST__)/0x4)-0x2)
+                0x80080460                .=ALIGN(0x4)
+                0x80080460                __CTOR_LIST__=.
+                0x80080460                ___CTOR_LIST__=.
+                0x80080460        0x4 LONG 0x0 (((__CTOR_END__-__CTOR_LIST__)/0x4)-0x2)
  *(.ctors)
-                0x8007ff64        0x4 LONG 0x0
-                0x8007ff68                __CTOR_END__=.
-                0x8007ff68                __DTOR_LIST__=.
-                0x8007ff68                ___DTOR_LIST__=.
-                0x8007ff68        0x4 LONG 0x0 (((__DTOR_END__-__DTOR_LIST__)/0x4)-0x2)
+                0x80080464        0x4 LONG 0x0
+                0x80080468                __CTOR_END__=.
+                0x80080468                __DTOR_LIST__=.
+                0x80080468                ___DTOR_LIST__=.
+                0x80080468        0x4 LONG 0x0 (((__DTOR_END__-__DTOR_LIST__)/0x4)-0x2)
  *(.dtors)
-                0x8007ff6c        0x4 LONG 0x0
-                0x8007ff70                __DTOR_END__=.
+                0x8008046c        0x4 LONG 0x0
+                0x80080470                __DTOR_END__=.
  *(.rodata)
- .rodata        0x8007ff70      0x23b S2_String_Check.o
- .rodata        0x800801ab      0x2f5 S2_MPS_Text_Centering.o
- .rodata        0x800804a0      0x3fb S2_Knob_Acceleration__Pkt_.o
- .rodata        0x8008089b      0x687 S2_DMPS_Text_Router_v1_0.o
- .rodata        0x80080f22     0x2b1d S2_DMPS_Installer_Tools_v1_13.o
- .rodata        0x80083a3f      0x3b7 S2_APAD_Long_Text_Edit.o
- .rodata        0x80083df6      0x457 S2_UserProgCmd_Interface_v1_0.o
- .rodata        0x8008424d      0x24a S2_UserProgCmd_Interface_Serial_To_Analog_v1_0.o
- .rodata        0x80084497      0x814 S2_DMPS_System_Info_V1_0_2.o
- .rodata        0x80084cab      0x38d S2_Single_Line_Scroller_v1_2.o
- .rodata        0x80085038      0x261 S2_IP_Address_Edit_with_Up_Down.o
- .rodata        0x80085299      0x2de S2_IP_Address_Edit_Acceleration.o
- .rodata        0x80085577      0x2d2 S2_DMPS_Analog_To_String_Conversion_v1_1.o
- .rodata        0x80085849      0x23b S2_DMPS_String_to_Analog_Conversion_v1_1.o
- .rodata        0x80085a84      0x2de S2_StringSaver.o
- .rodata        0x80085d62      0x2c0 S2_Generic_CEC_Source_Control_Processor_v1_0.o
- .rodata        0x80086022      0x5ab S2_Add_or_Remove_Slave.o
- .rodata        0x800865cd      0xe25 S2_Wireless_Mic_Monitoring.o
- .rodata        0x800873f2      0x836 S2_NTP_Time_Sync_v1_0.o
- .rodata        0x80087c28      0x2d7 S2_Input_Name.o
- .rodata        0x80087eff     0x12ae S2_Metrics.o
- .rodata        0x800891ad      0x343 S2_GetConfig.o
- .rodata        0x800894f0      0xc54 library.o
+ .rodata        0x80080470      0x23b S2_String_Check.o
+ .rodata        0x800806ab      0x2f5 S2_MPS_Text_Centering.o
+ .rodata        0x800809a0      0x3fb S2_Knob_Acceleration__Pkt_.o
+ .rodata        0x80080d9b      0x687 S2_DMPS_Text_Router_v1_0.o
+ .rodata        0x80081422     0x2b1d S2_DMPS_Installer_Tools_v1_13.o
+ .rodata        0x80083f3f      0x3b7 S2_APAD_Long_Text_Edit.o
+ .rodata        0x800842f6      0x457 S2_UserProgCmd_Interface_v1_0.o
+ .rodata        0x8008474d      0x24a S2_UserProgCmd_Interface_Serial_To_Analog_v1_0.o
+ .rodata        0x80084997      0x814 S2_DMPS_System_Info_V1_0_2.o
+ .rodata        0x800851ab      0x38d S2_Single_Line_Scroller_v1_2.o
+ .rodata        0x80085538      0x261 S2_IP_Address_Edit_with_Up_Down.o
+ .rodata        0x80085799      0x2de S2_IP_Address_Edit_Acceleration.o
+ .rodata        0x80085a77      0x2d2 S2_DMPS_Analog_To_String_Conversion_v1_1.o
+ .rodata        0x80085d49      0x23b S2_DMPS_String_to_Analog_Conversion_v1_1.o
+ .rodata        0x80085f84      0x2de S2_StringSaver.o
+ .rodata        0x80086262      0x2c0 S2_Generic_CEC_Source_Control_Processor_v1_0.o
+ .rodata        0x80086522      0x5ab S2_Add_or_Remove_Slave.o
+ .rodata        0x80086acd      0xe25 S2_Wireless_Mic_Monitoring.o
+ .rodata        0x800878f2      0x836 S2_NTP_Time_Sync_v1_0.o
+ .rodata        0x80088128      0x2d7 S2_Input_Name.o
+ .rodata        0x800883ff     0x12f6 S2_Metrics.o
+ .rodata        0x800896f5      0x343 S2_GetConfig.o
+ .rodata        0x80089a38      0xc54 library.o
  *(.gcc_except_table)
-                0x8008a144                .=ALIGN(0x2)
-                0x8008a144                __INIT_SECTION__=.
-                0x8008a144        0x4 LONG 0x4e560000
+                0x8008a68c                .=ALIGN(0x2)
+                0x8008a68c                __INIT_SECTION__=.
+                0x8008a68c        0x4 LONG 0x4e560000
  *(.init)
-                0x8008a148        0x2 SHORT 0x4e5e
-                0x8008a14a        0x2 SHORT 0x4e75
-                0x8008a14c                __FINI_SECTION__=.
-                0x8008a14c        0x4 LONG 0x4e560000
+                0x8008a690        0x2 SHORT 0x4e5e
+                0x8008a692        0x2 SHORT 0x4e75
+                0x8008a694                __FINI_SECTION__=.
+                0x8008a694        0x4 LONG 0x4e560000
  *(.fini)
-                0x8008a150        0x2 SHORT 0x4e5e
-                0x8008a152        0x2 SHORT 0x4e75
+                0x8008a698        0x2 SHORT 0x4e5e
+                0x8008a69a        0x2 SHORT 0x4e75
  *(.lit)
- *fill*         0x8008a154        0xc
-                0x8008a160                .=ALIGN(0x10)
-                0x8008a160                _etext=.
-                0x8008a160                etext=.
+ *fill*         0x8008a69c        0x4
+                0x8008a6a0                .=ALIGN(0x10)
+                0x8008a6a0                _etext=.
+                0x8008a6a0                etext=.
 
-.data           0x8008a160        0x0
-                0x8008a160                copy_start=.
+.data           0x8008a6a0        0x0
+                0x8008a6a0                copy_start=.
  *(.shdata)
  *(.data)
  *(.gnu.linkonce.d.*)
-                0x8008a160                .=ALIGN(0x10)
-                0x8008a160                _edata=.
-                0x8008a160                copy_end=.
+                0x8008a6a0                .=ALIGN(0x10)
+                0x8008a6a0                _edata=.
+                0x8008a6a0                copy_end=.
 
 .got
  *(.got.plt)
  *(.got)
 
-EntryList       0x8008a160     0x1760
+EntryList       0x8008a6a0     0x1760
  *(EntryList)
- EntryList      0x8008a160      0x110 S2_String_Check.o
-                0x8008a160                S2_String_Check_Entry
- EntryList      0x8008a270      0x110 S2_MPS_Text_Centering.o
-                0x8008a270                S2_MPS_Text_Centering_Entry
- EntryList      0x8008a380      0x110 S2_Knob_Acceleration__Pkt_.o
-                0x8008a380                S2_Knob_Acceleration__Pkt__Entry
- EntryList      0x8008a490      0x110 S2_DMPS_Text_Router_v1_0.o
-                0x8008a490                S2_DMPS_Text_Router_v1_0_Entry
- EntryList      0x8008a5a0      0x110 S2_DMPS_Installer_Tools_v1_13.o
-                0x8008a5a0                S2_DMPS_Installer_Tools_v1_13_Entry
- EntryList      0x8008a6b0      0x110 S2_APAD_Long_Text_Edit.o
-                0x8008a6b0                S2_APAD_Long_Text_Edit_Entry
- EntryList      0x8008a7c0      0x110 S2_UserProgCmd_Interface_v1_0.o
-                0x8008a7c0                S2_UserProgCmd_Interface_v1_0_Entry
- EntryList      0x8008a8d0      0x110 S2_UserProgCmd_Interface_Serial_To_Analog_v1_0.o
-                0x8008a8d0                S2_UserProgCmd_Interface_Serial_To_Analog_v1_0_Entry
- EntryList      0x8008a9e0      0x110 S2_DMPS_System_Info_V1_0_2.o
-                0x8008a9e0                S2_DMPS_System_Info_V1_0_2_Entry
- EntryList      0x8008aaf0      0x110 S2_Single_Line_Scroller_v1_2.o
-                0x8008aaf0                S2_Single_Line_Scroller_v1_2_Entry
- EntryList      0x8008ac00      0x110 S2_IP_Address_Edit_with_Up_Down.o
-                0x8008ac00                S2_IP_Address_Edit_with_Up_Down_Entry
- EntryList      0x8008ad10      0x110 S2_IP_Address_Edit_Acceleration.o
-                0x8008ad10                S2_IP_Address_Edit_Acceleration_Entry
- EntryList      0x8008ae20      0x110 S2_DMPS_Analog_To_String_Conversion_v1_1.o
-                0x8008ae20                S2_DMPS_Analog_To_String_Conversion_v1_1_Entry
- EntryList      0x8008af30      0x110 S2_DMPS_String_to_Analog_Conversion_v1_1.o
-                0x8008af30                S2_DMPS_String_to_Analog_Conversion_v1_1_Entry
- EntryList      0x8008b040      0x110 S2_StringSaver.o
-                0x8008b040                S2_StringSaver_Entry
- EntryList      0x8008b150      0x110 S2_Generic_CEC_Source_Control_Processor_v1_0.o
-                0x8008b150                S2_Generic_CEC_Source_Control_Processor_v1_0_Entry
- EntryList      0x8008b260      0x110 S2_Add_or_Remove_Slave.o
-                0x8008b260                S2_Add_or_Remove_Slave_Entry
- EntryList      0x8008b370      0x110 S2_Wireless_Mic_Monitoring.o
-                0x8008b370                S2_Wireless_Mic_Monitoring_Entry
- EntryList      0x8008b480      0x110 S2_NTP_Time_Sync_v1_0.o
-                0x8008b480                S2_NTP_Time_Sync_v1_0_Entry
- EntryList      0x8008b590      0x110 S2_Input_Name.o
-                0x8008b590                S2_Input_Name_Entry
- EntryList      0x8008b6a0      0x110 S2_Metrics.o
-                0x8008b6a0                S2_Metrics_Entry
- EntryList      0x8008b7b0      0x110 S2_GetConfig.o
-                0x8008b7b0                S2_GetConfig_Entry
-                0x8008b8c0                .=ALIGN(0x4)
+ EntryList      0x8008a6a0      0x110 S2_String_Check.o
+                0x8008a6a0                S2_String_Check_Entry
+ EntryList      0x8008a7b0      0x110 S2_MPS_Text_Centering.o
+                0x8008a7b0                S2_MPS_Text_Centering_Entry
+ EntryList      0x8008a8c0      0x110 S2_Knob_Acceleration__Pkt_.o
+                0x8008a8c0                S2_Knob_Acceleration__Pkt__Entry
+ EntryList      0x8008a9d0      0x110 S2_DMPS_Text_Router_v1_0.o
+                0x8008a9d0                S2_DMPS_Text_Router_v1_0_Entry
+ EntryList      0x8008aae0      0x110 S2_DMPS_Installer_Tools_v1_13.o
+                0x8008aae0                S2_DMPS_Installer_Tools_v1_13_Entry
+ EntryList      0x8008abf0      0x110 S2_APAD_Long_Text_Edit.o
+                0x8008abf0                S2_APAD_Long_Text_Edit_Entry
+ EntryList      0x8008ad00      0x110 S2_UserProgCmd_Interface_v1_0.o
+                0x8008ad00                S2_UserProgCmd_Interface_v1_0_Entry
+ EntryList      0x8008ae10      0x110 S2_UserProgCmd_Interface_Serial_To_Analog_v1_0.o
+                0x8008ae10                S2_UserProgCmd_Interface_Serial_To_Analog_v1_0_Entry
+ EntryList      0x8008af20      0x110 S2_DMPS_System_Info_V1_0_2.o
+                0x8008af20                S2_DMPS_System_Info_V1_0_2_Entry
+ EntryList      0x8008b030      0x110 S2_Single_Line_Scroller_v1_2.o
+                0x8008b030                S2_Single_Line_Scroller_v1_2_Entry
+ EntryList      0x8008b140      0x110 S2_IP_Address_Edit_with_Up_Down.o
+                0x8008b140                S2_IP_Address_Edit_with_Up_Down_Entry
+ EntryList      0x8008b250      0x110 S2_IP_Address_Edit_Acceleration.o
+                0x8008b250                S2_IP_Address_Edit_Acceleration_Entry
+ EntryList      0x8008b360      0x110 S2_DMPS_Analog_To_String_Conversion_v1_1.o
+                0x8008b360                S2_DMPS_Analog_To_String_Conversion_v1_1_Entry
+ EntryList      0x8008b470      0x110 S2_DMPS_String_to_Analog_Conversion_v1_1.o
+                0x8008b470                S2_DMPS_String_to_Analog_Conversion_v1_1_Entry
+ EntryList      0x8008b580      0x110 S2_StringSaver.o
+                0x8008b580                S2_StringSaver_Entry
+ EntryList      0x8008b690      0x110 S2_Generic_CEC_Source_Control_Processor_v1_0.o
+                0x8008b690                S2_Generic_CEC_Source_Control_Processor_v1_0_Entry
+ EntryList      0x8008b7a0      0x110 S2_Add_or_Remove_Slave.o
+                0x8008b7a0                S2_Add_or_Remove_Slave_Entry
+ EntryList      0x8008b8b0      0x110 S2_Wireless_Mic_Monitoring.o
+                0x8008b8b0                S2_Wireless_Mic_Monitoring_Entry
+ EntryList      0x8008b9c0      0x110 S2_NTP_Time_Sync_v1_0.o
+                0x8008b9c0                S2_NTP_Time_Sync_v1_0_Entry
+ EntryList      0x8008bad0      0x110 S2_Input_Name.o
+                0x8008bad0                S2_Input_Name_Entry
+ EntryList      0x8008bbe0      0x110 S2_Metrics.o
+                0x8008bbe0                S2_Metrics_Entry
+ EntryList      0x8008bcf0      0x110 S2_GetConfig.o
+                0x8008bcf0                S2_GetConfig_Entry
+                0x8008be00                .=ALIGN(0x4)
 
-FunctionList    0x8008b8c0        0x4
+FunctionList    0x8008be00        0x4
  *(FunctionList)
- FunctionList   0x8008b8c0        0x4 globals.o
-                0x8008b8c0                g_pFunctions
-                0x8008b8c4                .=ALIGN(0x4)
+ FunctionList   0x8008be00        0x4 globals.o
+                0x8008be00                g_pFunctions
+                0x8008be04                .=ALIGN(0x4)
 
-.bss            0x8008b8c4        0x0
-                0x8008b8c4                .=ALIGN(0x4)
-                0x8008b8c4                __bss_start=.
+.bss            0x8008be04        0x0
+                0x8008be04                .=ALIGN(0x4)
+                0x8008be04                __bss_start=.
  *(.shbss)
  *(.bss)
  *(COMMON)
-                0x8008b8c8                _end=ALIGN(0x8)
-                0x8008b8c8                __end=_end
+                0x8008be08                _end=ALIGN(0x8)
+                0x8008be08                __end=_end
 
 .stab
  *(.stab)
@@ -690,28 +689,28 @@ LOAD globals.o
 LOAD library.o
 OUTPUT(_S2_TEC_HD.spl elf32-m68k)
 
-.comment        0x8008b8c4      0x390
- .comment       0x8008b8c4       0x26 S2_String_Check.o
- .comment       0x8008b8ea       0x26 S2_MPS_Text_Centering.o
- .comment       0x8008b910       0x26 S2_Knob_Acceleration__Pkt_.o
- .comment       0x8008b936       0x26 S2_DMPS_Text_Router_v1_0.o
- .comment       0x8008b95c       0x26 S2_DMPS_Installer_Tools_v1_13.o
- .comment       0x8008b982       0x26 S2_APAD_Long_Text_Edit.o
- .comment       0x8008b9a8       0x26 S2_UserProgCmd_Interface_v1_0.o
- .comment       0x8008b9ce       0x26 S2_UserProgCmd_Interface_Serial_To_Analog_v1_0.o
- .comment       0x8008b9f4       0x26 S2_DMPS_System_Info_V1_0_2.o
- .comment       0x8008ba1a       0x26 S2_Single_Line_Scroller_v1_2.o
- .comment       0x8008ba40       0x26 S2_IP_Address_Edit_with_Up_Down.o
- .comment       0x8008ba66       0x26 S2_IP_Address_Edit_Acceleration.o
- .comment       0x8008ba8c       0x26 S2_DMPS_Analog_To_String_Conversion_v1_1.o
- .comment       0x8008bab2       0x26 S2_DMPS_String_to_Analog_Conversion_v1_1.o
- .comment       0x8008bad8       0x26 S2_StringSaver.o
- .comment       0x8008bafe       0x26 S2_Generic_CEC_Source_Control_Processor_v1_0.o
- .comment       0x8008bb24       0x26 S2_Add_or_Remove_Slave.o
- .comment       0x8008bb4a       0x26 S2_Wireless_Mic_Monitoring.o
- .comment       0x8008bb70       0x26 S2_NTP_Time_Sync_v1_0.o
- .comment       0x8008bb96       0x26 S2_Input_Name.o
- .comment       0x8008bbbc       0x26 S2_Metrics.o
- .comment       0x8008bbe2       0x26 S2_GetConfig.o
- .comment       0x8008bc08       0x26 globals.o
- .comment       0x8008bc2e       0x26 library.o
+.comment        0x8008be04      0x390
+ .comment       0x8008be04       0x26 S2_String_Check.o
+ .comment       0x8008be2a       0x26 S2_MPS_Text_Centering.o
+ .comment       0x8008be50       0x26 S2_Knob_Acceleration__Pkt_.o
+ .comment       0x8008be76       0x26 S2_DMPS_Text_Router_v1_0.o
+ .comment       0x8008be9c       0x26 S2_DMPS_Installer_Tools_v1_13.o
+ .comment       0x8008bec2       0x26 S2_APAD_Long_Text_Edit.o
+ .comment       0x8008bee8       0x26 S2_UserProgCmd_Interface_v1_0.o
+ .comment       0x8008bf0e       0x26 S2_UserProgCmd_Interface_Serial_To_Analog_v1_0.o
+ .comment       0x8008bf34       0x26 S2_DMPS_System_Info_V1_0_2.o
+ .comment       0x8008bf5a       0x26 S2_Single_Line_Scroller_v1_2.o
+ .comment       0x8008bf80       0x26 S2_IP_Address_Edit_with_Up_Down.o
+ .comment       0x8008bfa6       0x26 S2_IP_Address_Edit_Acceleration.o
+ .comment       0x8008bfcc       0x26 S2_DMPS_Analog_To_String_Conversion_v1_1.o
+ .comment       0x8008bff2       0x26 S2_DMPS_String_to_Analog_Conversion_v1_1.o
+ .comment       0x8008c018       0x26 S2_StringSaver.o
+ .comment       0x8008c03e       0x26 S2_Generic_CEC_Source_Control_Processor_v1_0.o
+ .comment       0x8008c064       0x26 S2_Add_or_Remove_Slave.o
+ .comment       0x8008c08a       0x26 S2_Wireless_Mic_Monitoring.o
+ .comment       0x8008c0b0       0x26 S2_NTP_Time_Sync_v1_0.o
+ .comment       0x8008c0d6       0x26 S2_Input_Name.o
+ .comment       0x8008c0fc       0x26 S2_Metrics.o
+ .comment       0x8008c122       0x26 S2_GetConfig.o
+ .comment       0x8008c148       0x26 globals.o
+ .comment       0x8008c16e       0x26 library.o

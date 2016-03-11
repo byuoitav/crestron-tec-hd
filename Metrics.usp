@@ -79,6 +79,35 @@ INTEGER REPORTINGHOSTPORT,RECONNECTTIME;
 /*******************************************************************************************
   Functions -- No Editing
 *******************************************************************************************/
+           
+STRING_FUNCTION Sanitize(string msg)
+{
+	string strippedMessage[1024], char[1];
+	integer i;
+
+	if (mid(msg, 1, 1) = " ") // Kill the leading space if it exists
+	{
+    	msg = right(msg, len(msg) - 1);
+	}
+     
+	if (mid(msg, len(msg), 1) = " ") // Kill the trailing space if it exists
+	{
+    	msg = left(msg, len(msg) - 1);
+	}
+
+	for (i = 1 to len(msg)) // Loop through the string
+	{
+		char = mid(msg, i, 1);
+
+		if (char != "_" && char != "/") // Kill character
+		{
+			strippedMessage = strippedMessage + char;
+		}
+	}
+       
+	print("\n!!!!! >%s<\n", msg);
+	RETURN (msg);
+}
 
 Function Log(string msg)
 {	
@@ -131,10 +160,6 @@ Function storeGlobalVars(string inputString)
 //Function BuildHttpMessage(STRING EVENTHOSTNAME, STRING EVENTIP, STRING EVENTMAC, STRING EVENTBLDG, STRING EVENTROOM, STRING EVENTFLOOR, STRING EVENTLAT, STRING EVENTLON, STRING EVENTACTOR, string EVENTACTION, STRING userOrSystem)
 Function BuildHttpMessage(STRING EVENTACTOR, STRING EVENTACTION, STRING userOrSystem, STRING sessn)
 {
-	// Testing strip() temporarily
-	string testMessage[1024],strippedMessage1[1024],strippedMessage2[1024],char[1];
-	integer i;
-
 	SIGNED_INTEGER dst,mNum,yNum,dNum,ContentLength;
     SIGNED_LONG_INTEGER PortNumber;
 	STRING timestamp[24];
@@ -155,50 +180,16 @@ Function BuildHttpMessage(STRING EVENTACTOR, STRING EVENTACTION, STRING userOrSy
 	STRING innerMsg1[1024],innerMsg2[1024],innerMsg3[1024],innerMsg4[1024];
 	STRING CLString[1024];
 	INTEGER spacePosition;
-    
-	testMessage = " poots are_awesome /yo ";
-	strippedMessage1 = "";
-	strippedMessage2 = "";   
-                       
-	if (mid(testMessage, 1, 1) = " ")
-	{
-    	// TODO: Remove leading space
-	}
-     
-	// TODO: Remove trailing space
-
-	for (i = 1 to len(testMessage)) // This will become defunct and be removed once the above TODOs are completed
-	{
-		char = mid(testMessage, i, 1);
-
-		if (char != " ") // Kill spaces
-		{
-			strippedMessage1 = strippedMessage1 + char;
-		}
-	}
-
-	for (i = 1 to len(strippedMessage1))
-	{
-		char = mid(strippedMessage1, i, 1);
-
-		if (char != "_") // Kill underscores
-		{
-			strippedMessage2 = strippedMessage2 + char;
-		}
-	}
-                  
-	strippedMessage1 = ""; // Clear the first stripped message so we can continue the "ghetto loop"
-	for (i = 1 to len(strippedMessage2))
-	{
-		char = mid(strippedMessage2, i, 1);
-
-		if (char != "/") // Kill slashes
-		{
-			strippedMessage1 = strippedMessage1 + char;
-		}
-	}
-
-	print("\n!!!!! %s\n", strippedMessage1); // Make sure we print the correct strippedMessage[1-2] here depending on current spot in "ghetto loop"
+         
+	string testMessage[1024];
+	testMessage = " poots / ";          
+	testMessage = Sanitize(testMessage);
+	testMessage = " poots_ stuff /";          
+	testMessage = Sanitize(testMessage);
+	testMessage = "poots_/yo ";          
+	testMessage = Sanitize(testMessage);
+	testMessage = "poot_s / blah";          
+	testMessage = Sanitize(testMessage);
 
 	//hostname = HOSTNAME;
 	description = "";
@@ -225,11 +216,12 @@ Function BuildHttpMessage(STRING EVENTACTOR, STRING EVENTACTION, STRING userOrSy
 	dateStr = ITOA(yNum) + "-" + ITOA(mNum) + "-"+ ITOA(dNum);
 	timeStr = Time();
 	dst = GetDST();
-	// timestamp = dateStr +"T"+ timeStr+"Z"; // YYYY-MM-DDTHH:mm:ss.SSSZ
+                
+	// Change the timestamp depending on DST
 	if(dst = 1) {
-		timestamp = dateStr +"T"+ timeStr + "-0600"; // YYYY-MM-DDTHH:mm:ss.SSSZ
+		timestamp = dateStr +"T"+ timeStr + "-0600"; // YYYY-MM-DDTHH:mm:ss.SSS-0000
 	} else if(dst = 2) {
-		timestamp = dateStr +"T"+ timeStr + "-0700"; // YYYY-MM-DDTHH:mm:ss.SSSZ
+		timestamp = dateStr +"T"+ timeStr + "-0700"; // YYYY-MM-DDTHH:mm:ss.SSS-0000
 	}
 	
 	innerMsg1 = "{\"type\": \"" + type + "\",\"timestamp\": \"" + timestamp +"\",\"eventTime\": \"" + timeStr +"\",\"eventDate\": \"" + dateStr +"\",\"device\": {\"hostname\": \"" + HOSTNAME +"\", \"description\": \"";
