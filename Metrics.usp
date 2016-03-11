@@ -85,28 +85,27 @@ STRING_FUNCTION Sanitize(string msg)
 	string strippedMessage[1024], char[1];
 	integer i;
 
-	if (mid(msg, 1, 1) = " ") // Kill the leading space if it exists
-	{
-    	msg = right(msg, len(msg) - 1);
-	}
-     
-	if (mid(msg, len(msg), 1) = " ") // Kill the trailing space if it exists
-	{
-    	msg = left(msg, len(msg) - 1);
-	}
-
 	for (i = 1 to len(msg)) // Loop through the string
 	{
 		char = mid(msg, i, 1);
 
-		if (char != "_" && char != "/") // Kill character
+		if ((char != "_") && (char != "/")) // Kill character
 		{
 			strippedMessage = strippedMessage + char;
 		}
 	}
+
+	while (mid(strippedMessage, 1, 1) = " ") // Kill the leading space if it exists
+	{
+    	strippedMessage = right(strippedMessage, len(strippedMessage) - 1);
+	}
+     
+	while (mid(strippedMessage, len(strippedMessage), 1) = " ") // Kill the trailing space if it exists
+	{
+    	strippedMessage = left(strippedMessage, len(strippedMessage) - 1);
+	}
        
-	print("\n!!!!! >%s<\n", msg);
-	RETURN (msg);
+	RETURN (strippedMessage);
 }
 
 Function Log(string msg)
@@ -180,16 +179,6 @@ Function BuildHttpMessage(STRING EVENTACTOR, STRING EVENTACTION, STRING userOrSy
 	STRING innerMsg1[1024],innerMsg2[1024],innerMsg3[1024],innerMsg4[1024];
 	STRING CLString[1024];
 	INTEGER spacePosition;
-         
-	string testMessage[1024];
-	testMessage = " poots / ";          
-	testMessage = Sanitize(testMessage);
-	testMessage = " poots_ stuff /";          
-	testMessage = Sanitize(testMessage);
-	testMessage = "poots_/yo ";          
-	testMessage = Sanitize(testMessage);
-	testMessage = "poot_s / blah";          
-	testMessage = Sanitize(testMessage);
 
 	//hostname = HOSTNAME;
 	description = "";
