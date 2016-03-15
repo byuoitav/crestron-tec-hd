@@ -144,6 +144,7 @@ Function dynamicHTTPMessageConstruction(STRING message, STRING method, STRING pa
 
 	//Calculate the number of individual packets we'll be creating. 
 	iterations = length / 1024;
+	print ("\nIterations = %i, Length = %i\n",iterations, length);
 	//Figure out if we need more than one.
 	if (iterations * 1024 < length){
 		iterations = iterations +1;
@@ -779,8 +780,8 @@ Function Main()
     //   runs and propagates the values to them.
     WaitForInitializationComplete();
 
-	REPORTINGHOST = "blodgettav-win.byu.edu";
-	REPORTINGHOSTPORT = 8080;
+	REPORTINGHOST = "avreports.byu.edu";
+	REPORTINGHOSTPORT = 9200;
 	RECONNECTTIME = 9000; // Set reconnect timer for 90 seconds.
 	HOSTNAME = "";
 	HOSTIP = "";
