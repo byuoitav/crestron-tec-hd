@@ -134,28 +134,34 @@ Function storeGlobalVars(string inputString)
 Function dynamicHTTPMessageConstruction(STRING message, STRING method, STRING path)
 { 
 	INTEGER length, iterations, i;
-	STRING messagesForSend$[100][1024];
+	STRING messagesForSend[100][1024];
 	STRING header1[1024],header2[1024],header3[1024],header4[1024],header5[1024],header6[1024];
-	STRING curMessage[1024];
+	STRING curMessage[1024], curMessage1[1024];
 
 	length = len(message);
+	
+	Print("\n%s\n",message);
 
 	//Calculate the number of individual packets we'll be creating. 
 	iterations = length / 1024;
-	if (length % 1024 != 0){
+	//Figure out if we need more than one.
+	if (iterations * 1024 < length){
 		iterations = iterations +1;
 	}
 	
 	//Create our array of strings that will be sent.
 	//split out the message string passed in into the smaller pieces and store them in the array. 
 	for( i = 0 TO iterations){
-    	messagesForSend$[i] = MID(message, i*1024, 1024);
+    	messagesForSend[i] = MID(message, i*1024, 1024);
+		Print("\nFor iteration i = %i\n",i);
+		Print("\nMessage Value = %s\n",MID(messagesForSend[i], 2, 1024));
+
 	} 
 
 	//Build our headers. Since it's an HTTP packet we can do this statically. We assume we're going to 
 	// REPORTINGHOST:REPORTINGHOSTPORT. The path and method are passed into this function. We use length 
 	// as found above to set the length of the packets. 
-	header1 = method + " " + path + " HTTP/1.1" + NEWLINE;
+	header1 = method + " /" + path + " HTTP/1.1" + NEWLINE;
 	header2 = "Host: " + REPORTINGHOST + ":" + ITOA(REPORTINGHOSTPORT) + NEWLINE;
 	header3 = "Connection: keep-alive" + NEWLINE;
 	header4 = "Content-Length: " + itoa(length) + NEWLINE;
@@ -171,7 +177,7 @@ Function dynamicHTTPMessageConstruction(STRING message, STRING method, STRING pa
 	Send(header6);
 	Send(NEWLINE);
 	for ( i = 0 TO iterations){
-		curMessage = messagesForSend$[i];
+		curMessage = MID(messagesForSend[i], 2, 1024);
 		print("%s",curMessage);
     	send(curMessage);
 	}
@@ -199,7 +205,7 @@ Function BuildHttpMessage(STRING EVENTACTOR, STRING EVENTACTION, STRING userOrSy
 	STRING desc[256];
 	STRING type[6];
 	STRING header1[1024],header2[1024],header3[1024],header4[1024],header5[1024],header6[1024];
-	STRING innerMsg[10000];
+	STRING innerMsg[65534];
 	STRING CLString[1024];
 	INTEGER spacePosition;
 	STRING Method[64];
@@ -232,11 +238,8 @@ Function BuildHttpMessage(STRING EVENTACTOR, STRING EVENTACTION, STRING userOrSy
 	
 	timestamp = dateStr +"T"+ timeStr +"Z"; // YYYY-MM-DDTHH:mm:ss.SSSZ
 
-	innerMsg = "{\"type\": \"" + type + "\",\"timestamp\": \"" + timestamp +"\",\"eventTime\": \"" + timeStr +"\",\"eventDate\": \"" + dateStr +"\",\"device\": {\"hostname\": \"" + HOSTNAME +"\", \"description\": \"" +
- 		"" + description +"\", \"ipAddress\": \"" + ipAddress +"\", \"macAddress\": \"" + mac +"\"}, \"room\": { \"building\": \"" + building +
-		"\", \"roomNumber\": \"" + roomNumber +"\",\"coordinates\": \"" + lat +"," + lon +"\", \"floor\": \"" + flr + "\"" +
-	 	"},\"action\": {\"actor\": \"" + actor +"\", \"description\": \"" + desc +"\"}, \"session\": \""+ SESSION + "\"}";
-    Method = "POST";
+	innerMsg = "{\"type\": \"" + type + "\",\"timestamp\": \"" + timestamp +"\",\"eventTime\": \"" + timeStr +"\",\"eventDate\": \"" + dateStr +"\",\"device\": {\"hostname\": \"" + HOSTNAME +"\", \"description\": \"" + description +"\", \"ipAddress\": \"" + ipAddress +"\", \"macAddress\": \"" + mac +"\"}, \"room\": { \"building\": \"" + building +"\", \"roomNumber\": \"" + roomNumber +"\",\"coordinates\": \"" + lat +"," + lon +"\", \"floor\": \"" + flr + "\"" +"},\"action\": {\"actor\": \"" + actor +"\", \"description\": \"" + desc +"\"}, \"session\": \""+ SESSION + "\"}";
+	Method = "POST";
 	Path = "testevents/" + userOrSystem +"/";
  	Print("\n%s\n",innerMsg);
 
@@ -776,8 +779,8 @@ Function Main()
     //   runs and propagates the values to them.
     WaitForInitializationComplete();
 
-	REPORTINGHOST = "avreports.byu.edu";
-	REPORTINGHOSTPORT = 9200;
+	REPORTINGHOST = "blodgettav-win.byu.edu";
+	REPORTINGHOSTPORT = 8080;
 	RECONNECTTIME = 9000; // Set reconnect timer for 90 seconds.
 	HOSTNAME = "";
 	HOSTIP = "";
