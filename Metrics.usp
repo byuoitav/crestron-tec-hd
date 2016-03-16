@@ -5,8 +5,8 @@
 /*
 Dealer Name: Brigham Young University
 System Name: Metrics Proxy
-System Number: 1.0.0
-Programmer: Dan Clegg
+System Number: 1.0.4
+Programmer: Dan Clegg, Jesse Millar, Joseph Blodgett
 Comments: Forwards Metrics Events
 */
 
@@ -149,7 +149,7 @@ Function dynamicHTTPMessageConstruction(STRING message, STRING method, STRING pa
 
 Function BuildHttpMessage(STRING EVENTACTOR, STRING EVENTACTION, STRING userOrSystem, STRING sessn)
 {
-	SIGNED_INTEGER offset,mNum,yNum,dNum,ContentLength;
+	SIGNED_INTEGER dst,mNum,yNum,dNum,ContentLength;
     SIGNED_LONG_INTEGER PortNumber;
 	STRING timestamp[24];
 	STRING dateStr[24];
@@ -189,17 +189,21 @@ Function BuildHttpMessage(STRING EVENTACTOR, STRING EVENTACTION, STRING userOrSy
 		HOSTNAME = RIGHT(HOSTNAME, LEN(HOSTNAME) - 1);
 	}
 
-	offset = GetGmtOffset();
 	mNum = GetMonthNum();
 	yNum = GetYearNum();
 	dNum = GetDateNum();
 
 	dateStr = ITOA(yNum) + "-" + ITOA(mNum) + "-"+ ITOA(dNum);
 	timeStr = Time();
+  dst = GetDST();
+  // timestamp = dateStr +"T"+ timeStr+"Z"; // YYYY-MM-DDTHH:mm:ss.SSSZ
+  if(dst = 1) {
+    timestamp = dateStr +"T"+ timeStr + "-0600"; // YYYY-MM-DDTHH:mm:ss.SSSZ
+  } else if(dst = 2) {
+      timestamp = dateStr +"T"+ timeStr + "-0700"; // YYYY-MM-DDTHH:mm:ss.SSSZ
+  }
 
-	timestamp = dateStr +"T"+ timeStr +"Z"; // YYYY-MM-DDTHH:mm:ss.SSSZ
-
-	innerMsg = "{\"type\": \"" + type + "\",\"timestamp\": \"" + timestamp +"\",\"eventTime\": \"" + timeStr +"\",\"eventDate\": \"" + dateStr +"\",\"device\": {\"hostname\": \"" + HOSTNAME +"\", \"description\": \"" +
+  innerMsg = "{\"type\": \"" + type + "\",\"timestamp\": \"" + timestamp +"\",\"eventTime\": \"" + timeStr +"\",\"eventDate\": \"" + dateStr +"\",\"device\": {\"hostname\": \"" + HOSTNAME +"\", \"description\": \"" +
  		"" + description +"\", \"ipAddress\": \"" + ipAddress +"\", \"macAddress\": \"" + mac +"\"}, \"room\": { \"building\": \"" + building +
 		"\", \"roomNumber\": \"" + roomNumber +"\",\"coordinates\": \"" + lat +"," + lon +"\", \"floor\": \"" + flr + "\"" +
 	 	"},\"action\": {\"actor\": \"" + actor +"\", \"description\": \"" + desc +"\"}, \"session\": \""+ SESSION + "\"}";
@@ -619,6 +623,7 @@ SOCKETDISCONNECT client
 		Print("Socket disconnected remotely");
 	else
 		Print("Local socket disconnect complete.");
+	_clientConnected = 0;
 	_clientConnected = 1;
 
 	CancelWait(ReconnectTimer);
