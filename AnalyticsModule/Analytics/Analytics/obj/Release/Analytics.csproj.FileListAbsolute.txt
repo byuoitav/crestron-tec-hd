@@ -1,5 +1,0 @@
-C:\Users\dgclegg\Documents\repos\crestron-tec-hd\AnalyticsModule\Analytics\Analytics\bin\Analytics.dll
-C:\Users\dgclegg\Documents\repos\crestron-tec-hd\AnalyticsModule\Analytics\Analytics\bin\SimplSharpCustomAttributesInterface.dll
-C:\Users\dgclegg\Documents\repos\crestron-tec-hd\AnalyticsModule\Analytics\Analytics\bin\SimplSharpHelperInterface.dll
-C:\Users\dgclegg\Documents\repos\crestron-tec-hd\AnalyticsModule\Analytics\Analytics\obj\Release\ResolveAssemblyReference.cache
-C:\Users\dgclegg\Documents\repos\crestron-tec-hd\AnalyticsModule\Analytics\Analytics\obj\Release\Analytics.dll
