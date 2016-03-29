@@ -531,12 +531,27 @@ Release Audio_Only_Press // Audio Only button on init screen
 // If system gets hostname, set it in the global var
 CHANGE dmpsHostName
 {
-//	STRING trash[16];
-//	if(FIND(" ",dmpsHostName) <= 1)
-//	{
-//		trash = REMOVE(" ",dmpsHostName); // remove preceding space if there
-//	}
+	STRING temp[100],bldg[32],room[32],flr[2];
+	INTEGER c;
+	bldg = "";
+	room = "";
+	flr = "";	
+
 	HOSTNAME = dmpsHostName;
+	temp = dmpsHostName;
+
+	if(FIND(" ",dmpsHostName) >= 1)
+	{
+	//	temp = dmpsHostName;
+		bldg = REMOVE(" ",temp); // remove preceding space if there
+		room = REMOVE(" ",temp);
+		c = GETC(room);
+		flr = ITOA(c);
+	}
+
+	HOSTBLDG = bldg;
+	HOSTROOM = room;
+	HOSTFLOOR = flr;	
 }
 
 // If system gets IP, set it in the global var
@@ -648,6 +663,9 @@ THREADSAFE SOCKETCONNECT client
     else
 		Print("OnConnect: Connected to port %ld on address %s\n", REPORTINGHOSTPORT, REPORTINGHOST);
 	
+	// Consider doing a document overwrite
+	BuildHttpMessage("controlProcessor", "System active",SYSTEM,"");
+
 	// Starts timer to force reconnect of stale session
 	WAIT (RECONNECTTIME, ReconnectTimer)
 	{
