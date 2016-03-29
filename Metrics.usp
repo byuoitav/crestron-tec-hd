@@ -20,6 +20,7 @@ Comments: Forwards Metrics Events
 #DEFINE_CONSTANT	NEWLINE	"\n"
 #DEFINE_CONSTANT	USER	"user"
 #DEFINE_CONSTANT	SYSTEM	"system"
+#DEFINE_CONSTANT	AWS	"search-byu-oit-av-metrics-ruenjnrqfuhghh7omvtmgcqe7m.us-west-1.es.amazonaws.com"
 #OUTPUT_SHIFT 25
 #DEFAULT_VOLATILE
 #ENABLE_STACK_CHECKING
@@ -120,7 +121,7 @@ Function Error(string msg)
 
 Function Send(string msg)
 {
-	Print("Sending: %s",msg);
+	//Print("Sending: %s",msg);
 	SocketSend(client,msg);	
 }
 
@@ -220,8 +221,8 @@ Function BuildHttpMessage(STRING EVENTACTOR, STRING EVENTACTION, STRING userOrSy
 	ContentLength = Len(innerMsg1) + Len(innerMsg2) + Len(innerMsg3) + Len(innerMsg4);
 	CLString = ITOA(ContentLength);
 
-	header1 = "POST events/" + userOrSystem +"/ HTTP/1.1" + NEWLINE;
-	header2 = "Host: " + REPORTINGHOST + ":" + ITOA(REPORTINGHOSTPORT) + NEWLINE;
+	header1 = "POST /events/" + userOrSystem +"/ HTTP/1.1" + NEWLINE;
+	header2 = "Host: " + AWS + ":" + ITOA(REPORTINGHOSTPORT) + NEWLINE;
 	header3 = "Connection: keep-alive" + NEWLINE;
 	header4 = "Content-Length: " + CLString + NEWLINE;
 	header5 = "Content-type: text/plain;charset=UTF-8" + NEWLINE;
@@ -325,6 +326,7 @@ Function EndSession()
 	BuildHttpMessage("session",msg,USER,SESSION);	
 }
 
+
 Function GetConfigurationValue(string field)
 {
 	SIGNED_INTEGER offset,mNum,yNum,dNum,ContentLength;
@@ -334,8 +336,8 @@ Function GetConfigurationValue(string field)
 	ContentLength = 0;
 	CLString = ITOA(ContentLength);
 
-	header1 = "GET configuration/device/" + HOSTNAME +"?_source_include=" + field+ " HTTP/1.1" + NEWLINE;
-	header2 = "Host: " + REPORTINGHOST + ":" + ITOA(REPORTINGHOSTPORT) + NEWLINE;
+	header1 = "GET /configuration/device/" + HOSTNAME +"?_source_include=" + field+ " HTTP/1.1" + NEWLINE;
+	header2 = "Host: " + AWS + ":" + ITOA(REPORTINGHOSTPORT) + NEWLINE;
 	header3 = "Connection: keep-alive" + NEWLINE;
 	header4 = "Content-Length: " + CLString + NEWLINE;
 	header5 = "Content-type: text/plain;charset=UTF-8" + NEWLINE;
@@ -786,7 +788,7 @@ Function Main()
     WaitForInitializationComplete();
 
 	REPORTINGHOST = "avreports.byu.edu";
-	REPORTINGHOSTPORT = 9200;
+	REPORTINGHOSTPORT = 80;
 	RECONNECTTIME = 9000; // Set reconnect timer for 90 seconds.
 	HOSTNAME = "";
 	HOSTIP = "";
