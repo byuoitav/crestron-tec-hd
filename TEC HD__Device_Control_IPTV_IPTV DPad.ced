@@ -2,15 +2,17 @@
 ObjTp=FSgntr
 Sgntr=FlashComposite
 ;Increment this version when CED file format changes
-RelVrs=2
+RelVrs=3
 IntStrVrs=1
-VTProeVer=6.0.02
+VTProeVer=6.0.07
 ]
 [
 ObjTp=Symbol
 Name=TEC HD__Device_Control_IPTV_IPTV DPad.ced
 Hint=IPTV DPad (Smart Object ID=43)
 Code=1
+SGControlType=DPad
+SGControlName=IPTV DPad
 GUID=93A04E05-C5D2-499A-9F46-CA64B1FCEF9F
 SmplCName=TEC HD__Device_Control_IPTV_IPTV DPad.ced
 SMWRev=4.02.19

@@ -1,10 +1,10 @@
 [
 ObjTp=FSgntr
 Sgntr=SGD
-RelVrs=1
-VTProeVer=6.0.02
+RelVrs=3
+VTProeVer=6.0.07
 Schema=1
-CRCGUID=1F56CE8C-895D-4FD7-9726-5CDC5F362E54
+CRCGUID=A418B26C-F0D7-4411-8C5B-1BBECEBDC537
 ]
 ;================================================================================
 [
@@ -18,6 +18,8 @@ ObjTp=Symbol
 Name=TEC HD__Device_Control_IPTV_IPTV DPad.ced
 Hint=IPTV DPad (Smart Object ID=43)
 Code=1
+SGControlType=DPad
+SGControlName=IPTV DPad
 GUID=93A04E05-C5D2-499A-9F46-CA64B1FCEF9F
 SmplCName=TEC HD__Device_Control_IPTV_IPTV DPad.ced
 SMWRev=4.02.19
@@ -93,6 +95,8 @@ ObjTp=Symbol
 Name=TEC HD__Device_Control_IPTV_IPTV Keypad.ced
 Hint=IPTV Keypad (Smart Object ID=42)
 Code=2
+SGControlType=Simple Keypad
+SGControlName=IPTV Keypad
 GUID=2988CCE8-33E0-4CB9-B246-3E9B2336231F
 SmplCName=TEC HD__Device_Control_IPTV_IPTV Keypad.ced
 SMWRev=4.02.19
@@ -196,6 +200,8 @@ ObjTp=Symbol
 Name=TEC HD__Device_Control_Blu-ray_Blu-ray DPad.ced
 Hint=Blu-ray DPad (Smart Object ID=41)
 Code=3
+SGControlType=DPad
+SGControlName=Blu-ray DPad
 GUID=EA95C296-3F52-42C6-97FF-7B50955AA1A8
 SmplCName=TEC HD__Device_Control_Blu-ray_Blu-ray DPad.ced
 SMWRev=4.02.19
