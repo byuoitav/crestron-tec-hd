@@ -1,0 +1,260 @@
+/*******************************************************************************************
+  SIMPL+ Module Information
+  (Fill in comments below)
+*******************************************************************************************/
+/*
+Dealer Name: Brigham Young University
+System Name: BYU_TCPClient
+System Number: 1.0.0
+Programmer: Dan Clegg
+Comments: Proxy commands to an external system via TCP/IP Socket
+*/
+
+/*******************************************************************************************
+  Compiler Directives
+  (Uncomment and declare compiler directives as needed)
+*******************************************************************************************/
+#SYMBOL_NAME "BYU_TCPClient"
+#CATEGORY "46" "Intersystem Communication"
+#DEFINE_CONSTANT	BIGGESTSIZE	65534
+#DEFINE_CONSTANT	NEWLINE	"\n"
+#DEFINE_CONSTANT	CRESTRONDEFAULTIP "127.0.0.1"
+#DEFINE_CONSTANT	CRESTRONPORT 41795
+
+#DEFAULT_VOLATILE
+#ENABLE_STACK_CHECKING
+
+/*******************************************************************************************
+  DIGITAL_INPUT, ANALOG_INPUT, STRING_INPUT, BUFFER_INPUT inputs and DIGITAL_OUTPUT, 
+  ANALOG_OUTPUT, STRING_OUTPUT and SERIAL_OUTPUT outputs
+*******************************************************************************************/
+STRING_INPUT $IPAddress[1024],$Request[1024];
+ANALOG_INPUT $Port;
+
+BUFFER_INPUT clientBuffer[256];
+
+                                                         
+STRING_OUTPUT bufferOutput;
+                              
+DIGITAL_INPUT clientConnected;   
+DIGITAL_OUTPUT _clientConnected;
+
+/*******************************************************************************************
+  SOCKETS
+*******************************************************************************************/
+
+TCP_CLIENT client[1024];
+
+/*******************************************************************************************
+  Global Variables
+  (Uncomment and declare global variables as needed)
+  Note:  Be sure to initialize all declared STRING variables as needed
+         For example, in Function Main: myString = "";
+*******************************************************************************************/
+
+STRING MESSAGE[BIGGESTSIZE],CONNECTIONHOST[1024];
+INTEGER RECONNECTTIME,CONNECTIONPORT;
+
+/*******************************************************************************************
+  Functions -- No Editing
+*******************************************************************************************/
+
+Function Log(string msg)
+{	
+	Print("\n%s",msg);
+
+}
+
+Function Error(string msg)
+{
+	Log(msg);
+}
+
+Function Send(string msg)
+{
+	Print("Sending: %s",msg);
+	SocketSend(client,msg);	
+}
+
+/*******************************************************************************************
+  Event Handlers
+*******************************************************************************************/
+
+CHANGE $Request
+{
+	_clientConnected = 1;
+	
+	Send($Request);
+	
+}
+
+// Start a socket session to handle whether a push is active or not 
+PUSH clientConnected
+{
+ 	SIGNED_INTEGER status; // variable to capture/store socket status
+	status = SocketConnectClient (client, CONNECTIONHOST, CONNECTIONPORT, 0); // SocketConnectClient(tcpClient,host,port,reconnect)
+    
+	// Status < 0 is an error, greater than is a successful connection
+    if (status < 0)
+        Print("Error connecting socket to address %s on port  %d", CONNECTIONHOST, CONNECTIONPORT);
+}
+ 
+
+//Signal to disconnect socket has been sent
+RELEASE clientConnected  
+{
+	SIGNED_INTEGER status;
+	status = SocketDisconnectClient(client);
+
+	if (status < 0)
+		Print("Error disconnecting socket to address %s on port %d",CONNECTIONHOST,CONNECTIONPORT);
+}
+
+CHANGE $IPAddress
+{
+	CONNECTIONHOST = $IPAddress;
+}
+
+CHANGE $Port
+{
+	CONNECTIONPORT = $Port;
+}
+
+/***********
+The SOCKETCONNECT event is called when a socket connection is completed on a TCP_CLIENT or  TCP_SERVER variable.
+When using the THREADSAFE keyword before an event (such as PUSH, RELEASE, CHANGE) the event is prevented from retriggering, 
+until the entire code block in the event has executed.
+
+Events prevented from triggering WILL be dropped.
+************/
+
+THREADSAFE SOCKETCONNECT client
+{
+	SIGNED_INTEGER LocalStatus,PortNumber;
+	Print("OnConnect: input buffer size is: %d\n", Len(client.SocketRxBuf));
+
+    LocalStatus = SocketGetRemoteIPAddress(client, CONNECTIONHOST);
+    PortNumber = SocketGetPortNumber(client);
+
+    if (LocalStatus < 0)
+        Print("Error getting remote ip address. %d\n", LocalStatus);
+	else if (PortNumber < 0)
+        Print("Error getting client port number. %ld\n", CONNECTIONPORT);
+    else
+		Print("OnConnect: Connected to port %ld on address %s\n", CONNECTIONPORT, CONNECTIONHOST);
+}
+
+/* 
+The SOCKETDISCONNECT event is called when a TCP_CLIENT or  TCP_SERVER socket is disconnected. 
+Determine if this was done remotely (i.e. network, remote server, etc.) or locally via this module
+*/
+SOCKETDISCONNECT client
+{
+	if (clientConnected = 0)
+		Print("Socket disconnected remotely");
+	else
+		Print("Local socket disconnect complete.");
+}
+
+// Display the data received from the calls to the client and clear the buffer
+SOCKETRECEIVE client
+{
+	// HANDLE THE INPUTS HERE
+	if (Len(client.SocketRxBuf) < 256)
+        Print("Rx: %s", client.SocketRxBuf);
+    
+    // send to serial output and clear buffer
+    clientBuffer = client.SocketRxBuf;
+    ClearBuffer(client.SocketRxBuf);
+
+    _clientConnected = 0;
+}
+
+// The SOCKETSTATUS event is called when the status of a TCP_CLIENT or TCP_SERVER socket changes.
+SOCKETSTATUS client
+{
+	SIGNED_INTEGER Status;
+ 	Status = SocketGetStatus();
+    Switch(Status)
+	{
+		case(0):
+		{
+			Log("SOCKET STATUS: Not Connected");
+		}
+		case(1):
+		{
+			Log("SOCKET STATUS: Waiting for Connection");
+		}
+		case(2):
+		{
+			Log("SOCKET STATUS: Connected");
+		}
+		case(3):
+		{
+			Log("SOCKET STATUS: Connection Failed");
+		}
+		case(4):
+		{
+			Log("SOCKET STATUS: Connection Broken Remotely");
+		}
+		case(5):
+		{
+			Log("SOCKET STATUS: Connection Broken Locally");
+		}
+		case(6):
+		{
+			Log("SOCKET STATUS: Performing DNS Lookup");
+		}
+		case(7):
+		{
+			Log("SOCKET STATUS: DNS Lookup Failed");
+		}
+		case(8):
+		{
+			Log("SOCKET STATUS: DNS Name Resolved");
+		}
+		case(-1):
+		{
+			Log("SOCKET STATUS: Client, Server or UDP variable not a TCP/IP or UDP variable.");
+		}
+		case(-2):
+		{
+			Log("SOCKET STATUS: Could not create the connection task");
+		}
+		case(-3):
+		{
+			Log("SOCKET STATUS: Could not resolve address");
+		}
+		case(-4):
+		{
+			Log("SOCKET STATUS: Port not in range of 0-65535.");
+		}
+		case(-5):
+		{
+			Log("SOCKET STATUS: No connection has been established");
+		}
+		case(-6):
+		{
+			Log("SOCKET STATUS: Not enough room in string parameter to hold IP address.");
+		}
+		default:
+		{
+			Log("Socket Status Undefined");
+		}
+	};
+}
+
+/*******************************************************************************************
+  Main()
+  Uncomment and place one-time startup code here
+  (This code will get called when the system starts up)
+*******************************************************************************************/
+
+Function Main()
+{
+    WaitForInitializationComplete();
+
+    // Initialize declared global and local variables/arrays
+    CONNECTIONHOST = CRESTRONDEFAULTIP;
+	CONNECTIONPORT = CRESTRONPORT;
+}

@@ -1,0 +1,1445 @@
+/*
+Brian J. Magrogan
+Crestron Electronics
+Fusion GUID Updater Helper
+*/
+
+#Symbol_Name "Fusion GUID Updater Helper v2.02"
+#Default_Volatile
+#Enable_Stack_Checking
+#Print_To_Trace
+#Enable_Trace
+#Category "46" "Fusion"
+
+
+/*** Help ***/
+
+#Help_PDF_File "Fusion GUID Updater Helper v2.02.pdf"
+
+#Help_Begin
+The Fusion GUID Updater allows cookie cutter code when using a Fusion Room symbol by prefixing the GUID's shown in SIMPL Windows with the TSID of the processor. In the case of a 3
+series the program slot number will also be included in the prefix to ensure everything is unique. The GUID Updater requires some form of storage in order to run, either a NVRAM Disk, 
+Compact Flash or Removable Media and the appropriate location needs to be selected using the FileStorageLocation$ Parameter.
+
+*** Revision History ***
+Version 1.01 - Initial Release
+
+Version 1.10 - Added the ability to override the GUID prefix using the Override_GUID_Prefix$ input.
+
+Version 1.11 - Added the ProcessorMode parameter to account for the long startup delay of the MPS and DMPS series of processor.
+
+Version 1.12 - Added the PrefixGUIDs parameter to allow for the GUID updater to be used in an existing system that has already been discovered, but the GUID's need to be provided
+indirectly around a program. If this parameter is set to no, then the GUID's will just be read in and sent out the correct serial output.
+
+Version 1.13 - Corrected a timing issue with 3 series processors at startup
+
+Version 1.14 - Add the ability to override all the GUID prefixes using the Master_Override_GUID_Prefix$ input or to override the symbols individually by using the
+Override_Symbol_GUID_Prefix$ Input. If the Master_Override_GUID_Prefix$ input is used all Override_Symbol_GUID_Prefix$ inputs will be ignored. Note that for this change
+the Override_GUID_Prefix$ input name was changed to Master_Override_GUID_Prefix$ to ensure it is clear what the input does.
+
+Version 1.15 - Corrected a timing error with 3 series processors and a potential array out of bounds error which would cause the code to stop executing when debugging.
+
+Version 1.16 - Changed the startup behavior of the Update_GUIDs_Busy_fb output, so it is high right after startup to keep other modules held until the GUID updater completes, this was
+exposed in processors that have a longer boot up time, like the DMPS.
+
+Version 2.00 - Changed the way that Symbol Slot GUID's are outputted to accommodate up to 200 rooms using one GUID updater module.
+
+Version 2.01 - Changed support to 60 rooms based on the max symbols that can be programmed.
+
+Version 2.02 - Update to address if more than 60 Fusion Room symbols are added to the code. If more than 60 symbols are added to the code, only the first 60 symbols will be outputted,
+			   but all the symbols will be updated in the RVI file so they will still all be unique going to Fusion.
+#Help_End
+
+
+/*** Constants ***/
+
+#define_constant cnFalse						0
+#define_constant cnTrue							1
+
+//Timing Constants
+#define_constant cnStartupDelay					2000
+#define_constant cnLongStartupDelay				12000
+#define_constant cnMessageDelay					500
+
+//Fusion Symbol Constants
+#define_constant cnMaxFusionSymbols				60
+#define_constant cnMaxFusionSymbolGUIDS			252
+#define_constant cnMaxRoomNameLength			50
+
+//Buffer/Size Constants 
+#define_constant cnRVIFileChunkSize				5000
+#define_constant cnRVIDataStorageSize			5500
+#define_constant cnConsoleBufferSize			1000
+#define_constant cnConsoleTempBufferSize		500
+#define_constant cnMaxLineLength				200
+#define_constant cnMaxRVINameLength				200
+
+//GUID Information Constants
+#define_constant cnStandardGUIDLength			36
+#define_constant cnNewGUIDLength				50
+#define_constant cnGUIDPrefixLength				12
+#define_constant cnGUIDPrefixInputLength		8
+#define_constant cnTSIDPrefixMinLength			8
+#define_constant cnTSIDMaxRetries				5
+#define_constant cnGUIDMasterOverride			1000
+#define_constant cnGUIDConsoleOverride			1001
+#define_constant csTSIDErrorValue				"XXXXXXXX"
+
+//Console Constants
+#define_constant csConsoleVersionCMD		    "ver\n"
+#define_constant csConsoleValidResponse		    "#"
+#define_constant csConsoleDataEnd		    	"]"
+#define_constant csConsolePromptEnd		    	">"
+#define_constant csConsolePromptProcessor1		"PRO2>"
+#define_constant csConsolePromptProcessor2		"AV2>"
+#define_constant csConsolePromptProcessor3		"QM-RMC>"
+#define_constant csConsolePromptProcessor4		"CP2E>"
+#define_constant csConsolePromptProcessor5		"CP2>"
+#define_constant csConsolePromptProcessor6		"MP2E>"
+#define_constant csConsolePromptProcessor7		"MP2>"
+#define_constant csConsolePromptProcessor8		"PAC2>"
+#define_constant csConsolePromptProcessor9		"DIN-AP2>"
+#define_constant csConsolePromptProcessor10		"DMPS-100-C>"
+#define_constant csConsolePromptProcessor11		"DMPS-200-C>"
+#define_constant csConsolePromptProcessor12		"DMPS-300-C>"
+#define_constant csConsolePromptProcessor13		"DMPS-300-C-AEC>"
+
+#define_constant csConsoleAddress				"127.0.0.1"
+#define_constant csConsolePort					41795
+#define_constant cnConsoleConnectDelay			200
+#define_constant csConsoleCommandDelay			1000
+
+//File Constants
+#define_constant cs2SeriesDebugRVIFile			"\\SIMPL\\Fusion GUID Updater Simple Test Pro2 10-21-2013 rev3.rvi"
+#define_constant cs2SeriesDebugTempRVIFile		"\\NVRAM\\Fusion GUID Updater Simple Test Pro2 10-21-2013 rev3.rvi"
+#define_constant cs3SeriesDebugRVIFile			"\\SIMPL\\App01\\ADG-PV-Room_230-140310.rvi"
+#define_constant cs3SeriesDebugTempRVIFile		"\\NVRAM\\ADG-PV-Room_230-140310.rvi"
+#define_constant csSIMPLPath					"\\SIMPL\\"
+#define_constant csRVIFileExtension				".rvi"
+#define_constant csRVIFileSearchExtension		"*.rvi"
+#define_constant csRVIFileSearchError			"FileFoundError"
+#define_constant cnFileIODelay					100                                                       
+
+//XML Data Constants
+#define_constant csFileStartofData 				"<RoomViewInfo>"
+#define_constant csFileEndofData 				"</RoomViewInfo>"
+#define_constant csSymbolStartofData 			"<SymbolInfo>"
+#define_constant csSymbolEndofData 				"</SymbolInfo>"
+#define_constant csRoomNameStartofData		    "<RoomName>"
+#define_constant csRoomNameEndofData			"</RoomName>"
+#define_constant csNodeNameStartofData		    "<NodeName>"
+#define_constant csNodeNameEndofData			"</NodeName>"
+#define_constant csRoomNodeIDStartofData		"<InstanceID>"
+#define_constant csRoomNodeIDEndofData			"</InstanceID>"
+#define_constant csIPIDStartofData 				"<IPID>"
+#define_constant csIPIDEndofData 				"</IPID>"
+#define_constant csSlotNumStartofData 			"<SlotNum>"
+#define_constant csSlotNumEndofData 			"</SlotNum>"
+#define_constant csParamStartofData				"<Param>"
+#define_constant csParamEndofData				"</Param>"
+#define_constant csParamSeachType				"<Name>InstanceID</Name>"
+#define_constant csParamGUIDStartofData			"<Value>"
+#define_constant csParamGUIDEndofData			"</Value>"
+
+//File Constants 
+#define_constant cnFullDeleteMode				1
+#define_constant cnTempRVIDeleteMode			2
+
+/*** Inputs/Outputs ***/
+
+Digital_Input 	_skip_, _skip_, _skip_, _skip_, Update_GUIDs_b;                                       
+
+String_Input	_skip_, Master_Override_GUID_Prefix$[cnGUIDPrefixInputLength];
+
+Buffer_Input	_skip_, _skip_, _skip_, _skip_, Console_rx$[cnConsoleBufferSize], _skip_,  _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_,
+				_skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_,
+				_skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_,
+				_skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_,
+				_skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_,
+				_skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_,
+				_skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, _skip_, Override_Symbol_Room_Name$[cnMaxFusionSymbols][cnMaxRoomNameLength],
+				_skip_, Override_Symbol_GUID_Prefix$[cnMaxFusionSymbols, cnMaxFusionSymbols][cnGUIDPrefixInputLength];
+
+Digital_Output	_skip_, _skip_, _skip_, _skip_, Update_GUIDs_Busy_fb;
+
+String_Output	_skip_, Update_GUID_Status_txt$, Master_GUID_Prefix_txt$, RVI_File_Name_txt$, RVI_File_Full_Path_txt$, _skip_, Console_tx$, _skip_, Console_Status_txt$;
+
+Analog_Output	_skip_, Symbol_GUID_Count_fb[cnMaxFusionSymbols];
+
+String_Output	_skip_, Symbol_GUID_Count_txt$[cnMaxFusionSymbols], _skip_, Symbol_Room_Name_txt$[cnMaxFusionSymbols], _skip_, Symbol_GUID_txt$[cnMaxFusionSymbols],
+				_skip_, Symbol_IPID_txt$[cnMaxFusionSymbols], _skip_, Symbol_Slot_GUIDs_tx$[cnMaxFusionSymbols, cnMaxFusionSymbols];
+
+
+/*** Parameter ***/
+
+integer_parameter	ProcessorMode, PrefixGUIDs, ThreeSeriesAppendSlotNumber;
+string_parameter	FileStorageLocation$[10];
+
+/*
+#Begin_Parameter_Properties DebugMode
+    propValidUnits = unitDecimal;
+    propDefaultUnit = unitDecimal;
+    propDefaultValue = 0d;  
+    propList = { 0d , "Off" }, { 1d , "On All" }, { 2d , "On No File" };
+#End_Parameter_Properties
+*/
+
+#Begin_Parameter_Properties ProcessorMode
+    propValidUnits = unitDecimal;
+    propDefaultUnit = unitDecimal;
+    propDefaultValue = 0d;  
+    propList = { 0d , "Standard Processors" }, { 1d , "MPS/DMPS Processors" };
+#End_Parameter_Properties
+
+#Begin_Parameter_Properties PrefixGUIDs
+    propValidUnits = unitDecimal;
+    propDefaultUnit = unitDecimal;
+    propDefaultValue = 1d;  
+    propList = {0d, "No"}, {1d, "Yes"};
+#End_Parameter_Properties
+
+#Begin_Parameter_Properties ThreeSeriesAppendSlotNumber
+    propValidUnits = unitDecimal;
+    propDefaultUnit = unitDecimal;
+    propDefaultValue = 1d;  
+    propList = {0d, "No"}, {1d, "Yes"};
+#End_Parameter_Properties
+
+#Begin_Parameter_Properties FileStorageLocation$
+    propValidUnits = unitString;
+    propDefaultUnit = unitString;
+    propDefaultValue = "\\RM\\";
+	propList = {"\\NVRAM\\", "NVRAM Disk"}, {"\\CF0\\", "Compact Flash"}, {"\\RM\\", "Removable Media (USB)"}, {"\\RM2\\", "Removable Media 2 (USB)"}, {"\\MMC\\", "Multimedia Card"};
+#End_Parameter_Properties
+
+
+/*** TCP Sockets ***/
+
+tcp_client 		tcpConsole[cnConsoleBufferSize];
+
+
+/*** Structures ***/
+
+
+/*** Variables ***/
+
+integer			g_nCount, g_nDebug, g_nConsoleStep, g_nFusionDataStarted, g_nFusionSymbolDataStarted, g_nFusionSymbolCount, g_nSemaphore, g_nSlotNumber,
+				g_nInstanceIDFound, g_nTSIDRetryCount, g_nTSIDUpdateBusy, g_nInitialRun, g_nRVIFileChanged, g_nRoomNameOverrideAllowed, g_nMasterGUIDOverride,
+				g_nGUIDOverride[cnMaxFusionSymbols], g_nRoomNameUpdated[cnMaxFusionSymbols], g_nGUIDCount[cnMaxFusionSymbols];
+
+signed_integer	g_snConsoleConnectionOk, g_snConsoleConnectionStatus;
+
+string 			g_sMasterGUIDPrefix$[cnGUIDPrefixLength], g_sGUIDPrefix$[cnMaxFusionSymbols][cnGUIDPrefixLength], g_sGUIDMasterOverridePrefix$[cnGUIDPrefixLength],
+				g_sRVITemp$[cnRVIDataStorageSize], g_sRVINewFileTemp$[cnRVIDataStorageSize], g_sRVIFullFilePath$[cnMaxRVINameLength], g_sRVINewFullFilePath$[cnMaxRVINameLength],
+				g_sRVIFileName$[cnMaxRVINameLength], g_sRVIFileLocation$[cnMaxRVINameLength], g_sOverrideRoomName$[cnMaxFusionSymbols][cnMaxRoomNameLength];
+
+
+/*** Functions ***/
+
+String_Function UpdateGUIDPrefix(string sCurrentGUIDPrefix$, integer nGUIDSymbolNumber)
+{
+ 	integer nProgSlot2;
+	string	sNewGUIDPrefix$[cnGUIDPrefixLength];
+
+    if(g_nDebug) print("***** Start UpdateGUIDPrefix *****\n");
+	if(g_nDebug) print("sCurrentGUIDPrefix$ = %s\n", sCurrentGUIDPrefix$);
+	if(g_nDebug) print("nGUIDSymbolNumber = %d\n", nGUIDSymbolNumber);
+
+	if(nGUIDSymbolNumber = cnGUIDMasterOverride) //Leave the GUID that was passed into the function in sCurrentGUIDPrefix$
+	{
+   		if(g_nDebug) print("Inside if(nGUIDSymbolNumber = cnGUIDMasterOverride)\n");	  	
+	}
+	else if(nGUIDSymbolNumber = cnGUIDConsoleOverride) //Leave the GUID that was passed into the function in sCurrentGUIDPrefix$
+	{
+     	if(g_nDebug) print("Inside else if(nGUIDSymbolNumber = cnGUIDConsoleOverride)\n");
+	}
+	else if(g_nGUIDOverride[nGUIDSymbolNumber]) 
+	{
+     	if(g_nDebug) print("g_nGUIDOverride[nGUIDSymbolNumber] = %d\n", g_nGUIDOverride[nGUIDSymbolNumber]);
+		if(g_nDebug) print("Inside if(g_nGUIDOverride[nGUIDSymbolNumber]), g_sGUIDPrefix$ = %s\n", g_sGUIDPrefix$[nGUIDSymbolNumber]);
+		makestring(sCurrentGUIDPrefix$, "%s", g_sGUIDPrefix$[nGUIDSymbolNumber]);
+	}
+
+	switch(GetSeries())
+	{
+	   	case(2):
+		{
+	   		if(g_nDebug) print("2 Series Processor\n");
+			makestring(sNewGUIDPrefix$, "%s", sCurrentGUIDPrefix$);
+		}
+		case(3):
+		{
+	       	nProgSlot2 = GetProgramNumber();
+			
+			if(g_nDebug) print("3 Series Processor\n");
+			if(g_nDebug) print("nProgSlot2 = %u\n", nProgSlot2);
+				
+			if(ThreeSeriesAppendSlotNumber)
+			{
+				if(g_nDebug) print("Inside if(ThreeSeriesAppendSlotNumber)\n");
+				if(nProgSlot2 = 1)
+				{
+	             	makestring(sNewGUIDPrefix$, "%s-01", sCurrentGUIDPrefix$);		 	
+				}
+				else if(nProgSlot2 = 2)
+				{
+	                makestring(sNewGUIDPrefix$, "%s-02", sCurrentGUIDPrefix$);		 	
+				}
+				else if(nProgSlot2 = 3)
+				{
+	                makestring(sNewGUIDPrefix$, "%s-03", sCurrentGUIDPrefix$);		 	
+				}
+				else if(nProgSlot2 = 4)
+				{
+	                makestring(sNewGUIDPrefix$, "%s-04", sCurrentGUIDPrefix$);		 	
+				}
+				else if(nProgSlot2 = 5)
+				{
+	                makestring(sNewGUIDPrefix$, "%s-05", sCurrentGUIDPrefix$);		 	
+				}
+				else if(nProgSlot2 = 6)
+				{
+	                makestring(sNewGUIDPrefix$, "%s-06", sCurrentGUIDPrefix$);		 	
+				}
+				else if(nProgSlot2 = 7)
+				{
+	                makestring(sNewGUIDPrefix$, "%s-07", sCurrentGUIDPrefix$);		 	
+				}
+				else if(nProgSlot2 = 8)
+				{
+	                makestring(sNewGUIDPrefix$, "%s-08", sCurrentGUIDPrefix$);		 	
+				}
+				else if(nProgSlot2 = 9)
+				{
+	                makestring(sNewGUIDPrefix$, "%s-09", sCurrentGUIDPrefix$);		 	
+				}
+				else if(nProgSlot2 = 10)
+				{
+	                makestring(sNewGUIDPrefix$, "%s-10", sCurrentGUIDPrefix$);		 	
+				}
+			}
+			else
+			{
+            	if(g_nDebug) print("Inside ELSE FOR if(ThreeSeriesAppendSlotNumber)\n");
+				makestring(sNewGUIDPrefix$, "%s", sCurrentGUIDPrefix$); 	
+			}
+		}
+	}
+    
+	if(g_nDebug) print("sNewGUIDPrefix$ = %s\n", sNewGUIDPrefix$);
+	if(g_nDebug) print("***** End UpdateGUIDPrefix *****\n");
+
+	return(sNewGUIDPrefix$);
+}
+
+String_Function GetRVISearchLocation()
+{
+ 	integer nProgSlot;
+
+	if(g_nDebug) print("***** Start GetRVISearchLocation *****\n");
+
+	makestring(Update_GUID_Status_txt$, "Determining Processor Type...");
+
+	switch(GetSeries())
+	{
+     	case(2):
+		{
+       		if(g_nDebug) print("2 Series Processor\n");
+			makestring(g_sRVIFileLocation$, "%s", csSIMPLPath);
+		}
+		case(3):
+		{
+         	nProgSlot = GetProgramNumber();
+			
+            if(g_nDebug) print("3 Series Processor\n");
+			if(g_nDebug) print("nProgSlot = %u\n", nProgSlot);
+			
+			if(nProgSlot = 1)
+			{
+             	makestring(g_sRVIFileLocation$, "%sApp01\\", csSIMPLPath);		 	
+			}
+			else if(nProgSlot = 2)
+			{
+                makestring(g_sRVIFileLocation$, "%sApp02\\", csSIMPLPath);		 	
+			}
+			else if(nProgSlot = 3)
+			{
+                makestring(g_sRVIFileLocation$, "%sApp03\\", csSIMPLPath);		 	
+			}
+			else if(nProgSlot = 4)
+			{
+                makestring(g_sRVIFileLocation$, "%sApp04\\", csSIMPLPath);		 	
+			}
+			else if(nProgSlot = 5)
+			{
+                makestring(g_sRVIFileLocation$, "%sApp05\\", csSIMPLPath);		 	
+			}
+			else if(nProgSlot = 6)
+			{
+                makestring(g_sRVIFileLocation$, "%sApp06\\", csSIMPLPath);		 	
+			}
+			else if(nProgSlot = 7)
+			{
+                makestring(g_sRVIFileLocation$, "%sApp07\\", csSIMPLPath);		 	
+			}
+			else if(nProgSlot = 8)
+			{
+                makestring(g_sRVIFileLocation$, "%sApp08\\", csSIMPLPath);		 	
+			}
+			else if(nProgSlot = 9)
+			{
+                makestring(g_sRVIFileLocation$, "%sApp09\\", csSIMPLPath);		 	
+			}
+			else if(nProgSlot = 10)
+			{
+                makestring(g_sRVIFileLocation$, "%sApp10\\", csSIMPLPath);		 	
+			}
+		}
+	}
+
+	if(g_nDebug) print("g_sRVIFileLocation$ = %s\n", g_sRVIFileLocation$);
+	return(g_sRVIFileLocation$);
+
+	if(g_nDebug) print("***** End GetRVISearchLocation *****\n");
+}
+
+String_Function FindRVIFile()
+{
+ 	file_info fiFileInfo;
+	string sRVIFileName$[cnMaxRVINameLength], sRVISearchPath$[50];
+	signed_integer snRVIFileFound, snStartFileIOError, snEndFileIOError;
+
+	if(g_nDebug) print("***** Start FindRVIFile *****\n");
+
+	GetRVISearchLocation();
+
+	makestring(Update_GUID_Status_txt$, "Finding RVI File...");
+
+	makestring(sRVISearchPath$, "%s%s", g_sRVIFileLocation$, csRVIFileSearchExtension);
+			
+	if(g_nDebug) print("sRVISearchPath$ = %s\n", sRVISearchPath$);
+		 
+	snStartFileIOError = startfileoperations();
+	while(snStartFileIOError != 0)
+	{
+     	if(g_nDebug) Print ("Start File Operations Error Retrying\n");
+		delay(cnFileIODelay);
+		snStartFileIOError = startfileoperations();
+	}
+		switch(getseries())
+		{
+         	case(2):
+			{
+             	snRVIFileFound = FindFirst(sRVISearchPath$, fiFileInfo);
+			}
+			case(3):
+			{
+				snRVIFileFound = FindFirstShared(sRVISearchPath$, fiFileInfo);			
+			}
+		}
+		
+		if(g_nDebug) print("snRVIFileFound = %d\n", snRVIFileFound);
+		if(snRVIFileFound = 0)
+		{
+			makestring(sRVIFileName$, "%s", fiFileInfo.Name);
+			makestring(g_sRVIFileName$, "%s", fiFileInfo.Name);
+			makestring(RVI_File_Name_txt$, "%s", g_sRVIFileName$);
+			makestring(RVI_File_Full_Path_txt$, "%s%s", g_sRVIFileLocation$, g_sRVIFileName$);
+		}
+		else
+		{
+		    makestring(sRVIFileName$, "%s", csRVIFileSearchError);
+			makestring(g_sRVIFileName$, "%s", csRVIFileSearchError);
+			makestring(RVI_File_Name_txt$, "%s", csRVIFileSearchError);
+			makestring(RVI_File_Full_Path_txt$, "%s", csRVIFileSearchError);  	
+		}
+	snEndFileIOError = endfileoperations();
+	while(snEndFileIOError != 0)
+	{
+     	if(g_nDebug) Print ("End File Operations Error Retrying\n");
+		delay(cnFileIODelay);
+		snEndFileIOError = endfileoperations();
+	}
+
+	if(g_nDebug) print("sRVIFileName$ = %s\n", sRVIFileName$);
+	if(g_nDebug) print("g_sRVIFileName$ = %s\n", g_sRVIFileName$);
+	if(g_nDebug) print("g_sRVIFileLocation$ = %s\n", g_sRVIFileLocation$);
+		
+	return(sRVIFileName$);
+
+	if(g_nDebug) print("***** End FindRVIFile *****\n");
+}
+
+Function WriteTempFile()
+{
+	string sFileWritePath$[cnMaxRVINameLength];
+	integer	nFileLen;
+	signed_integer snFileHandle, snNumWrite, snStartFileIOError, snEndFileIOError, snFileCloseError;
+
+	if(g_nDebug) print("***** Start WriteTempFile *****\n");
+
+	makestring(Update_GUID_Status_txt$, "Writing Data To File...");
+
+	makestring(sFileWritePath$, "%s%s", FileStorageLocation$, g_sRVIFileName$);
+	makestring(g_sRVINewFullFilePath$, "%s%s", FileStorageLocation$, g_sRVIFileName$);
+
+	if(g_nDebug) print("sFileWritePath$ = %s\n", sFileWritePath$);
+	if(g_nDebug) print("cs2SeriesDebugTempRVIFile = %s\n", cs2SeriesDebugTempRVIFile);
+
+	snStartFileIOError = startfileoperations();
+	while(snStartFileIOError != 0)
+	{
+     	if(g_nDebug) Print ("Start File Operations Error Retrying\n");
+		delay(cnFileIODelay);
+		snStartFileIOError = startfileoperations();
+	}
+        if(g_nDebug)
+	    {
+	        switch(getseries())
+			{
+				case(2):
+				{
+					snFileHandle = FileOpen(cs2SeriesDebugTempRVIFile, _O_WRONLY | _O_CREAT | _O_APPEND | _O_TEXT);
+				}
+				case(3):
+				{
+                 	snFileHandle = FileOpenShared(cs3SeriesDebugTempRVIFile, _O_WRONLY | _O_CREAT | _O_APPEND | _O_TEXT);	
+				}
+			}
+	    }
+	    else
+	    {
+	        switch(getseries())
+			{
+				case(2):
+				{
+					snFileHandle = FileOpen(sFileWritePath$, _O_WRONLY | _O_CREAT | _O_APPEND | _O_TEXT);
+				}
+				case(3):
+				{
+                 	snFileHandle = FileOpenShared(sFileWritePath$, _O_WRONLY | _O_CREAT | _O_APPEND | _O_TEXT);	
+				}
+			}
+	    }
+	        
+	   	if(g_nDebug)
+		{
+			print("FileOpen Complete\n");
+			print("snFileHandle = %d\n", snFileHandle);
+		}
+	
+		if(snFileHandle >= 0) 
+		{
+			if(g_nDebug) print("***** Inside if(snFileHandle >= 0) *****\n");
+			nFileLen = len(g_sRVINewFileTemp$);
+			snNumWrite = FileWrite(snFileHandle, g_sRVINewFileTemp$, nFileLen);
+			snFileCloseError = FileClose(snFileHandle);
+			while(snFileCloseError != 0)
+			{
+                if(g_nDebug) Print ("File Close Error Retrying\n");
+				delay(cnFileIODelay);
+				snFileCloseError = FileClose(snFileHandle);
+			}
+
+			if(g_nDebug) print("g_sRVINewFileTemp$ = %s\n", g_sRVINewFileTemp$);
+			if(g_nDebug) print("nFileLen = %d\n", nFileLen);
+			if(g_nDebug) print("snNumWrite = %d\n", snNumWrite);
+
+			clearbuffer(g_sRVINewFileTemp$); //Clear Temp Data
+				
+			if(g_nDebug && (snNumWrite < 0)) Print("Error Writing to File\n"); 
+	    }
+		else
+		{
+         	if(g_nDebug) print("***** Error Entering if(snFileHandle >= 0) *****\n");
+		}
+	snEndFileIOError = endfileoperations();
+	while(snEndFileIOError != 0)
+	{
+     	if(g_nDebug) Print ("End File Operations Error Retrying\n");
+		delay(cnFileIODelay);
+		snEndFileIOError = endfileoperations();
+	}
+
+	if(g_nDebug) print("***** End WriteTempFile *****\n"); 	
+}
+
+String_Function AddNewFileData(String sCurrentData$)
+{
+   	if(g_sRVINewFileTemp$ <> "")
+	{
+   		makestring(g_sRVINewFileTemp$, "%s%s", g_sRVINewFileTemp$, sCurrentData$);  		
+	}
+	else
+	{
+		makestring(g_sRVINewFileTemp$, "%s", sCurrentData$);
+	}
+}
+
+String_Function GetRoomName(Integer nCurrentSymbolCount, String sCurrentData$)
+{
+ 	integer	nStartPosition, nEndPosition, nCount;
+	string 	sRoomNameReturn$[cnMaxRoomNameLength];
+
+	if(nCurrentSymbolCount <= cnMaxFusionSymbols)
+	{
+		if(g_sOverrideRoomName$[nCurrentSymbolCount] <> "") //Room name has been overridden
+		{
+		   	makestring(sRoomNameReturn$, "%s", g_sOverrideRoomName$[nCurrentSymbolCount]);
+			g_nRVIFileChanged = 1;
+			if(g_nDebug) print("Line 451 g_nRVIFileChanged = %d\n", g_nRVIFileChanged);
+		}
+		else //Parse Data
+		{
+		   	nStartPosition = find(csRoomNameStartofData, sCurrentData$) + len(csRoomNameStartofData);
+			nEndPosition = find(csRoomNameEndofData, sCurrentData$, nStartPosition);
+			nCount = nEndPosition - nStartPosition;
+			makestring(sRoomNameReturn$, "%s", mid(sCurrentData$, nStartPosition, nCount));  	
+		}
+	}
+	else //Parse Data
+	{
+	   	nStartPosition = find(csRoomNameStartofData, sCurrentData$) + len(csRoomNameStartofData);
+		nEndPosition = find(csRoomNameEndofData, sCurrentData$, nStartPosition);
+		nCount = nEndPosition - nStartPosition;
+		makestring(sRoomNameReturn$, "%s", mid(sCurrentData$, nStartPosition, nCount));  	
+	}
+
+	return(sRoomNameReturn$);
+}
+
+String_Function GetNodeName(Integer nCurrentSymbolCount, String sCurrentData$)
+{
+ 	integer	nStartPosition, nEndPosition, nCount;
+	string 	sNodeNameReturn$[cnMaxRoomNameLength];
+
+	if(nCurrentSymbolCount <= cnMaxFusionSymbols)
+	{
+		if(g_sOverrideRoomName$[nCurrentSymbolCount] <> "") //Room name has been overridden
+		{
+	     	makestring(sNodeNameReturn$, "%s", g_sOverrideRoomName$[nCurrentSymbolCount]);
+			g_nRVIFileChanged = 1;
+			if(g_nDebug) print("Line 473 g_nRVIFileChanged = %d\n", g_nRVIFileChanged);
+		}
+		else //Parse Data
+		{
+	   		nStartPosition = find(csNodeNameStartofData, sCurrentData$) + len(csNodeNameStartofData);
+			nEndPosition = find(csNodeNameEndofData, sCurrentData$, nStartPosition);
+			nCount = nEndPosition - nStartPosition;
+			makestring(sNodeNameReturn$, "%s", mid(sCurrentData$, nStartPosition, nCount));  	
+		}
+	}
+	else //Parse Data
+	{
+		nStartPosition = find(csNodeNameStartofData, sCurrentData$) + len(csNodeNameStartofData);
+		nEndPosition = find(csNodeNameEndofData, sCurrentData$, nStartPosition);
+		nCount = nEndPosition - nStartPosition;
+		makestring(sNodeNameReturn$, "%s", mid(sCurrentData$, nStartPosition, nCount));  	
+	}
+
+	return(sNodeNameReturn$);
+}
+
+String_Function ParseRVIFileData(String sRVITempFileData$)
+{
+ 	integer nStartPosition, nEndPosition, nCount;
+
+	string 	sTempData$[cnMaxLineLength], sRVITempNewFileData$[cnRVIDataStorageSize], sTempRoomName$[cnMaxRoomNameLength], sTempRoomNameData$[200],
+			sTempRoomGUID$[100], sTempInstanceGUID$[100];
+
+    nStartPosition = 0;
+	nEndPosition = 0;
+	nCount = 0;
+    
+	makestring(Update_GUID_Status_txt$, "Processing Data...");
+
+	if(g_nDebug) print("***** Start ParseRVIFile *****\n");
+
+	if(g_sRVITemp$ <> "")
+	{
+     	if(g_nDebug) print("g_sRVITemp$ <> \x22\x22 = True\n");
+		makestring(g_sRVITemp$, "%s%s", g_sRVITemp$, sRVITempFileData$);
+	}
+	else
+	{
+     	if(g_nDebug) print("g_sRVITemp$ <> \x22\x22 = False\n");
+		makestring(g_sRVITemp$, "%s", sRVITempFileData$);
+	}
+	if(g_nDebug) print("len(g_sRVITemp$) = %u\nlen(sRVITempFileData$) = %u\n", len(g_sRVITemp$), len(sRVITempFileData$));
+	
+	while(find("\n", g_sRVITemp$))
+	{
+     	sTempData$ = remove("\n", g_sRVITemp$);
+		if(find(csSymbolStartofData, sTempData$) || g_nFusionSymbolDataStarted)
+		{
+			g_nFusionSymbolDataStarted = 1;
+        	if(g_nDebug) print("sTempData$ = %s\n", sTempData$);
+			while(!find(csSymbolEndofData, sTempData$) && find("\n", sTempData$))
+			{
+				if(find(csRoomNameStartofData, sTempData$)) //Room Name - This we just need to extract the data
+				{
+					if(g_nDebug) print("**Room Name Segment***\n sTempData$ = %s\n", sTempData$);
+					makestring(sTempRoomName$, "%s", GetRoomName(g_nFusionSymbolCount, sTempData$)); 
+					if(g_nFusionSymbolCount <= cnMaxFusionSymbols)
+					{
+						makestring(Symbol_Room_Name_txt$[g_nFusionSymbolCount], "%s", sTempRoomName$);
+					}
+					makestring(sTempRoomNameData$, "          %s%s%s\n", csRoomNameStartofData, sTempRoomName$, csRoomNameEndofData); 
+					AddNewFileData(sTempRoomNameData$); 	
+				}
+				else if(find(csNodeNameStartofData, sTempData$)) //Node Name - This we just need to extract the data
+				{
+					if(g_nDebug) print("**Node Name Segment***\n sTempData$ = %s\n", sTempData$);
+					makestring(sTempRoomName$, "%s", GetNodeName(g_nFusionSymbolCount, sTempData$));
+					if(g_nFusionSymbolCount <= cnMaxFusionSymbols)
+					{ 
+						makestring(Symbol_Room_Name_txt$[g_nFusionSymbolCount], "%s", sTempRoomName$);
+					}
+					makestring(sTempRoomNameData$, "          %s%s%s\n", csNodeNameStartofData, sTempRoomName$, csNodeNameEndofData); 
+					AddNewFileData(sTempRoomNameData$); 	
+				}
+				else if(find(csRoomNodeIDStartofData, sTempData$)) //Node GUID - This needs to be modified
+				{
+                	nStartPosition = find(csRoomNodeIDStartofData, sTempData$) + len(csRoomNodeIDStartofData);
+					nEndPosition = find(csRoomNodeIDEndofData, sTempData$, nStartPosition);
+					nCount = nEndPosition - nStartPosition;
+					if(g_nFusionSymbolCount > cnMaxFusionSymbols) //We have more then our max symbols, edit it but don't try to output it
+					{
+						if(find(g_sMasterGUIDPrefix$, sTempData$) || PrefixGUIDs = cnFalse) //We have already modified this GUID or don't need too
+						{
+							AddNewFileData(sTempData$);
+						}
+						else //We need to modify the GUID
+						{
+							g_nRVIFileChanged = 1;
+							if(g_nDebug) print("Line 715 g_nRVIFileChanged = %d\n", g_nRVIFileChanged);
+							makestring(sTempRoomGUID$, "          %s%s-%s%s\n", csRoomNodeIDStartofData, g_sMasterGUIDPrefix$, mid(sTempData$, nStartPosition, nCount), csRoomNodeIDEndofData);
+							if(g_nDebug) print("sTempRoomGUID$ = %s\n", sTempRoomGUID$);
+							AddNewFileData(sTempRoomGUID$);
+						}
+					}
+					else if(find(g_sGUIDPrefix$[g_nFusionSymbolCount], sTempData$) || PrefixGUIDs = cnFalse) //We have already modified this GUID or don't need too
+					{
+                     	makestring(Symbol_GUID_txt$[g_nFusionSymbolCount], "%s", mid(sTempData$, nStartPosition, nCount));
+						AddNewFileData(sTempData$);
+					}
+					else //We need to modify the GUID
+					{ 
+						g_nRVIFileChanged = 1;
+						if(g_nDebug) print("Line 551 g_nRVIFileChanged = %d\n", g_nRVIFileChanged);
+						makestring(sTempRoomGUID$, "          %s%s-%s%s\n", csRoomNodeIDStartofData, g_sGUIDPrefix$[g_nFusionSymbolCount], mid(sTempData$, nStartPosition, nCount), csRoomNodeIDEndofData);
+						if(g_nDebug) print("sTempRoomGUID$ = %s\n", sTempRoomGUID$);
+						makestring(Symbol_GUID_txt$[g_nFusionSymbolCount], "%s-%s", g_sGUIDPrefix$[g_nFusionSymbolCount], mid(sTempData$, nStartPosition, nCount));
+						AddNewFileData(sTempRoomGUID$);
+					}
+				}
+				else if(find(csIPIDStartofData, sTempData$)) //IP ID - This we just need to extract the data
+				{
+                	nStartPosition = find(csIPIDStartofData, sTempData$) + len(csIPIDStartofData);
+					nEndPosition = find(csIPIDEndofData, sTempData$, nStartPosition);
+					nCount = nEndPosition - nStartPosition;
+					if(g_nDebug) print("**IP ID Segment***\n sTempData$ = %s\n nStartPosition = %u\n nEndPosition = %u\n nCount = %u\n", sTempData$, nStartPosition, nEndPosition, nCount);
+					if(g_nFusionSymbolCount <= cnMaxFusionSymbols)
+					{
+						makestring(Symbol_IPID_txt$[g_nFusionSymbolCount], "%s", mid(sTempData$, nStartPosition, nCount));
+					}
+					AddNewFileData(sTempData$); 	
+				}
+				else if(find(csSlotNumStartofData, sTempData$)) //Slot Number - This we just need to extract the data
+				{
+                	nStartPosition = find(csSlotNumStartofData, sTempData$) + len(csSlotNumStartofData);
+					nEndPosition = find(csSlotNumEndofData, sTempData$, nStartPosition);
+					nCount = nEndPosition - nStartPosition;
+					g_nSlotNumber = atoi(mid(sTempData$, nStartPosition, nCount));
+					if(g_nDebug) print("**Slot Number Segment***\n sTempData$ = %s\n nStartPosition = %u\n nEndPosition = %u\n nCount = %u\n g_nSlotNumber = %u\n", sTempData$, nStartPosition, nEndPosition, nCount, g_nSlotNumber);
+					AddNewFileData(sTempData$); 	
+				}
+				else if(find(csParamSeachType, sTempData$)) //The data for the GUID is coming up
+				{
+                	g_nInstanceIDFound = 1;
+					if(g_nDebug) print("***csParamSeachType Found***\n");
+					AddNewFileData(sTempData$); 	
+				}
+				else if(g_nInstanceIDFound && find(csParamGUIDStartofData, sTempData$)) //This is the GUID that we need to modify
+				{
+                 	if(g_nDebug) print("***else if(g_nInstanceIDFound && find(csParamGUIDStartofData, sTempData$)) Found***\n");
+					nStartPosition = find(csParamGUIDStartofData, sTempData$) + len(csParamGUIDStartofData);
+					nEndPosition = find(csParamGUIDEndofData, sTempData$, nStartPosition);
+					nCount = nEndPosition - nStartPosition;
+
+					if(g_nFusionSymbolCount <= cnMaxFusionSymbols)
+					{
+						g_nGUIDCount[g_nFusionSymbolCount] = g_nGUIDCount[g_nFusionSymbolCount] + 1;
+					}
+
+					if(g_nDebug) print("g_nFusionSymbolCount = %u\n", g_nFusionSymbolCount);
+					if(g_nDebug) print("nSlotNumber = %u\n", g_nSlotNumber);
+					
+					if(g_nFusionSymbolCount > cnMaxFusionSymbols) //We have more then our max symbols, edit it but don't try to output it
+					{
+						if(find(g_sMasterGUIDPrefix$, sTempData$) || PrefixGUIDs = cnFalse) //We have already modified this GUID or don't need too
+						{
+							AddNewFileData(sTempData$);
+						}
+						else //We need to modify the GUID
+						{
+							g_nRVIFileChanged = 1;
+							if(g_nDebug) print("Line 787 g_nRVIFileChanged = %d\n", g_nRVIFileChanged);
+							makestring(sTempInstanceGUID$, "                    %s%s-%s%s\n", csParamGUIDStartofData, g_sMasterGUIDPrefix$, mid(sTempData$, nStartPosition, nCount), csParamGUIDEndofData);
+							if(g_nDebug) print("sTempInstanceGUID$ = %s\n", sTempInstanceGUID$);
+							AddNewFileData(sTempRoomGUID$);
+						}
+						g_nInstanceIDFound = 0;
+					}
+					else if(find(g_sGUIDPrefix$[g_nFusionSymbolCount], sTempData$) || PrefixGUIDs = cnFalse) //We have already modified this GUID or don't need too
+					{
+                      	if(g_nDebug) print("***if(find(g_sGUIDPrefix$[g_nFusionSymbolCount], sTempData$)) Found***\n");
+						makestring(Symbol_Slot_GUIDs_tx$[g_nFusionSymbolCount], "%u,%s\n", g_nSlotNumber, mid(sTempData$, nStartPosition, nCount));
+						AddNewFileData(sTempData$);
+					}
+					else //We need to modify the GUID
+					{
+						g_nRVIFileChanged = 1;
+						if(g_nDebug) print("Line 803 g_nRVIFileChanged = %d\n", g_nRVIFileChanged);
+						if(g_nDebug) print("***if(find(g_sGUIDPrefix$[g_nFusionSymbolCount], sTempData$)) ELSE Found***\n");
+						makestring(sTempInstanceGUID$, "                    %s%s-%s%s\n", csParamGUIDStartofData, g_sGUIDPrefix$[g_nFusionSymbolCount], mid(sTempData$, nStartPosition, nCount), csParamGUIDEndofData);
+						if(g_nDebug) print("sTempInstanceGUID$ = %s\n", sTempInstanceGUID$);
+	                    makestring(Symbol_Slot_GUIDs_tx$[g_nFusionSymbolCount], "%u,%s-%s\n", g_nSlotNumber, g_sGUIDPrefix$[g_nFusionSymbolCount], mid(sTempData$, nStartPosition, nCount));
+					}
+					g_nInstanceIDFound = 0;
+					AddNewFileData(sTempInstanceGUID$);
+				}
+				else //We don't care about this data pass it untouched
+				{
+                 	AddNewFileData(sTempData$);	
+				}
+
+				sTempData$ = remove("\n", g_sRVITemp$);
+				if(g_nDebug) print("sTempData$ = %s\n", sTempData$);   	
+			}
+			if(find(csSymbolEndofData, sTempData$))
+			{
+             	AddNewFileData(sTempData$);
+				g_nFusionSymbolDataStarted = 0;
+				g_nFusionSymbolCount = g_nFusionSymbolCount + 1;
+			}
+		}
+		else
+		{
+       		AddNewFileData(sTempData$);  	
+		}		
+	}
+
+	if(PrefixGUIDs = cnTrue)
+	{
+		if(g_nDebug) print("Inside if(PrefixGUIDs = cnTrue)\n");
+		WriteTempFile();
+	}
+	else
+	{
+      	if(g_nDebug) print("Inside ELSE if(PrefixGUIDs = cnTrue)\n");
+		clearbuffer(g_sRVINewFileTemp$); //Clear Temp Data
+	}
+	if(g_nDebug) print("***** End ParseRVIFile *****\n");
+}
+
+function ProcessRVIFile(string sRVIFile$)
+{
+	signed_integer 	snFileHandle, snStartFileIOError, snReadError, snFileCloseError, snEndFileIOError;		//File Handle
+	string	sRVITempReadData$[cnRVIDataStorageSize];
+	
+	if(g_nDebug) print("***** Start ProcessRVIFile *****\n");    
+    makestring(Update_GUID_Status_txt$, "Processing RVI File...");
+
+    snStartFileIOError = startfileoperations();
+	while(snStartFileIOError != 0)
+	{
+     	if(g_nDebug) Print ("Start File Operations Error Retrying\n");
+		delay(cnFileIODelay);
+		snStartFileIOError = startfileoperations();
+	}					
+		if(sRVIFile$ <> "") //Check to ensure we have a RVI File to Read
+        {
+	        if(g_nDebug) Print("sRVIFile$ = %s\n", sRVIFile$);
+	       	
+			switch(getseries())
+			{
+             	case(2):
+				{
+                 	snFileHandle = FileOpen(sRVIFile$, _O_RDONLY | _O_TEXT);
+				}
+				case(3):
+				{
+                 	snFileHandle = FileOpenShared(sRVIFile$, _O_RDONLY | _O_TEXT);
+				}
+			}
+				        
+	        if(g_nDebug)
+			{
+				Print ("FileOpen Complete\n");
+				Print ("snFileHandle = %d\n", snFileHandle);
+			}
+	
+			if (snFileHandle >= 0) 
+			{
+				while(FileRead(snFileHandle, sRVITempReadData$, cnRVIFileChunkSize) > 0)
+				{
+					if(g_nDebug) Print("File Read Ok\n");
+					if(g_nDebug) Print("len(sRVITempReadData$) = %u\n", len(sRVITempReadData$));
+					ParseRVIFileData(sRVITempReadData$);
+				}
+				snFileCloseError = FileClose(snFileHandle);
+				while(snFileCloseError != 0)
+				{
+                 	if(g_nDebug) Print ("File Close Error Retrying\n");
+					delay(cnFileIODelay);
+					snFileCloseError = FileClose(snFileHandle);
+				}
+	        }
+	        else
+	        {
+	         	if(g_nDebug) Print ("snFileHandle Error\n");
+	        }
+		}
+	snEndFileIOError = endfileoperations();
+	while(snEndFileIOError != 0)
+	{
+     	if(g_nDebug) Print ("End File Operations Error Retrying\n");
+		delay(cnFileIODelay);
+		snEndFileIOError = endfileoperations();
+	}
+
+	if(g_nDebug) print("***** End ProcessRVIFile *****\n");
+}
+
+
+Function CopyAndDeleteFiles(integer nDeleteMode)
+{
+	string sConsoleCommand$[300], sTempFileName$[150];
+	signed_integer snStartFileIOError, snEndFileIOError;
+
+	makestring(Update_GUID_Status_txt$, "Connecting To Console...");
+
+	g_snConsoleConnectionOk = socketconnectclient(tcpConsole, csConsoleAddress, csConsolePort, 0);
+    if(g_nDebug) print("g_snConsoleConnectionOk = %d\n", g_snConsoleConnectionOk);
+
+	while(g_snConsoleConnectionStatus <> 0) //Wait for connection
+	{
+     	processlogic();
+		delay(cnConsoleConnectDelay);
+	}
+    delay(csConsoleCommandDelay);
+
+	makestring(sConsoleCommand$, "\n");
+	socketsend(tcpConsole, sConsoleCommand$);
+	if(g_nDebug) print("Console Command 1 Sent\n");
+	if(g_nDebug) print("sConsoleCommand$ = %s\n", sConsoleCommand$);
+	delay(csConsoleCommandDelay);
+	
+	if(cnFullDeleteMode)
+	{
+		if(g_nDebug) print("*** Full Delete Mode ***\n");
+		makestring(Update_GUID_Status_txt$, "Deleting Old RVI File...");
+	
+		makestring(sConsoleCommand$, "del %s%s\n", g_sRVIFileLocation$, g_sRVIFileName$);
+		socketsend(tcpConsole, sConsoleCommand$);
+		if(g_nDebug) print("Console Command 2 Sent\n");
+		if(g_nDebug) print("sConsoleCommand$ = %s\n", sConsoleCommand$);
+		delay(csConsoleCommandDelay);
+	
+		makestring(Update_GUID_Status_txt$, "Copying New RVI File...");
+	
+		makestring(sConsoleCommand$, "copy \x22%s%s\x22 \x22%s%s\x22\n", FileStorageLocation$, g_sRVIFileName$, g_sRVIFileLocation$, g_sRVIFileName$);
+	    socketsend(tcpConsole, sConsoleCommand$);
+		if(g_nDebug) print("Console Command 3 Sent\n");
+		if(g_nDebug) print("sConsoleCommand$ = %s\n", sConsoleCommand$);
+		delay(csConsoleCommandDelay);
+	}
+	
+	makestring(Update_GUID_Status_txt$, "Deleting Temp RVI File...");
+
+	snStartFileIOError = startfileoperations();
+	while(snStartFileIOError != 0)
+	{
+     	if(g_nDebug) Print ("Start File Operations Error Retrying\n");
+		delay(cnFileIODelay);
+		snStartFileIOError = startfileoperations();
+	}
+    
+	makestring(sTempFileName$, "%s%s", FileStorageLocation$, g_sRVIFileName$);
+	filedelete(sTempFileName$);
+
+	snEndFileIOError = endfileoperations();
+	while(snEndFileIOError != 0)
+	{
+     	if(g_nDebug) Print ("End File Operations Error Retrying\n");
+		delay(cnFileIODelay);
+		snEndFileIOError = endfileoperations();
+	}
+
+	makestring(sConsoleCommand$, "del %s%s\n", FileStorageLocation$, g_sRVIFileName$);
+	socketsend(tcpConsole, sConsoleCommand$);
+	if(g_nDebug) print("Console Command 4 Sent\n");
+	if(g_nDebug) print("sConsoleCommand$ = %s\n", sConsoleCommand$);
+	delay(csConsoleCommandDelay);
+    
+	makestring(Update_GUID_Status_txt$, "Disconnecting Console...");
+
+	makestring(sConsoleCommand$, "bye\n");
+	socketsend(tcpConsole, sConsoleCommand$);
+	if(g_nDebug) print("Console Command 5 Sent\n");
+	if(g_nDebug) print("sConsoleCommand$ = %s\n", sConsoleCommand$);		
+}
+
+Function Clear_Outputs()
+{
+	integer nLoopi;
+
+	makestring(Update_GUID_Status_txt$, "Clearing Current Data...");
+    
+	if(!g_nMasterGUIDOverride)
+	{
+		makestring(Master_GUID_Prefix_txt$, "");
+	}
+	makestring(RVI_File_Name_txt$, "");
+	makestring(RVI_File_Full_Path_txt$, "");
+	
+	for(nLoopi = 1 to cnMaxFusionSymbols)
+	{
+   		makestring(Symbol_Room_Name_txt$[nLoopi], "");  	
+		makestring(Symbol_GUID_txt$[nLoopi], "");  	
+		makestring(Symbol_IPID_txt$[nLoopi], "");
+		makestring(Symbol_GUID_Count_txt$[nLoopi], "");
+		Symbol_GUID_Count_fb[nLoopi] = 0;
+		g_nGUIDCount[nLoopi] = 0;
+	} 	
+}
+
+Function UpdateGUIDCounts()
+{
+ 	integer nLoopj;
+
+	makestring(Update_GUID_Status_txt$, "Updating GUID Counts...");
+	
+	for(nLoopj = 1 to cnMaxFusionSymbols)
+	{
+		makestring(Symbol_GUID_Count_txt$[nLoopj], "%u", g_nGUIDCount[nLoopj]);
+		Symbol_GUID_Count_fb[nLoopj] = g_nGUIDCount[nLoopj];
+	}
+}
+
+Function Update_GUIDs()
+{
+ 	string sRVIFileName$[cnMaxRVINameLength];
+
+	if(!Update_GUIDs_Busy_fb || g_nInitialRun)
+	{
+		Update_GUIDs_Busy_fb = cnTrue;
+		g_nInitialRun = cnFalse;
+		if(g_nDebug) print("Inside if(!Update_GUIDs_Busy_fb || g_nInitialRun)\n");
+		makestring(Update_GUID_Status_txt$, "GUID Update Started...");
+		Clear_Outputs();
+		g_nConsoleStep = 1;
+		g_nTSIDUpdateBusy = 1;
+		makestring(console_tx$, "%s", csConsoleVersionCMD);
+		while(g_nTSIDUpdateBusy)
+		{
+         	if(g_nDebug) print("Inside while(g_nTSIDUpdateBusy)\n");
+			processlogic();
+			delay(200);
+		}
+		g_nFusionDataStarted = 0;
+		g_nFusionSymbolDataStarted = 0;
+		g_nFusionSymbolCount = 1;
+		clearbuffer(g_sRVITemp$);
+		if(g_nDebug) print("g_sRVITemp$ = %s\n", g_sRVITemp$);
+		if(g_nDebug) print("len(g_sRVITemp$) = %d\n", len(g_sRVITemp$));
+		
+		makestring(sRVIFileName$, "%s", FindRVIFile());
+
+		if(find(csTSIDErrorValue, g_sGUIDPrefix$[g_nFusionSymbolCount])) // TSID Error
+		{
+         	makestring(Update_GUID_Status_txt$, "TSID Error...");
+			if(g_nDebug) print("TSID Error\n");
+			delay(cnMessageDelay); 	
+		}
+		else
+		{
+			if(sRVIFileName$ != csRVIFileSearchError)
+			{
+	            makestring(Update_GUID_Status_txt$, "RVI File Found Processing File...");
+				makestring(g_sRVIFullFilePath$, "%s%s", g_sRVIFileLocation$, sRVIFileName$);
+				if(g_nDebug) print("Inside if(sRVIFileName$ != csRVIFileSearchError)\ng_sRVIFullFilePath$ = %s\n", g_sRVIFullFilePath$);
+				if(g_nDebug = 1)
+				{
+					switch(getseries())
+					{
+						case(2):
+						{
+	                     	ProcessRVIFile(cs2SeriesDebugRVIFile);
+						}
+						case(3):
+						{
+	                     	ProcessRVIFile(cs3SeriesDebugRVIFile);
+						}
+					}
+				}
+				else
+				{
+		         	ProcessRVIFile(g_sRVIFullFilePath$);
+				}
+	
+				UpdateGUIDCounts();
+				if(g_nRVIFileChanged && PrefixGUIDs = cnTrue) //We modified the file
+				{
+					if(g_nDebug) print("Inside if(g_nRVIFileChanged && PrefixGUIDs = cnTrue)\n");
+					CopyAndDeleteFiles(cnFullDeleteMode);
+					g_nRVIFileChanged = 0;
+				}
+				else if(PrefixGUIDs = cnTrue) //We only need to delete the temp file
+				{
+					if(g_nDebug) print("Inside ELSE if(PrefixGUIDs = cnTrue)\n");
+					CopyAndDeleteFiles(cnTempRVIDeleteMode);
+					g_nRVIFileChanged = 0;		
+				}
+				else
+				{
+                 	if(g_nDebug) print("Inside ELSE if(g_nRVIFileChanged && PrefixGUIDs = cnTrue)\n");
+					g_nRVIFileChanged = 0;
+				}
+			}
+			else
+			{
+	         	makestring(Update_GUID_Status_txt$, "RVI File Error...");
+				delay(cnMessageDelay);
+				if(g_nDebug) print("FindRVIFile Error\n");
+			}
+		}
+		makestring(Update_GUID_Status_txt$, "GUID Update Complete!");
+		GenerateUserNotice("Fusion GUID Updater Completed on %s at %s\n", date(1), time());
+		Update_GUIDs_Busy_fb = 0;
+		delay(cnMessageDelay);
+		makestring(Update_GUID_Status_txt$, "");
+	}
+}
+
+Function Check_Roomnames()
+{
+	integer nIndex;
+
+	if(g_nDebug) print("***** Function Check_Roomnames *****\n");
+	
+	for(nIndex = 1 to cnMaxFusionSymbols)
+	{
+     	if(g_nRoomNameUpdated[nIndex])
+		{
+         	makestring(g_sOverrideRoomName$[nIndex], "%s", Override_Symbol_Room_Name$[nIndex]);
+			g_nRoomNameUpdated[nIndex] = cnFalse;
+		}
+	}
+}
+
+
+/*** Event Handlers ***/
+
+Push Update_GUIDs_b
+{
+	Update_GUIDs();		
+}
+
+/*Push DebugMode_On_Held
+{
+ 	g_nDebug = 1;
+	if(g_nDebug) print("***** Push DebugMode_On_Held *****\n");
+	DebugMode_On_fb = g_nDebug;
+}
+
+Release DebugMode_On_Held
+{
+ 	if(g_nDebug) print("***** Release DebugMode_On_Held *****\n");
+	if(!DebugMode)
+	{
+		if(g_nDebug) print("Inside if(!DebugMode)\n");
+		g_nDebug = 0;
+	}
+	DebugMode_On_fb = g_nDebug;
+}*/
+
+Change Master_Override_GUID_Prefix$
+{
+ 	integer nLoop;
+	string sTempNewGUID$[cnNewGUIDLength];
+
+	if(g_nDebug) print("***** Change Master_Override_GUID_Prefix$ *****\n");
+	if(Master_Override_GUID_Prefix$ <> "")
+	{
+		if(g_nDebug) print("***** Inside if(Master_Override_GUID_Prefix$ <> \x22\x22) *****\n");
+		g_nMasterGUIDOverride = cnTrue;
+		setarray(g_nGUIDOverride, cnTrue);
+		makestring(g_sGUIDMasterOverridePrefix$, "%s", Master_Override_GUID_Prefix$);
+		makestring(sTempNewGUID$, "%s", UpdateGUIDPrefix(g_sGUIDMasterOverridePrefix$, cnGUIDMasterOverride));
+		for(nLoop = 1 to cnMaxFusionSymbols)
+		{
+         	makestring(g_sGUIDPrefix$[nLoop], "%s", sTempNewGUID$);
+		}
+		//setarray(g_sGUIDPrefix$, sTempNewGUID$); //Commented out, this was causing SIMPL Windows compile to fail
+		makestring(g_sMasterGUIDPrefix$, "%s", sTempNewGUID$);
+		makestring(Master_GUID_Prefix_txt$, "%s", sTempNewGUID$);
+		if(g_nDebug) print("sTempNewGUID$ = %s\n", sTempNewGUID$);
+	}
+	else
+	{
+     	if(g_nDebug) print("***** Inside ELSE for if(Master_Override_GUID_Prefix$ <> \x22\x22) *****\n");
+		g_nMasterGUIDOverride = cnFalse;
+		setarray(g_nGUIDOverride, cnFalse);
+	}
+	//if(g_nDebug) print("g_sGUIDPrefix$[1] = %s\ng_nMasterGUIDOverride = %d\n", g_sGUIDPrefix$[1], g_nMasterGUIDOverride); 
+}
+
+Change Override_Symbol_GUID_Prefix$
+{
+ 	integer nLastChanged;
+
+	if(g_nDebug) print("***** Change Override_Symbol_GUID_Prefix$ *****\n");
+
+	nLastChanged = getlastmodifiedarrayindex();
+	if(g_nDebug) print("nLastChanged = %u\n", nLastChanged);
+
+	if(Override_Symbol_GUID_Prefix$[nLastChanged] <> "" && !g_nMasterGUIDOverride) //We have a override guid and the master override hasn't happened
+	{
+		if(g_nDebug) print("***** Inside if(Override_Symbol_GUID_Prefix$[nLastChanged] <> \x22\x22 && !g_nMasterGUIDOverride) *****\n");
+		g_nGUIDOverride[nLastChanged] = cnTrue;
+		makestring(g_sGUIDPrefix$[nLastChanged], "%s", Override_Symbol_GUID_Prefix$[nLastChanged]);
+		makestring(g_sGUIDPrefix$[nLastChanged], "%s", UpdateGUIDPrefix(g_sGUIDPrefix$[nLastChanged], nLastChanged));
+		if(g_nDebug) print("g_sGUIDPrefix$[nLastChanged] = %s\n", g_sGUIDPrefix$[nLastChanged]);
+	}
+	if(g_nDebug) print("g_sGUIDPrefix$[nLastChanged] = %s\ng_nGUIDOverride[nLastChanged] = %d\n", g_sGUIDPrefix$[nLastChanged], g_nGUIDOverride[nLastChanged]);
+}
+
+Change Console_rx$
+{
+	integer	nTSIDStartPOS, nTSIDEndPOS, nTSIDCount, nLoop;
+	string	sConsoleSearchTemp$[100], sTempTSID$[20];
+
+	if(g_nDebug) print("***** Start Console_rx$ *****\n");
+
+	if(g_nConsoleStep > 0 && find(csConsolePromptEnd, Console_rx$) && g_nTSIDRetryCount <= cnTSIDMaxRetries)
+	{
+    	if(find(csConsoleValidResponse, Console_rx$) && find(csConsoleDataEnd, Console_rx$) && (g_nConsoleStep = 1) && (!g_nMasterGUIDOverride))	//We got the TSID and no master override
+		{
+        	if(g_nDebug) print("***** Inside Console If for TSID *****\n");
+			nTSIDStartPOS = find(csConsoleValidResponse, Console_rx$) + 1;
+			nTSIDEndPOS = find(csConsoleDataEnd, Console_rx$);
+			nTSIDCount = nTSIDEndPOS - nTSIDStartPOS;
+			makestring(sTempTSID$, "%s", lower(mid(Console_rx$, nTSIDStartPOS, nTSIDCount)));
+			if(g_nDebug)
+			{
+				print("nTSIDStartPOS = %d\n", nTSIDStartPOS);
+				print("nTSIDEndPOS = %d\n", nTSIDEndPOS);
+				print("nTSIDCount = %d\n", nTSIDCount);
+				print("sTempTSID$ = %s\n", sTempTSID$);
+			}
+			if(len(sTempTSID$) < cnTSIDPrefixMinLength)
+			{
+             	clearbuffer(Console_rx$);
+				g_nTSIDRetryCount = g_nTSIDRetryCount + 1;
+				if(g_nDebug) print("TSID Error, Retrying TSID, Retry Count: %d\n", g_nTSIDRetryCount);
+				makestring(Update_GUID_Status_txt$, "Invalid TSID Received, Retrying... Retry Count: %d", g_nTSIDRetryCount);
+				g_nConsoleStep = 1;
+				makestring(console_tx$, "%s", csConsoleVersionCMD);
+			}
+			else
+			{
+				//makestring(g_sGUIDPrefix$, "%s", UpdateGUIDPrefix(sTempTSID$, cnGUIDConsoleOverride));
+				g_sGUIDMasterOverridePrefix$ = UpdateGUIDPrefix(sTempTSID$, cnGUIDConsoleOverride);
+				makestring(Master_GUID_Prefix_txt$, "%s", g_sGUIDMasterOverridePrefix$);
+				makestring(g_sMasterGUIDPrefix$, "%s", g_sGUIDMasterOverridePrefix$);
+				if(g_nDebug) print("g_sGUIDMasterOverridePrefix$ = %s\n", g_sGUIDMasterOverridePrefix$);
+				for(nLoop = 1 to cnMaxFusionSymbols)
+				{
+                 	if(!g_nGUIDOverride[nLoop]) //This prefix hasn't been overriden set it to the tsid prefix
+					{
+						makestring(g_sGUIDPrefix$[nLoop], "%s", g_sGUIDMasterOverridePrefix$);
+					}
+				}
+				clearbuffer(Console_rx$);
+				g_nConsoleStep = 0;
+				g_nTSIDRetryCount = 0;
+				g_nTSIDUpdateBusy = 0;
+			}
+		}
+		else if(g_nMasterGUIDOverride)
+		{
+        	if(g_nDebug) print("Inside else if(g_nGUIDOverride)\n");
+			clearbuffer(Console_rx$);
+			g_nConsoleStep = 0;
+			g_nTSIDRetryCount = 0;
+			g_nTSIDUpdateBusy = 0;
+		}
+	}
+	else if(g_nTSIDRetryCount > cnTSIDMaxRetries)
+	{
+    	if(g_nDebug) print("TSID Error, Max Retries Reached, Stopping Process");
+		makestring(Update_GUID_Status_txt$, "TSID Error, Max Retries Reached, Stopping Process");
+		makestring(g_sGUIDMasterOverridePrefix$, "%s", UpdateGUIDPrefix(csTSIDErrorValue, cnGUIDConsoleOverride));
+		makestring(Master_GUID_Prefix_txt$, "%s", g_sGUIDMasterOverridePrefix$);
+		for(nLoop = 1 to cnMaxFusionSymbols)
+		{
+           	if(!g_nGUIDOverride[nLoop]) //This prefix hasn't been overriden set it to the tsid prefix
+			{
+				makestring(g_sGUIDPrefix$[nLoop], "%s", g_sGUIDMasterOverridePrefix$);
+			}
+		}
+		g_nTSIDUpdateBusy = 0;
+	}
+	else if(find(csConsolePromptEnd, Console_rx$))
+	{
+     	clearbuffer(Console_rx$);
+	}
+
+	if(g_nDebug) print("***** End Console_rx$ *****\n");
+}
+
+Change Override_Symbol_Room_Name$
+{
+ 	integer nLastRoomNameChanged;
+
+	if(g_nDebug) print("***** Change Override_Symbol_Room_Name$ *****\n");
+	
+	nLastRoomNameChanged = getlastmodifiedarrayindex();
+
+	g_nRoomNameUpdated[nLastRoomNameChanged] = cnTrue;
+	
+	if(g_nDebug) print("nLastRoomNameChanged = %u\n", nLastRoomNameChanged);
+    if(g_nDebug) print("Override_Symbol_Room_Name$[nLastRoomNameChanged] = %s\n", Override_Symbol_Room_Name$[nLastRoomNameChanged]);
+
+	
+	if(Override_Symbol_Room_Name$[nLastRoomNameChanged] <> "" && g_nRoomNameOverrideAllowed)
+	{
+     	makestring(g_sOverrideRoomName$[nLastRoomNameChanged], "%s", Override_Symbol_Room_Name$[nLastRoomNameChanged]);
+		g_nRoomNameUpdated[nLastRoomNameChanged] = cnFalse;
+		if(g_nDebug) print("g_sOverrideRoomName$[nLastRoomNameChanged] = %s\n", g_sOverrideRoomName$[nLastRoomNameChanged]);
+	}
+}
+
+socketconnect tcpConsole
+{
+	signed_integer snErr;
+
+	delay(cnConsoleConnectDelay); 	
+
+	if(g_snConsoleConnectionOk = 0) //Good Connection
+	{
+		if(g_nDebug) print("Console Socket Connection Ok\n");
+		snErr = socketsend(tcpConsole, "\n");
+		delay(csConsoleCommandDelay);
+		snErr = socketsend(tcpConsole, "\n");
+	}
+	else if(g_snConsoleConnectionOk <> 0)
+	{
+     	if(g_nDebug) print("Console Socket Connection Error\n");
+	}
+
+	delay(cnConsoleConnectDelay);
+
+	g_snConsoleConnectionStatus = 1; 
+}
+
+socketdisconnect tcpConsole
+{
+	if(g_nDebug) print("***** Start socketdisconnect tcpConsole *****\n");
+	clearbuffer(tcpConsole.SocketRxBuf);
+	g_snConsoleConnectionStatus = 0; 
+}
+
+socketreceive tcpConsole
+{
+ 	integer i;
+	string sGarbage$[5], sTemp$[cnConsoleBufferSize];
+
+	if(!g_nSemaphore)
+	{
+		g_nSemaphore = cnTrue;
+
+		sTemp$ = tcpConsole.SocketRxBuf;
+	
+		if(len(sTemp$) < 200)
+		{
+	     	makestring(Console_Status_txt$, "%s", sTemp$);	
+		}
+		else if(len(sTemp$) >= 200)
+		{
+	     	makestring(Console_Status_txt$, "%s", left(sTemp$, 200));
+		}
+		clearbuffer(tcpConsole.SocketRxBuf);
+		
+		if(g_nDebug)
+		{
+			print("***** Start Console Socket Receive *****\n");
+			print("tcpConsole.SocketRxBuf = %s\n", tcpConsole.SocketRxBuf);
+			print("sTemp$ = %s\n", sTemp$);
+			print("Length tcpConsole.SocketRxBuf = %d\n", len(tcpConsole.SocketRxBuf));
+			print("Length sTemp$ = %d\n", len(sTemp$));
+			/*for(i = 1 to len(sTemp$))
+			{
+	        	print("Socket Receieve = %s\n", mid(sTemp$, i, 1)); 	
+			}*/
+			print("*** End Console Socket Receive ***\n");
+		}
+		g_nSemaphore = cnFalse;
+	}
+}
+
+
+/*** Main ***/
+
+Function Main()
+{
+	integer nCount;
+
+	WaitForInitializationComplete();
+    
+	g_nDebug = cnFalse;
+	if(g_nDebug) print("***** Start Function Main *****\n");
+
+	//DebugMode_On_fb = g_nDebug;
+	g_nInitialRun = cnTrue;
+	g_snConsoleConnectionStatus = 0;
+	g_nSemaphore = cnFalse;
+	g_nConsoleStep = cnFalse;
+	g_nMasterGUIDOverride = cnFalse;
+	setarray(g_nGUIDOverride, cnFalse);
+	g_nInstanceIDFound = cnFalse;
+	g_nTSIDRetryCount = cnFalse;
+	g_nTSIDUpdateBusy = cnFalse;
+	g_nRVIFileChanged = cnFalse;
+	g_nRoomNameOverrideAllowed = cnFalse;
+	
+	for(nCount = 1 to cnMaxFusionSymbols)
+	{
+     	clearbuffer(g_sOverrideRoomName$[nCount]);
+	}
+	g_nRoomNameOverrideAllowed = cnTrue;
+	Check_Roomnames();
+
+	if(g_nDebug) print("***** Function Main Complete Variable Init *****\n");
+
+	Update_GUIDs_Busy_fb = cnTrue;
+
+	if(ProcessorMode)
+	{
+     	delay(cnLongStartupDelay);
+	}
+	else
+	{
+    	delay(cnStartupDelay); 	
+	}
+
+	clearbuffer(g_sRVINewFileTemp$);
+
+	Update_GUIDs();
+
+	if(g_nDebug) print("***** End Function Main *****\n");
+}
+
+

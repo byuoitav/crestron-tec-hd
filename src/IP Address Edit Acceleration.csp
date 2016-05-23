@@ -1,0 +1,245 @@
+#define_constant MAX_ANALOG				65535
+#define_constant MIN_ANALOG				0
+#define_constant DIR_CLOCKWISE			1
+#define_constant DIR_COUNTER_CLOCKWISE	-1
+#define_constant MAX_ZONES				4
+#define_constant TRUE					1
+#define_constant FALSE					0
+//#define_constant DEBUG					1
+#CATEGORY "0" 
+
+#DEFAULT_VOLATILE
+
+//digital_input diUp;
+//digital_input diDown;
+digital_input diZoneEnable[MAX_ZONES];
+
+string_input trig[1];
+analog_input aiPktDelta;
+analog_input aiPktTime;
+analog_input aiSlowTurnHSec;
+analog_input aiSlowTurnIncr;
+analog_input aiFastTurnHSec;
+analog_input aiFastTurnIncr;
+
+analog_input aiKnobIn[MAX_ZONES];
+
+analog_output aoKnobOut[MAX_ZONES];
+
+signed_long_integer g_sliSlope;
+signed_long_integer g_sliIntercept;
+integer g_iNumberInputs;    
+integer g_iBusy;
+integer i;
+integer g_iKnobIn[MAX_ZONES];
+
+integer_function CheckValue(signed_long_integer Value)
+{
+	integer NewValue;
+	signed_long_integer MaxAnalog;
+	MaxAnalog = MAX_ANALOG;
+	
+	//print("ENTER CheckValue:%ld\n", Value);
+	if(Value > MaxAnalog)
+		NewValue = MIN_ANALOG;
+	else if (Value < MIN_ANALOG)
+		NewValue = MAX_ANALOG;
+	else
+		NewValue = LowWord(Value);	
+
+/*	if(Value > MaxAnalog)
+		NewValue = MAX_ANALOG;
+	else if (Value < MIN_ANALOG)
+		NewValue = MIN_ANALOG;
+	else
+		NewValue = LowWord(Value);
+*/
+	//print("EXIT CheckValue:%ld\n", NewValue);
+	
+	return(NewValue);
+}                 
+
+function ComputeNewKnobValue(signed_integer Direction, integer TimeDifference)
+{
+	integer	i;
+	integer NewVal;
+	
+	for(i = 1 to g_iNumberInputs)
+	{
+		if(diZoneEnable[i]=1)
+		{		
+			if(TimeDifference <= aiFastTurnHSec)
+			{
+				NewVal = CheckValue(aiKnobIn[i] + Direction * aiFastTurnIncr);
+#if_defined DEBUG
+				print("FAST[%d]TimeDifference: %lu, aiKnobIn[i]: %ld, aoKnobOut[i]@: %ld, inc: %ld\n", i, TimeDifference, aiKnobIn[i], aoKnobOut[i], Direction * aiFastTurnIncr);
+#endif
+			}
+			else if (TimeDifference > aiFastTurnHSec && TimeDifference < aiSlowTurnHsec)
+			{
+				NewVal = CheckValue(aiKnobIn[i] + Direction*(g_sliSlope * TimeDifference + g_sliIntercept));
+#if_defined DEBUG
+				print("SCALE[%d]TimeDifference: %lu, aiKnobIn[i]: %ld, aoKnobOut[i]@: %ld, inc: %ld\n", i, TimeDifference, aiKnobIn[i], aoKnobOut[i], Direction*(g_sliSlope * TimeDifference+ g_sliIntercept));
+#endif
+			}
+			else
+			{
+				NewVal = CheckValue(aiKnobIn[i] + Direction * aiSlowTurnIncr);
+#if_defined DEBUG
+				print("SLOW[%d]TimeDifference: %lu, aiKnobIn[i]: %ld, aoKnobOut[i]@: %ld, inc: %ld\n", i, TimeDifference, aiKnobIn[i], aoKnobOut[i], Direction * aiSlowTurnIncr);
+#endif
+			} 
+			
+			if(NewVal != aoKnobOut[i])
+				aoKnobOut[i] = NewVal;			
+		}
+	}
+}
+
+/*
+function KnobValueUp()
+{
+	for(i = 1 to g_iNumberInputs)
+	{
+		g_iKnobIn[i] = aiKnobIn[i];
+		if(diZoneEnable[i] = 1)
+		{
+  			if(g_iKnobIn[i] < MAX_ANALOG)
+			{
+			g_iKnobIn[i] = g_iKnobIn[i] + 1;
+			}
+			else
+			g_iKnobIn[i] = MIN_ANALOG;
+		aoKnobOut[i] = g_iKnobIn[i];
+		}	
+	}
+}
+
+function KnobValueDown()
+{
+	for(i = 1 to g_iNumberInputs)
+	{
+		g_iKnobIn[i] = aiKnobIn[i];
+		if(diZoneEnable[i] = 1)
+		{
+  			if(g_iKnobIn[i] > MIN_ANALOG)
+			{
+			g_iKnobIn[i] = g_iKnobIn[i] - 1;
+			}
+			else
+			g_iKnobIn[i] = MAX_ANALOG;
+		aoKnobOut[i] = g_iKnobIn[i];
+		}	
+	}
+}
+
+push diUp
+{
+	Call KnobValueUp();
+}
+
+push diDown
+{
+	Call KnobValueDown();
+}
+*/
+
+change trig
+{
+//	signed_integer Delta;
+	string temp[1];
+	
+	if(g_iBusy = FALSE)
+		{
+		g_iBusy = TRUE;
+		while(1)
+			{
+			temp = gather("*", trig);
+			
+			//if(g_iBusy==FALSE)
+			//{
+			//	g_iBusy = TRUE;
+//			Delta = aiPktDelta;
+				//print("Delta: %d, Time: %u\n", Delta, aiPktTime);
+				
+//			if(Delta < 0)
+//				ComputeNewKnobValue(DIR_COUNTER_CLOCKWISE, aiPktTime);
+				ComputeNewKnobValue(aiPktDelta, aiPktTime);
+//			else
+//				ComputeNewKnobValue(DIR_CLOCKWISE, aiPktTime);
+//				ComputeNewKnobValue(aiPktDelta, aiPktTime);
+			//	g_iBusy = FALSE;
+			//}
+			}
+		g_iBusy = FALSE;
+		}
+	}
+
+Function Main()
+{
+	signed_long_integer rise;
+	signed_long_integer run;
+	integer MaxKnobIn;
+	integer MaxKnobOut;
+	integer MaxEnable;
+	integer nFlag;
+	
+	g_iBusy = FALSE;
+
+	WaitForInitializationComplete();
+	
+	rise = (aiFastTurnIncr - aiSlowTurnIncr);
+	run = (aiFastTurnHSec - aiSlowTurnHsec); 
+	
+	nFlag = FALSE;
+	if(rise<0)
+	{
+		rise = -rise;
+		nFlag = TRUE;
+	}
+	if(run<0)
+	{
+		run = -run;
+		if(nFlag = TRUE)
+			nFlag = FALSE;
+		else
+			nFlag = TRUE;
+	}
+		
+	g_sliSlope = rise/run;
+	if(nFlag = TRUE)
+		g_sliSlope = -g_sliSlope;
+
+	//g_sliSlope = rise s/ run;
+	
+	g_sliIntercept = aiSlowTurnIncr - g_sliSlope*aiSlowTurnHsec;
+	
+	for(MaxKnobIn = MAX_ZONES to 1 step -1)
+	{
+		if(IsSignalDefined(aiKnobIn[MaxKnobIn]))
+		{
+			break;
+		}
+	}
+	
+	for(MaxKnobOut = MAX_ZONES to 1 step -1)
+	{
+		if(IsSignalDefined(aoKnobOut[MaxKnobOut]))
+		{
+			break;
+		}
+	}
+	
+	for(MaxEnable = MAX_ZONES to 1 step -1)
+	{
+		if(IsSignalDefined(diZoneEnable[MaxEnable]))
+		{
+			break;
+		}
+	}
+	
+	g_iNumberInputs = Min(Min(MaxKnobIn, MaxKnobOut), MaxEnable);
+	
+	//print("rise: %ld, run: %ld, g_sliSlope: %ld, g_sliIntercept: %ld, #ins: %d\n", rise, run, g_sliSlope, g_sliIntercept, g_iNumberInputs); 
+}
+
