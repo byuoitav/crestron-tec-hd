@@ -102,7 +102,7 @@ Change From_Console$
 //			Trash = Remove("\r",Trash);
 			DMPSHostname$ = Left(TempString,Find("\x0D",Tempstring) - 1);
 			}
-		else if (Find("IP address:",TempString))
+		else if (Find("Device 0 IP address:",TempString))
 			{
 //			Trash = Right(TempString,Len(TempString) - Find(": ",Tempstring) - 1);
 			Trash = Remove("IP address:",TempString);
