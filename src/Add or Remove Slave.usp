@@ -28,6 +28,39 @@ String IP_ID$[2],Port$[4];
 
 //Functions
 
+STRING_FUNCTION Sanitize(string msg, integer RemoveSpecialChars)
+{
+	string strippedMessage[1024], char[1];
+	integer i;
+    
+	strippedMessage = "";
+
+	If(RemoveSpecialChars = 1)
+	{
+		for (i = 1 to len(msg)) // Loop through the string
+		{
+			char = mid(msg, i, 1);
+
+			if ((char != "_") && (char != "/") && (char != " ")) // Kill character
+			{
+				strippedMessage = strippedMessage + char;
+			}
+		}
+	}
+
+	while (mid(strippedMessage, 1, 1) = " ") // Kill the leading space if it exists
+	{
+    	strippedMessage = right(strippedMessage, len(strippedMessage) - 1);
+	}
+     
+	while (mid(strippedMessage, len(strippedMessage), 1) = " ") // Kill the trailing space if it exists
+	{
+    	strippedMessage = left(strippedMessage, len(strippedMessage) - 1);
+	}
+       
+	RETURN (strippedMessage);
+}
+
 //Events-Push-Release-Change
 
 Push Add_Slave
@@ -59,6 +92,7 @@ Push Get_Program_Info
 	To_Console$ = "host\x0D";	//request hostname
 	To_Console$ = "ipaddress\x0D"; // request JUST the ip address
 	To_Console$ = "estatus\x0D"; // request ethernet information, including MAC address
+	To_Console$ = "ipconfig\x0D"; // request ethernet information, including MAC address, becaus estatus is being depricated
 	}
 
 Change From_Console$
@@ -100,7 +134,12 @@ Change From_Console$
 			Trash = Remove("Host Name: ",TempString);
 //			Trash = Remove("\n",Trash);
 //			Trash = Remove("\r",Trash);
-			DMPSHostname$ = Left(TempString,Find("\x0D",Tempstring) - 1);
+//			DMPSHostname$ = Left(TempString,Find("\x0D",Tempstring) - 1);
+//			Print("TempString =%s",TempString);
+			Trash = Left(TempString,Find("\x0D",Tempstring) - 1);
+			Trash = sanitize(Trash,1);
+//			Print("DMPSHostname$ = %s",Trash);
+			DMPSHostname$ = Trash;
 			}
 		else if (Find("Device 0 IP address:",TempString))
 			{
@@ -116,7 +155,16 @@ Change From_Console$
 			Trash = Remove("MAC Address(es): ",TempString);
 //			Trash = Remove("\n",Trash);
 //			Trash = Remove("\r",Trash);
-			DMPSMAC$ = Left(TempString,Find("\x0D",Tempstring) - 1);
+//			DMPSMAC$ = Left(TempString,Find("\x0D",Tempstring) - 1);
+			DMPSMAC$ = Left(TempString,17);
+			}
+		else if (Find("MAC Address(es).... : ",TempString))	// For RMC3 Cntrl Eng [v1.501.0013 (Feb 03 2016)
+			{
+			Trash = Remove("MAC Address(es).... : ",TempString);
+//			Trash = Remove("\n",Trash);
+//			Trash = Remove("\r",Trash);
+//			DMPSMAC$ = Left(TempString,Find("\x0D",Tempstring) - 1);
+			DMPSMAC$ = Left(TempString,17);
 			}
 
 		}
