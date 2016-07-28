@@ -5,3 +5,6 @@ TEC HD v4.3.vtz
 SPlsWork/*
 *.ush
 *.vta
+src/SPlsWork/*
+SPlsWork/*
+src/*.sig
