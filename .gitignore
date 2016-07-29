@@ -2,6 +2,9 @@ TEC HD v4.3.vtp
 TEC HD v4.3.vtz
 *.zip
 *.spz
-SPlsWork/*
+src/SPlsWork/*
 *.ush
 *.vta
+*.sig
+src/*.vtz
+src/*.hash
