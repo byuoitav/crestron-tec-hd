@@ -8,3 +8,7 @@ src/SPlsWork/*
 *.sig
 src/*.vtz
 src/*.hash
+SPlsWork/Add or Remove Slave.inf
+SPlsWork/APAD Long Text Edit.csh
+SPlsWork/APAD Long Text Edit.inf
+SPlsWork/*
