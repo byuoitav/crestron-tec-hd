@@ -4,7 +4,7 @@ Version=1
 [
 ObjTp=FSgntr
 Sgntr=SimplWindow
-RelVrs=4.03.20
+RelVrs=4.05.04
 IntStrVrs=2
 MinSMWVrs=4.02.22
 MinTIOVrs=666
@@ -19,15 +19,15 @@ S1Nd=2
 SLNd=3
 PrNm=TEC HD.smw
 CmVr=3.03
-DbVr=54.05.005.00
-DvcDbVr=73.00.001.00
+DbVr=61.05.006.00
+DvcDbVr=81.00.002.00
 OpVr=DMPS-300-C 4.007.0021 (Mar 26 2013)
 PgmNm=Bradley T. Streeter/David Allred/Dan Clegg
 DlrNm=BYU
 CltNm=TEC HD
 JpNo=1
-SmVr=983
-DvVr=983
+SmVr=1021
+DvVr=1021
 TpN1=1
 TpN2=2
 TpN3=3
@@ -40,7 +40,6 @@ EnType=0
 ZeroOnIoOk=0
 PIT=AV
 TargetFusionProcessor=1
-SgRefresh=1
 SGMethod=1
 ]
 [
@@ -20311,6 +20310,21 @@ Mx15=0
 [
 ObjTp=Bw
 H=1
+Lx=100
+Ly=100
+Rx=641
+Ry=300
+Xm=-1
+Ym=-1
+SH=770
+Z=100
+P=137
+Ht=1
+Hi=32
+]
+[
+ObjTp=Bw
+H=1
 Lx=0
 Ly=0
 Rx=673
@@ -22069,6 +22083,7 @@ H=1
 DvH=1016
 VtpGuid=3799026A-F76C-440E-B083-FD3B15CC39BB
 VTPFile=.\TEC HD.vtp
+VtpVer=3
 TSAddr=04
 ]
 [
@@ -22077,6 +22092,7 @@ H=2
 DvH=1038
 VtpGuid=3799026A-F76C-440E-B083-FD3B15CC39BB
 VTPFile=.\TEC HD.vtp
+VtpVer=3
 TSAddr=05
 ]
 [
@@ -43762,7 +43778,7 @@ O8=6772
 O9=6772
 O10=6772
 O12=5171
-O14=5173
+O14=5183
 O16=6743
 O17=6743
 O18=6743
@@ -59487,13 +59503,13 @@ PrH=767
 CF=2
 Cmn1=Fusion Serials
 mI=153
-I1=5176
-I2=5174
-I3=5177
-I5=5178
-I6=5179
-I23=5182
-I24=5183
+I1=5184
+I2=5175
+I3=5174
+I5=5177
+I6=5178
+I23=5179
+I24=5181
 I32=6772
 I53=4765
 I54=4766
@@ -59538,9 +59554,9 @@ I99=4929
 I100=4932
 mO=0
 tO=153
-O1=5175
-O6=5180
-O23=5181
+O1=5176
+O6=5182
+O23=5180
 mP=97
 P1=Help
 P2=
@@ -59648,6 +59664,8 @@ CedVer=1.0
 CedMod=
 GUID=EA95C296-3F52-42C6-97FF-7B50955AA1A8
 Hint=Blu-ray DPad (Smart Object ID=41)
+SGControlType=DPad
+SGControlName=Blu-ray DPad
 ]
 [
 ObjTp=CED
@@ -59657,6 +59675,8 @@ CedVer=1.0
 CedMod=
 GUID=2988CCE8-33E0-4CB9-B246-3E9B2336231F
 Hint=IPTV Keypad (Smart Object ID=42)
+SGControlType=Simple Keypad
+SGControlName=IPTV Keypad
 ]
 [
 ObjTp=CED
@@ -59666,6 +59686,8 @@ CedVer=1.0
 CedMod=
 GUID=93A04E05-C5D2-499A-9F46-CA64B1FCEF9F
 Hint=IPTV DPad (Smart Object ID=43)
+SGControlType=DPad
+SGControlName=IPTV DPad
 ]
 [
 ObjTp=CED
@@ -59675,6 +59697,8 @@ CedVer=1.0
 CedMod=
 GUID=EA95C296-3F52-42C6-97FF-7B50955AA1A8
 Hint=Blu-ray DPad (Smart Object ID=41)
+SGControlType=DPad
+SGControlName=Blu-ray DPad
 ]
 [
 ObjTp=CED
@@ -59684,6 +59708,8 @@ CedVer=1.0
 CedMod=
 GUID=2988CCE8-33E0-4CB9-B246-3E9B2336231F
 Hint=IPTV Keypad (Smart Object ID=42)
+SGControlType=Simple Keypad
+SGControlName=IPTV Keypad
 ]
 [
 ObjTp=CED
@@ -59693,6 +59719,8 @@ CedVer=1.0
 CedMod=
 GUID=93A04E05-C5D2-499A-9F46-CA64B1FCEF9F
 Hint=IPTV DPad (Smart Object ID=43)
+SGControlType=DPad
+SGControlName=IPTV DPad
 ]
 [
 ObjTp=FusionGUID
@@ -91272,68 +91300,68 @@ SgTp=4
 ]
 [
 ObjTp=Sg
-H=5173
-Nm=Fusion_Console_Status
-SgTp=4
-]
-[
-ObjTp=Sg
 H=5174
-Nm=Fusion_Error_Message
+Nm=//Fusion_Log_Text
 SgTp=4
 ]
 [
 ObjTp=Sg
 H=5175
-Nm=Fusion_Help_Response
+Nm=//Fusion_Error_Message
 SgTp=4
 ]
 [
 ObjTp=Sg
 H=5176
-Nm=Fusion_Help_Request
+Nm=//Fusion_Help_Response
 SgTp=4
 ]
 [
 ObjTp=Sg
 H=5177
-Nm=Fusion_Log_Text
+Nm=//Device_Usage
 SgTp=4
 ]
 [
 ObjTp=Sg
 H=5178
-Nm=Device_Usage
+Nm=//Fusion_Text_Message
 SgTp=4
 ]
 [
 ObjTp=Sg
 H=5179
-Nm=Fusion_Text_Message
+Nm=//Fusion_Broadcast_Msg_Response
 SgTp=4
 ]
 [
 ObjTp=Sg
 H=5180
-Nm=Fusion_Text_Message_From_Fusion
+Nm=//Fusion_Broadcast_Msg
 SgTp=4
 ]
 [
 ObjTp=Sg
 H=5181
-Nm=Fusion_Broadcast_Msg
+Nm=//Free_Busy_Status
 SgTp=4
 ]
 [
 ObjTp=Sg
 H=5182
-Nm=Fusion_Broadcast_Msg_Response
+Nm=//Fusion_Text_Message_From_Fusion
 SgTp=4
 ]
 [
 ObjTp=Sg
 H=5183
-Nm=Free_Busy_Status
+Nm=//Fusion_Console_Status
+SgTp=4
+]
+[
+ObjTp=Sg
+H=5184
+Nm=//Fusion_Help_Request
 SgTp=4
 ]
 [
