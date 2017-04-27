@@ -1,11 +1,11 @@
-<Device Model="DMPS-300-C.">
+<Device Model="DMPS-300-C" Name="DMPS-300-C.">
    <Network Type="Cresnet" Id="06">
       <Device Model="ST-IO" DeviceId="14"/>
    </Network>
    <Network Type="Ethernet" Id="07">
       <Device Model="TSW-750" DeviceId="04" Name="Touchpanel1 TSW-750"/>
       <Device Model="TSW-750" DeviceId="05" Name="Touchpanel2 TSW-750"/>
-      <Device Model="HD-XSP" DeviceId="06"/>
+      <Device Model="HDXSP" DeviceId="06" Name="HD-XSP"/>
       <Device Model="RoomView SE/RoomView 7.2" DeviceId="0E" Name="RV SE Production Main&Display1 RV SE Production"/>
       <Device Model="Fusion Room" DeviceId="10"/>
    </Network>

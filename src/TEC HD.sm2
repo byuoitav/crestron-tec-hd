@@ -20318,8 +20318,9 @@ Xm=-1
 Ym=-1
 SH=770
 Z=100
-Ht=4
-Hi=33
+P=137
+Ht=1
+Hi=32
 ]
 [
 ObjTp=Bw
@@ -43777,7 +43778,7 @@ O8=6772
 O9=6772
 O10=6772
 O12=5171
-O14=5173
+O14=5183
 O16=6743
 O17=6743
 O18=6743
@@ -59508,7 +59509,7 @@ I3=5174
 I5=5177
 I6=5178
 I23=5179
-I24=5183
+I24=5181
 I32=6772
 I53=4765
 I54=4766
@@ -91299,12 +91300,6 @@ SgTp=4
 ]
 [
 ObjTp=Sg
-H=5173
-Nm=Fusion_Console_Status
-SgTp=4
-]
-[
-ObjTp=Sg
 H=5174
 Nm=//Fusion_Log_Text
 SgTp=4
@@ -91347,6 +91342,12 @@ SgTp=4
 ]
 [
 ObjTp=Sg
+H=5181
+Nm=//Free_Busy_Status
+SgTp=4
+]
+[
+ObjTp=Sg
 H=5182
 Nm=//Fusion_Text_Message_From_Fusion
 SgTp=4
@@ -91354,7 +91355,7 @@ SgTp=4
 [
 ObjTp=Sg
 H=5183
-Nm=Free_Busy_Status
+Nm=//Fusion_Console_Status
 SgTp=4
 ]
 [
