@@ -234,23 +234,25 @@ Function BuildHttpMessage(STRING EventCause, STRING EventType, STRING EventDevic
 	***************************************************************************************/
 	innerMsg1 = "{\"hostname\":\"" + HOSTNAME + "\",\"timestamp\":\"" + timestamp + 
 	"\",\"localEnvironment\":true,\"event\":{\"type\":0,\"requestor\":\"" + HOSTNAME; 
-	innerMsg2 = "\"eventcause\":0\"device\":\"" + EventDevice + "\"eventInfoKey\":\"" + EventInfoKey ;
+	innerMsg2 = "\",\"eventcause\":0,\"device\":\"" + EventDevice + "\",\"eventInfoKey\":\"" + EventInfoKey;
 	innerMsg3 = "\",\"eventInfoValue\":\"" + EventInfoValue + "\"},\"building\":\"" + building + "\",\"room\":\"" + roomNumber;
-	innerMsg4 = "\",\"event-cause-string\":\"" + EventCause +"\",\"event-type-string\",\"" + EventType + "\"}";;
+	innerMsg4 = "\",\"event-cause-string\":\"" + EventCause +"\",\"event-type-string\":\"" + EventType + "\"}";
 	ContentLength = Len(innerMsg1) + Len(innerMsg2) + Len(innerMsg3) + Len(innerMsg4);
 	CLString = ITOA(ContentLength);
     
-	if (EventInfoValue = "System_active"){
-		header1 = "POST /dmps/heartbeat/" + EventType +"/" + hostname + "_SystemActive HTTP/1.1" + NEWLINE;
+	if (EventInfoValue = "System_Active"){
+		header1 = "POST /dmps/heartbeat/ HTTP/1.1" + NEWLINE;
+		//header1 = "POST /dmps/heartbeat/" + hostname + "_SystemActive HTTP/1.1" + NEWLINE;
 	}
 	ELSE {
-		header1 = "POST /dmps/event/" + EventType +"/ HTTP/1.1" + NEWLINE;
+		header1 = "POST /dmps/event/" + " HTTP/1.1" + NEWLINE;
 	}
 	header2 = "Host: " + REPORTINGHOST + ":" + ITOA(REPORTINGHOSTPORT) + NEWLINE;
 	header3 = "Connection: keep-alive" + NEWLINE;
 	header4 = "Content-Length: " + CLString + NEWLINE;
-	header5 = "Content-type: text/plain;charset=UTF-8" + NEWLINE;
+	header5 = "Content-type: application/json" + NEWLINE;
 	header6 = "Accept: */*" + NEWLINE;
+
 	Print("%s",header1);
 	Print("%s",header1);
 	Print("%s",header2);
@@ -262,7 +264,7 @@ Function BuildHttpMessage(STRING EventCause, STRING EventType, STRING EventDevic
 	Print("%s",innerMsg1);
 	Print("%s",innerMsg2);
 	Print("%s",innerMsg3);
-	Print("%s",innerMsg4);
+	Print("%s\n",innerMsg4);
 
 	Send(header1);
 	Send(header2);
@@ -592,12 +594,15 @@ CHANGE cpHostName
 	bldg = "";
 	room = "";
 	flr = "";	
+	
+	print("Got a Change on dmpsHost - cpHostName: \"%s\".\n", cpHostName);
 
 	HOSTNAME = cpHostName;
 	temp = cpHostName;
 
 	if(FIND(" ",cpHostName) >= 1)
 	{
+	print("Got to Parsing - cpHostName: \"%s\".\n", cpHostName);
 	//	temp = cpHostName;
 		bldg = REMOVE(" ",temp); // remove preceding space if there
 		room = REMOVE(" ",temp);
@@ -616,6 +621,8 @@ CHANGE cpIp
 	STRING trash[16];
 	trash = REMOVE(" ",cpIp);
 	HOSTIP = cpIp;
+	Print("\n********** trash:\"%s\", HOSTIP:\"%s\".\n", trash, HOSTIP);
+
 }
 
 // If system gets MAC, set it in the global var
@@ -744,9 +751,9 @@ THREADSAFE SOCKETCONNECT client
 SOCKETDISCONNECT client
 {
 	if (clientConnected = 0)
-		Print("Socket disconnected remotely");
+		Print("Socket disconnected remotely\n");
 	else
-		Print("Local socket disconnect complete.");
+		Print("Local socket disconnect complete.\n");
 	_clientConnected = 0;
 	_clientConnected = 1;
     
@@ -767,7 +774,7 @@ SOCKETRECEIVE client
 	//STRING received$[1024];
 	//received$ = client.SocketRxBuf;
     if (Len(client.SocketRxBuf) < 256)
-        Print("Rx: %s", client.SocketRxBuf);
+        Print("Rx: %s\n", client.SocketRxBuf);
     
     //storeGlobalVars(received$);    
 
@@ -786,84 +793,84 @@ SOCKETSTATUS client
 		case(0):
 		{
 			//Comment this eventually
-			Log("SOCKET STATUS: Not Connected");
+			Log("SOCKET STATUS: Not Connected\n");
 			//_clientConnected = 0;
 		}
 		case(1):
 		{
 			//Comment this eventually
-			Log("SOCKET STATUS: Waiting for Connection");
+			Log("SOCKET STATUS: Waiting for Connection\n");
 		}
 		case(2):
 		{
 			//Comment this eventually
-			Log("SOCKET STATUS: Connected");
+			Log("SOCKET STATUS: Connected\n");
 		}
 		case(3):
 		{
-			Log("SOCKET STATUS: Connection Failed");
+			Log("SOCKET STATUS: Connection Failed\n");
 			//_clientConnected = 0;
 		}
 		case(4):
 		{
 			//Comment this eventually
-			Log("SOCKET STATUS: Connection Broken Remotely");
+			Log("SOCKET STATUS: Connection Broken Remotely\n");
 			//_clientConnected = 0;
 		}
 		case(5):
 		{
 			//Comment this eventually
-			Log("SOCKET STATUS: Connection Broken Locally");
+			Log("SOCKET STATUS: Connection Broken Locally\n");
 			//_clientConnected = 0;
 		}
 		case(6):
 		{
 			//Comment this eventually
-			Log("SOCKET STATUS: Performing DNS Lookup");
+			Log("SOCKET STATUS: Performing DNS Lookup\n");
 		}
 		case(7):
 		{
-			Log("SOCKET STATUS: DNS Lookup Failed");
+			Log("SOCKET STATUS: DNS Lookup Failed\n");
 			//_clientConnected = 0;
 		}
 		case(8):
 		{
 			//Comment this eventually
-			Log("SOCKET STATUS: DNS Name Resolved");
+			Log("SOCKET STATUS: DNS Name Resolved\n");
 		}
 		case(-1):
 		{
-			Log("SOCKET STATUS: Client, Server or UDP variable not a TCP/IP or UDP variable.");
+			Log("SOCKET STATUS: Client, Server or UDP variable not a TCP/IP or UDP variable.\n");
 			//_clientConnected = 0;
 		}
 		case(-2):
 		{
-			Log("SOCKET STATUS: Could not create the connection task");
+			Log("SOCKET STATUS: Could not create the connection task\n");
 			//_clientConnected = 0;
 		}
 		case(-3):
 		{
-			Log("SOCKET STATUS: Could not resolve address");
+			Log("SOCKET STATUS: Could not resolve address\n");
 			//_clientConnected = 0;
 		}
 		case(-4):
 		{
-			Log("SOCKET STATUS: Port not in range of 0-65535.");
+			Log("SOCKET STATUS: Port not in range of 0-65535.\n");
 			//_clientConnected = 0;
 		}
 		case(-5):
 		{
 			//Comment this eventually
-			Log("SOCKET STATUS: No connection has been established");
+			Log("SOCKET STATUS: No connection has been established\n");
 		}
 		case(-6):
 		{
-			Log("SOCKET STATUS: Not enough room in string parameter to hold IP address.");
+			Log("SOCKET STATUS: Not enough room in string parameter to hold IP address.\n");
 			//_clientConnected = 0;
 		}
 		default:
 		{
-			//Log("Socket Status Undefined");
+			Log("Socket Status Undefined\n");
 		}
 	};
 }
