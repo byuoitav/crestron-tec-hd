@@ -1,12 +1,9 @@
 TEC HD v4.3.vtp
 TEC HD v4.3.vtz
 *.zip
-*.spz
 src/SPlsWork/*
 *.ush
 *.vta
-*.sig
-src/*.vtz
 src/*.hash
 SPlsWork/Add or Remove Slave.inf
 SPlsWork/APAD Long Text Edit.csh
