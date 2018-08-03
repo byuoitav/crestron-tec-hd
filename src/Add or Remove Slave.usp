@@ -150,7 +150,8 @@ Change From_Console$
 //			Trash = Remove("\n",Trash);
 //			Trash = Remove("\r",Trash);
 			TempString = Left(TempString,Find("\x0D",TempString) - 1);
-            DMPSIP$ = sanitize(TempString,0);
+//			DMPSIP$ = sanitize(TempString,0);
+            DMPSIP$ = TempString;
 			}
 		else if (Find("MAC Address(es):",TempString))
 			{
@@ -159,7 +160,8 @@ Change From_Console$
 //			Trash = Remove("\r",Trash);
 //			DMPSMAC$ = Left(TempString,Find("\x0D",Tempstring) - 1);
 			TempString = Left(TempString,17);
-            DMPSMAC$ = sanitize(TempString,0);
+			DMPSMAC$ = TempString;
+//			DMPSMAC$ = sanitize(TempString,0);
 			}
 		else if (Find("MAC Address(es).... : ",TempString))	// For RMC3 Cntrl Eng [v1.501.0013 (Feb 03 2016)
 			{
@@ -168,7 +170,8 @@ Change From_Console$
 //			Trash = Remove("\r",Trash);
 //			DMPSMAC$ = Left(TempString,Find("\x0D",Tempstring) - 1);
 			TempString = Left(TempString,17);
-			DMPSMAC$ = sanitize(TempString,0);
+			DMPSMAC$ = TempString;
+//			DMPSMAC$ = sanitize(TempString,0);
 			}
 
 		}
