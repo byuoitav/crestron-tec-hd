@@ -15,6 +15,7 @@
 Digital_Input Add_Slave,Remove_Slave,Reset_Program,Test,Get_Program_Info;
 Buffer_Input IP_Address$[15],From_Console$[3000];
 String_Output _skip_,_skip_,_skip_,_skip_,Program_Name$,Compile_Date$,To_Console$, IPTable$, DMPSver$, DMPSHostname$, DMPSIP$, DMPSMAC$;
+Digital_Output GotProgramInfo;
 
 //Global variables
 
@@ -93,6 +94,7 @@ Push Get_Program_Info
 	To_Console$ = "ipaddress\x0D"; // request JUST the ip address
 	To_Console$ = "estatus\x0D"; // request ethernet information, including MAC address
 	To_Console$ = "ipconfig\x0D"; // request ethernet information, including MAC address, becaus estatus is being depricated
+	wait(300)GotProgramInfo = 1;
 	}
 
 Change From_Console$
@@ -147,8 +149,9 @@ Change From_Console$
 			Trash = Remove("IP address:",TempString);
 //			Trash = Remove("\n",Trash);
 //			Trash = Remove("\r",Trash);
-			DMPSIP$ = Left(TempString,Find("\x0D",TempString) - 1);
-
+			TempString = Left(TempString,Find("\x0D",TempString) - 1);
+//			DMPSIP$ = sanitize(TempString,0);
+            DMPSIP$ = TempString;
 			}
 		else if (Find("MAC Address(es):",TempString))
 			{
@@ -156,7 +159,9 @@ Change From_Console$
 //			Trash = Remove("\n",Trash);
 //			Trash = Remove("\r",Trash);
 //			DMPSMAC$ = Left(TempString,Find("\x0D",Tempstring) - 1);
-			DMPSMAC$ = Left(TempString,17);
+			TempString = Left(TempString,17);
+			DMPSMAC$ = TempString;
+//			DMPSMAC$ = sanitize(TempString,0);
 			}
 		else if (Find("MAC Address(es).... : ",TempString))	// For RMC3 Cntrl Eng [v1.501.0013 (Feb 03 2016)
 			{
@@ -164,7 +169,9 @@ Change From_Console$
 //			Trash = Remove("\n",Trash);
 //			Trash = Remove("\r",Trash);
 //			DMPSMAC$ = Left(TempString,Find("\x0D",Tempstring) - 1);
-			DMPSMAC$ = Left(TempString,17);
+			TempString = Left(TempString,17);
+			DMPSMAC$ = TempString;
+//			DMPSMAC$ = sanitize(TempString,0);
 			}
 
 		}
@@ -180,4 +187,5 @@ Function Main()	//Gets run at startup
 	Port$ = "2202";
 	Program_Name$ = "";
 	Compile_Date$ = "";
+	GotProgramInfo = 0;
 	}
