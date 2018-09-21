@@ -2,7 +2,6 @@ TEC HD v4.3.vtp
 TEC HD v4.3.vtz
 *.zip
 src/SPlsWork/*
-*.ush
 *.vta
 src/*.hash
 SPlsWork/Add or Remove Slave.inf
