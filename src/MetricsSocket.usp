@@ -1,0 +1,329 @@
+/*******************************************************************************************
+  SIMPL+ Module Information
+  (Fill in comments below)
+*******************************************************************************************/
+/*
+Dealer Name: Brigham Young University
+System Name: HTTP TCP/IP Module
+System Number: 1.3.0
+Programmer: Matt Blodgett (October 2018)
+Comments: Because the Metrics module seems to have trouble with overwhelming the socket
+  with the amount of HTTP interactions, I am pulling out the HTTP interaction into its own
+  module to be driven by a set of signals to allow for better async interaction between
+  the HTTP server and the metrics module itself, separating the duties of aggregating
+  the metrics events and sending them over the HTTP TCP wire
+*/
+
+/*******************************************************************************************
+  Compiler Directives
+  (Uncomment and declare compiler directives as needed)
+*******************************************************************************************/
+#SYMBOL_NAME "Metrics Socket"
+#CATEGORY "46" "Metrics" //46 = "Custom"
+#OUTPUT_SHIFT 25
+#DEFAULT_VOLATILE
+#ENABLE_STACK_CHECKING
+
+/*******************************************************************************************
+  DIGITAL, ANALOG and SERIAL INPUTS and OUTPUTS
+  (Uncomment and declare inputs and outputs as needed)
+*******************************************************************************************/
+DIGITAL_INPUT diStartClient, Debug_Flag_For_Metrics;
+ANALOG_INPUT aiClientPortNumber;
+STRING_INPUT siClientIPAddress[256], siClientTx[1024];
+ 
+
+DIGITAL_OUTPUT doClientConnected, doStartClient;
+ANALOG_OUTPUT aoClientStatus;
+STRING_OUTPUT soClientStatus, soClientRx;
+
+
+/*******************
+  Global Variables
+*****************/
+STRING Message[65534];
+
+
+/************************
+   FUNCTIONS
+*****************************/
+Function Log(string msg)
+{	
+	//if (Debug_Flag_For_Metrics = 1)
+	//{
+		Print("\n%s",msg);
+	//}
+}
+
+
+
+/*******************************************************************************************
+  SOCKETS
+  (Uncomment and define socket definitions as needed)
+*******************************************************************************************/
+TCP_CLIENT MyClient[1024];
+
+
+PUSH diStartClient
+{
+    SIGNED_INTEGER status;
+
+    status = SocketConnectClient (MyClient, siClientIPAddress, aiClientPortNumber, 1);
+
+    if (status < 0)
+	{
+        MAKESTRING(Message, "Error connecting socket to address %s on port %d", siClientIPAddress, aiClientPortNumber);
+		Log(Message);
+	}
+	else
+	{
+		MAKESTRING(Message, "Initiated socket to address %s on port %d", siClientIPAddress, aiClientPortNumber);
+		Log(Message);
+	}
+}
+
+RELEASE diStartClient
+{
+    SIGNED_INTEGER status;
+
+    status = SocketDisconnectClient (MyClient);
+
+	if (status < 0)
+	{
+	    MAKESTRING(Message, "Error disconnecting socket to address %s on port %d", SiClientIPAddress, aiClientPortNumber);
+		Log(Message);
+	}
+	else
+	{
+		MAKESTRING(Message, "Initiated socket disconnect from address %s on port %d", siClientIPAddress, aiClientPortNumber);
+		Log(Message);
+	}
+
+	//restart
+	Log("Attempting Socket Restart");
+	doStartClient = 1;
+}
+
+SOCKETCONNECT MyClient
+{
+    SIGNED_LONG_INTEGER PortNumber;
+    SIGNED_INTEGER LocalStatus;
+    STRING RemoteIPAddress[20];
+    STRING RequestedAddress[256];   
+
+
+    LocalStatus = SocketGetAddressAsRequested(MyClient, RequestedAddress);
+
+    if (LocalStatus < 0)
+	{
+        MAKESTRING(Message, "Error getting remote ip address. %d\n", LocalStatus);
+		Log(Message);
+		doStartClient = 0;
+		return;
+	}
+
+    MAKESTRING(Message, "OnConnect: Connect call to %s successful\n", RequestedAddress);
+	Log(Message);
+    
+
+    PortNumber = SocketGetPortNumber(MyClient);
+
+    if (PortNumber < 0)
+	{
+        MAKESTRING(Message, "Error getting client port number. %ld\n", PortNumber);
+		Log(Message);
+		doStartClient = 0;
+		return;
+	}        
+
+    LocalStatus = SocketGetRemoteIPAddress(MyClient, RemoteIPAddress);
+
+    if (LocalStatus < 0)
+	{
+        MAKESTRING(Message, "Error getting remote ip address. %d\n", LocalStatus);
+		Log(Message);
+		doStartClient = 0;
+		return;
+	}
+
+    MAKESTRING(Message, "OnConnect: Connected to port %ld on address %s\n", PortNumber, RemoteIPAddress);
+    Log(Message);
+
+    doClientConnected = 1;
+
+    //SocketSend(MyClient, "This is sent when the socket starts.");
+}
+
+SOCKETDISCONNECT MyClient
+{
+    doClientConnected = 0;
+
+    if (diStartClient)
+        Log("Socket disconnected remotely");
+    Else
+        Log("Local disconnect complete.");
+}
+  
+SOCKETSTATUS MyClient
+{
+	SIGNED_INTEGER Status;
+	STRING StatusText[50];
+ 	Status = SocketGetStatus();
+
+	aoClientStatus = Status;
+
+    Switch(Status)
+	{
+		case(0):
+		{		
+			StatusText = "SOCKET STATUS: Not Connected";			
+		}
+		case(1):
+		{		
+			StatusText = "SOCKET STATUS: Waiting for Connection";
+		}
+		case(2):
+		{		
+			StatusText = "SOCKET STATUS: Connected";	
+		}
+		case(3):
+		{
+			StatusText = "SOCKET STATUS: Connection Failed";			
+		}
+		case(4):
+		{
+			StatusText = "SOCKET STATUS: Connection Broken Remotely";
+		}
+		case(5):
+		{
+			StatusText = "SOCKET STATUS: Connection Broken Locally";			
+		}
+		case(6):
+		{			
+			StatusText = "SOCKET STATUS: Performing DNS Lookup";
+		}
+		case(7):
+		{
+			StatusText = "SOCKET STATUS: DNS Lookup Failed";			
+		}
+		case(8):
+		{
+			StatusText = "SOCKET STATUS: DNS Name Resolved";
+		}
+		case(-1):
+		{
+			StatusText = "SOCKET STATUS: Client, Server or UDP variable not a TCP/IP or UDP variable.";
+		}
+		case(-2):
+		{
+			StatusText = "SOCKET STATUS: Could not create the connection task";
+		}
+		case(-3):
+		{
+			StatusText = "SOCKET STATUS: Could not resolve address";
+		}
+		case(-4):
+		{
+			StatusText = "SOCKET STATUS: Port not in range of 0-65535.";
+		}
+		case(-5):
+		{
+			StatusText = "SOCKET STATUS: No connection has been established";
+		}
+		case(-6):
+		{
+			StatusText = "SOCKET STATUS: Not enough room in string parameter to hold IP address.";
+		}
+		default:
+		{
+			StatusText = "Socket Status Undefined";
+		}
+	};
+
+	soClientStatus = StatusText;
+	Log(StatusText);
+}
+
+SOCKETRECEIVE MyClient
+{
+	STRING temp[1024];
+
+    if (Len(MyClient.SocketRxBuf) < 256)
+	{
+        MAKESTRING(Message, "Socket Receive: %s", MyClient.SocketRxBuf);
+		Log(Message);
+	    soClientRx = MyClient.SocketRxBuf;
+	}
+	else
+	{
+		temp = Mid(MyClient.SocketRxBuf,1,256);
+        MAKESTRING(Message, "Socket Receive: %s...", temp);
+		Log(Message);
+	    soClientRx = temp;
+	}
+
+    ClearBuffer(MyClient.SocketRxBuf);
+}
+
+CHANGE siClientTx
+{
+    signed_integer iStatus;
+	
+	MAKESTRING(Message, "Sending To Socket: %s", siClientTx);
+	Log(Message);
+
+    iStatus = SocketSend(MyClient, siClientTx);
+
+    if (iStatus < 0)
+	{
+        MAKESTRING(Message, "Error Sending to MyClient: %d\n", iStatus);
+		Log(Message);
+	}
+	else
+	{
+		Log("Successful Send Code Received");		
+	}
+}
+
+
+/*************************************************
+  Signals  
+
+**************************************************/
+         
+/*CHANGE ReportToHost
+{
+	REPORTINGHOST = ReportToHost;
+	MAKESTRING(MESSAGE, "Reporting host changed to: %s", ReportToHost);
+	Log(MESSAGE);
+	_clientConnected = 0;
+}
+
+CHANGE ReportToHostPort
+{
+	REPORTINGHOSTPORT = ReportToHostPort;
+	MAKESTRING(MESSAGE, "Reporting host port changed to: %d", ReportToHostPort);
+	Log(MESSAGE);
+	_clientConnected = 0;
+}*/
+
+
+/*******************************************************************************************
+  Main()
+  Uncomment and place one-time startup code here
+  (This code will get called when the system starts up)
+*******************************************************************************************/
+Function Main()
+{
+    // TODO:  Add code here
+    // Initialize declared global and local variables/arrays as needed.
+
+    WaitForInitializationComplete();
+
+	Print("Metrics Socket Initialized!");
+
+	Print("Opening Socket Connection");
+	doStartClient = 1;
+}
+
+
