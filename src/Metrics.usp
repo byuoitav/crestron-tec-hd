@@ -6,8 +6,11 @@
 Dealer Name: Brigham Young University
 System Name: Metrics Proxy
 System Number: 1.3.0
-Programmer: DC/David Allred
-Comments: Forwards Metrics Events
+Programmer: DC/David Allred / Matt Blodgett 10-2018
+Comments: Forwards Metrics Events.  In October 2018, we ran into an issue with
+   increasing the number of metrics we were sending.  Trying to change to just
+   output events to the console and then let a listener take care of sending
+   the events to the event receiver to overcome the difficulty
 */
 
 /*******************************************************************************************
@@ -20,11 +23,10 @@ Comments: Forwards Metrics Events
 #DEFINE_CONSTANT	NEWLINE	"\n"
 #DEFINE_CONSTANT	USER	"user"
 #DEFINE_CONSTANT	SYSTEM	"system"
-//#DEFINE_CONSTANT	AWS	"search-byu-oit-av-metrics-ruenjnrqfuhghh7omvtmgcqe7m.us-west-1.es.amazonaws.com"
 #OUTPUT_SHIFT 25
 #DEFAULT_VOLATILE
 #ENABLE_STACK_CHECKING
-#PRINT_TO_TRACE
+//#PRINT_TO_TRACE
 
 /*******************************************************************************************
   DIGITAL_INPUT, ANALOG_INPUT, STRING_INPUT, BUFFER_INPUT inputs and DIGITAL_OUTPUT, 
@@ -76,7 +78,7 @@ STRING_OUTPUT  _skip_,_skip_,_skip_,_skip_,toDevBuilding,toDevRoom,toDevFloor,to
   SOCKETS
 *******************************************************************************************/
 
-TCP_CLIENT client[1024];
+//TCP_CLIENT client[1024]; - MB 10-2018
 
 /*******************************************************************************************
   Structure Definitions
@@ -84,14 +86,12 @@ TCP_CLIENT client[1024];
          For example, in Function Main: struct.myString = "";
 *******************************************************************************************/
 
-STRUCTURE QUEUEDEVENT
+/*STRUCTURE QUEUEDEVENT
 {
 	STRING userOrSystem[15];
 	STRING header1[1024],header2[1024],header3[1024],header4[1024],header5[1024],header6[1024];
 	STRING innerMsg1[1024],innerMsg2[1024],innerMsg3[1024],innerMsg4[1024];
-};                    
-
-
+};*/                 
 
 /*******************************************************************************************
   Global Variables
@@ -99,19 +99,20 @@ STRUCTURE QUEUEDEVENT
   Note:  Be sure to initialize all declared STRING variables as needed
          For example, in Function Main: myString = "";
 *******************************************************************************************/
-
-SIGNED_INTEGER CONFIGFILEHANDLE;
-STRING REPORTINGHOST[30],HOSTNAME[30],HOSTIP[15],HOSTMAC[30],HOSTBLDG[8],HOSTROOM[16],
-		HOSTFLOOR[2],HOSTLAT[11],HOSTLON[11],HOSTCPNum[5],SESSION[256],INPUT1[30],INPUT2[30],INPUT3[30],
+STRING 	HOSTNAME[30],HOSTIP[15],HOSTMAC[30],HOSTBLDG[8],HOSTROOM[16],
+		HOSTFLOOR[2],HOSTLAT[11],HOSTLON[11],HOSTCPNum[5],SESSION[256],
+		INPUT1[30],INPUT2[30],INPUT3[30],
 		INPUT4[30],INPUT5[30],INPUT6[30],INPUT7[30];
+
 STRING MESSAGE[BIGGESTSIZE];
-INTEGER REPORTINGHOSTPORT,RECONNECTTIME;
+
+INTEGER ISSENDINGMESSAGE;
 
 /*******************************************************************************************
   Functions -- No Editing
 *******************************************************************************************/
            
-STRING_FUNCTION Sanitize(string msg)
+/*STRING_FUNCTION Sanitize(string msg)
 {
 	string strippedMessage[1024], char[1];
 	integer i;
@@ -151,8 +152,13 @@ Function Error(string msg)
 
 Function Send(string msg)
 {
+	SIGNED_INTEGER SendResult;
 	//Print("Sending: %s",msg);
-	SocketSend(client,msg);	
+	//SendResult = SocketSend(client,msg);	
+	if (SendResult < 0)
+	{
+		Print("Error sending: %d", SendResult);
+	}
 }
 
 Function storeGlobalVars(string inputString)
@@ -186,48 +192,41 @@ Function storeGlobalVars(string inputString)
 		HOSTBLDG = Remove("\"",temp);		
 	}
 }
+*/
         
 //Function BuildHttpMessage(STRING EVENTACTOR, STRING EVENTACTION, STRING userOrSystem, STRING sessn)	//Old Version
-Function BuildHttpMessage(STRING EventCause, STRING EventType, STRING EventDevice, STRING EventInfoKey, String EventInfoValue)
+//Renaming to "OutputEvent"
+FUNCTION OutputEvent(STRING EventCause, STRING EventType, STRING EventDevice, STRING EventInfoKey, String EventInfoValue)
 {
 	SIGNED_INTEGER dst,mNum,yNum,dNum,ContentLength;
-    SIGNED_LONG_INTEGER PortNumber;
+
 	STRING timestamp[24];
 	STRING dateStr[24];
 	STRING timeStr[24];
-	STRING description[256];
+
+	INTEGER messageSent;
+	/*STRING description[256];
 	STRING ipAddress[15];
 	STRING mac[17];
 	STRING building[8];
 	STRING roomNumber[8];
-	STRING lat[11];
-	STRING lon[11];
-	STRING flr[8];
-//	STRING actor[30];
-//	STRING desc[256];
 	STRING type[6];
 	STRING header1[1024],header2[1024],header3[1024],header4[1024],header5[1024],header6[1024];
 	STRING innerMsg1[1024],innerMsg2[1024],innerMsg3[1024],innerMsg4[1024];
-	STRING CLString[1024];
+	STRING CLString[1024];*/
 
-//	hostname = HOSTNAME;
-	description = "";
+
+	/*description = "";
 	ipAddress = HOSTIP;
 	mac = HOSTMAC;
 	building = HOSTBLDG;
 	roomNumber = HOSTROOM;
-	lat = HOSTLAT;
-	lon = HOSTLON;
-	flr = HOSTFLOOR;
-	//	actor = EVENTACTOR;
-	//	desc = EVENTACTION;
-	type = EventType;
+	type = EventType;*/
 
 	mNum = GetMonthNum();
 	yNum = GetYearNum();
 	dNum = GetDateNum();
 
-	//dateStr = ITOA(yNum) + "-" + ITOA(mNum) + "-"+ ITOA(dNum);
 	Makestring (dateStr, "%d-%02d-%02d", yNum, mNum, dNum); //This should pad the month and day with zero for values less than 10
 	timeStr = Time();
 	dst = GetDST();
@@ -238,6 +237,7 @@ Function BuildHttpMessage(STRING EventCause, STRING EventType, STRING EventDevic
 	} else if(dst = 2) {
 		timestamp = dateStr +"T"+ timeStr + "-07:00"; // YYYY-MM-DDTHH:mm:ss.SSS-07:00
 	}
+
     /***************************************************************************************
 		Old version
 	innerMsg1 = "{\"type\": \"" + type + "\",\"timestamp\": \"" + timestamp +"\",\"eventTime\": \"" + timeStr +"\",\"eventDate\": \"" + dateStr +"\",\"device\": {\"hostname\": \"" + HOSTNAME +"\", \"description\": \"";
@@ -245,6 +245,7 @@ Function BuildHttpMessage(STRING EventCause, STRING EventType, STRING EventDevic
 	innerMsg3 = "\", \"roomNumber\": \"" + roomNumber +"\",\"coordinates\": \"" + lat +"," + lon +"\", \"floor\": \"" + flr + "\"";
 	innerMsg4 = "},\"action\": {\"actor\": \"" + actor +"\", \"description\": \"" + desc +"\"}, \"session\": \""+ SESSION + "\"}";
 	***************************************************************************************/
+	/*
 	innerMsg1 = "{\"hostname\":\"" + HOSTNAME + "\",\"timestamp\":\"" + timestamp + 
 	"\",\"localEnvironment\":true,\"event\":{\"type\":0,\"requestor\":\"" + HOSTNAME; 
 	innerMsg2 = "\",\"eventcause\":0,\"device\":\"" + EventDevice + "\",\"eventInfoKey\":\"" + EventInfoKey;
@@ -268,21 +269,10 @@ Function BuildHttpMessage(STRING EventCause, STRING EventType, STRING EventDevic
 	header3 = "Connection: keep-alive" + NEWLINE;
 	header4 = "Content-Length: " + CLString + NEWLINE;
 	header5 = "Content-type: application/json" + NEWLINE;
-	header6 = "Accept: */*" + NEWLINE;
+	header6 = "Accept: *//*" + NEWLINE; //added an extra / to get this to comment out
+	*/
 
-	Print("%s",header1);
-	Print("%s",header2);
-//	Print("%s",header3);
-//	Print("%s",header4);
-//	Print("%s",header5);
-//	Print("%s",header6);
-//	Print("%s",NEWLINE);
-	Print("%s\n",innerMsg1);
-	Print("%s\n",innerMsg2);
-	Print("%s\n",innerMsg3);
-	Print("%s\n",innerMsg4);
-
-	Send(header1);
+/*	Send(header1);
 	Send(header2);
 	Send(header3);
 	Send(header4);
@@ -292,7 +282,48 @@ Function BuildHttpMessage(STRING EventCause, STRING EventType, STRING EventDevic
 	Send(innerMsg1);
 	Send(innerMsg2);
 	Send(innerMsg3);
-	Send(innerMsg4);
+	Send(innerMsg4);*/
+
+	//have to make this pseudo single threaded without losing events if possible
+	DO
+	{	
+		messageSent = 0;
+
+		if (ISSENDINGMESSAGE = 1)
+		{
+			//Wait tenth of a second and then try again
+			Delay(10);
+		}
+		else
+		{
+			ISSENDINGMESSAGE = 1;
+			//new 10-2018 - just output a single line with the event information
+			//Format:
+			//~EVENT~[HostName]~[HostIP]~[Timestamp]~[EventCause]~[EventType]~[EventDevice]~[EventInfoKey]~[EventInfoValue]~\n
+		
+			Print("~EVENT~");
+			Print("%s", HOSTNAME);
+			Print("~");
+			Print("%s", HOSTIP);
+			Print("~");
+			Print("%s", timestamp);
+			Print("~");
+			Print("%s", EventCause);
+			Print("~");
+			Print("%s", EventType);
+			Print("~");
+		    Print("%s", EventDevice);
+			Print("~");
+		    Print("%s", EventInfoKey);
+			Print("~");
+		    Print("%s", EventInfoValue);
+			Print("~");
+			Print("\n");
+	
+			ISSENDINGMESSAGE = 0;
+			messageSent = 1;
+		}	
+	} UNTIL (messageSent = 1);
 }
 
 /*******************************************************************************************
@@ -355,7 +386,7 @@ Function StartSession()
 	storeSessionId = tmpMac + "-" + genSession + "-" + ITOA(yNum) + ITOA(mNum) + ITOA(dNum);	//Format: "00017f4e6761-65535-2018-7-6"
 	msg = "Session START: " + genSession; 	
 	// Designated Session Start 
-	BuildHttpMessage("session",msg,USER,SESSION);
+	OutputEvent("session",msg,USER,SESSION);
 }
 *******************************************************************************************/
 
@@ -372,7 +403,7 @@ Function EndSession()
 	storeSessionId = " ";
 
 	//* Designated Session Stop 	
-	BuildHttpMessage("session",msg,USER,SESSION);	
+	OutputEvent("session",msg,USER,SESSION);	
 }
 *******************************************************************************************/
 
@@ -424,715 +455,664 @@ Function SendAllEvents()
 {
 
 	if (System_power_on_fb = 1)
-		BuildHttpMessage("CORESTATE", "AUTOGENERATED", HOSTCPNum, "System_Power", "On");
+		OutputEvent("CORESTATE", "AUTOGENERATED", HOSTCPNum, "System_Power", "On");
 	else
-		BuildHttpMessage("CORESTATE", "AUTOGENERATED", HOSTCPNum, "System_Power", "Off");
+		OutputEvent("CORESTATE", "AUTOGENERATED", HOSTCPNum, "System_Power", "Off");
 
     if (System_Closed_deb = 1)
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", HOSTCPNum, "System_Closed", "Closed");
+		OutputEvent("HEALTH", "AUTOGENERATED", HOSTCPNum, "System_Closed", "Closed");
 	else
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", HOSTCPNum, "System_Closed", "Open");
+		OutputEvent("HEALTH", "AUTOGENERATED", HOSTCPNum, "System_Closed", "Open");
 
 	if (Monitor_Secure_tt = 1)
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", HOSTCPNum, "Monitor_Secure", "Ok");
+		OutputEvent("HEALTH", "AUTOGENERATED", HOSTCPNum, "Monitor_Secure", "Ok");
 	else
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", HOSTCPNum, "Monitor_Secure", "Disconnected");
+		OutputEvent("HEALTH", "AUTOGENERATED", HOSTCPNum, "Monitor_Secure", "Disconnected");
 
 	if (TP_Online = 1)
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", HOSTCPNum, "TP_Online", "Online");
+		OutputEvent("HEALTH", "AUTOGENERATED", HOSTCPNum, "TP_Online", "Online");
 	else
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", HOSTCPNum, "TP_Online", "Offline");
+		OutputEvent("HEALTH", "AUTOGENERATED", HOSTCPNum, "TP_Online", "Offline");
 
 	if (IPTV_VideoOk = 1)
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", HOSTCPNum, "IPTV_VideoOk", "IPTV Video Ok");
+		OutputEvent("HEALTH", "AUTOGENERATED", HOSTCPNum, "IPTV_VideoOk", "IPTV Video Ok");
 	else
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", HOSTCPNum, "IPTV_VideoOk", "No IPTV Video");
+		OutputEvent("HEALTH", "AUTOGENERATED", HOSTCPNum, "IPTV_VideoOk", "No IPTV Video");
 
 	if (Input5_Composite_Video_Detected_fb = 1)
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", HOSTCPNum, "Input5_Composite_Video_Detected", "Composite_Video_Detected");
+		OutputEvent("HEALTH", "AUTOGENERATED", HOSTCPNum, "Input5_Composite_Video_Detected", "Composite_Video_Detected");
 	else
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", HOSTCPNum, "Input5_Composite_Video_Detected", "No Composite_Video_Detected");
+		OutputEvent("HEALTH", "AUTOGENERATED", HOSTCPNum, "Input5_Composite_Video_Detected", "No Composite_Video_Detected");
 
 	if (Display1_Power_is_On = 1)
-		BuildHttpMessage("CORESTATE", "AUTOGENERATED", "D1", "Power", "On");
+		OutputEvent("CORESTATE", "AUTOGENERATED", "D1", "Power", "On");
 	else
-		BuildHttpMessage("CORESTATE", "AUTOGENERATED", "D1", "Power", "Standby");
+		OutputEvent("CORESTATE", "AUTOGENERATED", "D1", "Power", "Standby");
 
 	if (Display1_Secure_deb = 1)
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", "D1", "Secure", "Ok");
+		OutputEvent("HEALTH", "AUTOGENERATED", "D1", "Secure", "Ok");
 	else
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", "D1", "Secure", "Disconnected");
+		OutputEvent("HEALTH", "AUTOGENERATED", "D1", "Secure", "Disconnected");
 
 	if (Display1_Ans_ros = 1)
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", "D1", "Responsive", "Ok");
+		OutputEvent("HEALTH", "AUTOGENERATED", "D1", "Responsive", "Ok");
 	else
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", "D1", "Responsive", "No Response");
+		OutputEvent("HEALTH", "AUTOGENERATED", "D1", "Responsive", "No Response");
 
 	if (Not_Display1_Offline = 1)
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", "D1", "Online", "Online");
+		OutputEvent("HEALTH", "AUTOGENERATED", "D1", "Online", "Online");
 	else 
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", "D1", "Online", "Offline");
+		OutputEvent("HEALTH", "AUTOGENERATED", "D1", "Online", "Offline");
 
 	if (Display2_Power_is_On = 1)
-		BuildHttpMessage("CORESTATE", "AUTOGENERATED", "D2", "Power", "On");
+		OutputEvent("CORESTATE", "AUTOGENERATED", "D2", "Power", "On");
 	else
-		BuildHttpMessage("CORESTATE", "AUTOGENERATED", "D2", "Power", "Standby");
+		OutputEvent("CORESTATE", "AUTOGENERATED", "D2", "Power", "Standby");
 
 	if (Display2_Secure_tt = 1)
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", "D2", "Secure", "Ok");
+		OutputEvent("HEALTH", "AUTOGENERATED", "D2", "Secure", "Ok");
 	else	
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", "D2", "Secure", "Disconnected");
+		OutputEvent("HEALTH", "AUTOGENERATED", "D2", "Secure", "Disconnected");
 
 	if (Display2_Ans_ros = 1)
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", "D2", "Responsive", "Ok");
+		OutputEvent("HEALTH", "AUTOGENERATED", "D2", "Responsive", "Ok");
 	else
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", "D2", "Responsive", "No Response");
+		OutputEvent("HEALTH", "AUTOGENERATED", "D2", "Responsive", "No Response");
 
 	if (Not_Display2_Offline = 1)
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", "D2", "Online", "Online");
+		OutputEvent("HEALTH", "AUTOGENERATED", "D2", "Online", "Online");
 	else
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", "D2", "Online", "Offline");
+		OutputEvent("HEALTH", "AUTOGENERATED", "D2", "Online", "Offline");
 
 	if (Display3_Power_is_On = 1)
-		BuildHttpMessage("CORESTATE", "AUTOGENERATED", "D3", "Power", "On");
+		OutputEvent("CORESTATE", "AUTOGENERATED", "D3", "Power", "On");
 	else
-		BuildHttpMessage("CORESTATE", "AUTOGENERATED", "D3", "Power", "Standby");
+		OutputEvent("CORESTATE", "AUTOGENERATED", "D3", "Power", "Standby");
 
 	if (Display3_Secure_tt = 1)
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", "D3", "Secure", "Ok");
+		OutputEvent("HEALTH", "AUTOGENERATED", "D3", "Secure", "Ok");
 	else
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", "D3", "Secure", "Disconnected");
+		OutputEvent("HEALTH", "AUTOGENERATED", "D3", "Secure", "Disconnected");
 
 	if (Display3_Ans_ros = 1)
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", "D3", "Responsive", "Ok");
+		OutputEvent("HEALTH", "AUTOGENERATED", "D3", "Responsive", "Ok");
 	else
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", "D3", "Responsive", "No Response");
+		OutputEvent("HEALTH", "AUTOGENERATED", "D3", "Responsive", "No Response");
 
 	if (Not_Display3_Offline = 1)	
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", "D3", "Online", "Online");
+		OutputEvent("HEALTH", "AUTOGENERATED", "D3", "Online", "Online");
 	else
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", "D3", "Online", "Offline");
+		OutputEvent("HEALTH", "AUTOGENERATED", "D3", "Online", "Offline");
 
 	if (WlsMicAlert = 1)
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", "RCV1", "Mic Alerting", "Error");
+		OutputEvent("HEALTH", "AUTOGENERATED", "RCV1", "Mic Alerting", "Error");
 	else
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", "RCV1", "Mic Alerting", "Okay");
+		OutputEvent("HEALTH", "AUTOGENERATED", "RCV1", "Mic Alerting", "Okay");
 
 	if (RV_WlsMic_TCP_IPConnect = 1)
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", "RCV1", "Online", "Online");
+		OutputEvent("HEALTH", "AUTOGENERATED", "RCV1", "Online", "Online");
 	else
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", "RCV1", "Online", "Offline");
+		OutputEvent("HEALTH", "AUTOGENERATED", "RCV1", "Online", "Offline");
 
 	if (RV_Mic1_On = 1)
-		BuildHttpMessage("CORESTATE", "AUTOGENERATED", "Mic1", "Power", "On");
+		OutputEvent("CORESTATE", "AUTOGENERATED", "Mic1", "Power", "On");
 	else
-		BuildHttpMessage("CORESTATE", "AUTOGENERATED", "Mic1", "Power", "Standby");
+		OutputEvent("CORESTATE", "AUTOGENERATED", "Mic1", "Power", "Standby");
 
 	if (RV_Mic1LT5Hr = 1)
-		BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "Mic1", "RV_Mic1LT5Hr", "LT 5Hrs");
+		OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic1", "RV_Mic1LT5Hr", "LT 5Hrs");
 	else
-		BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "Mic1", "RV_Mic1LT5Hr", "GT 5Hrs");
+		OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic1", "RV_Mic1LT5Hr", "GT 5Hrs");
 
 	if (RV_Mic1LT3Hr = 1)
-		BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "Mic1", "RV_Mic1LT3Hr", "LT 3Hrs");
+		OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic1", "RV_Mic1LT3Hr", "LT 3Hrs");
 	else
-		BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "Mic1", "RV_Mic1LT3Hr", "GT 3Hrs");
+		OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic1", "RV_Mic1LT3Hr", "GT 3Hrs");
 
 	if (RV_Mic1LT1_5Hr = 1)	
-		BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "Mic1", "RV_Mic1LT1.5Hr", "LT 1.5Hrs");
+		OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic1", "RV_Mic1LT1.5Hr", "LT 1.5Hrs");
 	else
-		BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "Mic1", "RV_Mic1LT1.5Hr", "GT 1.5Hrs");
+		OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic1", "RV_Mic1LT1.5Hr", "GT 1.5Hrs");
 
 	if (RV_Mic1_RF_Int_Det = 1)
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", "Mic1", "RV_Mic1_RF_Int_Det", "RF Interference Detected");
+		OutputEvent("HEALTH", "AUTOGENERATED", "Mic1", "RV_Mic1_RF_Int_Det", "RF Interference Detected");
 	else
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", "Mic1", "RV_Mic1_RF_Int_Det", "Okay");
+		OutputEvent("HEALTH", "AUTOGENERATED", "Mic1", "RV_Mic1_RF_Int_Det", "Okay");
 
 
 	if (RV_Mic2_On = 1)
-		BuildHttpMessage("CORESTATE", "AUTOGENERATED", "Mic2", "Power", "On");
+		OutputEvent("CORESTATE", "AUTOGENERATED", "Mic2", "Power", "On");
 	else
-		BuildHttpMessage("CORESTATE", "AUTOGENERATED", "Mic2", "Power", "Standby");
+		OutputEvent("CORESTATE", "AUTOGENERATED", "Mic2", "Power", "Standby");
 
 	if (RV_Mic2LT5Hr = 1)
-		BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "Mic2", "RV_Mic2LT5Hr", "LT 5Hrs");
+		OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic2", "RV_Mic2LT5Hr", "LT 5Hrs");
 	else
-		BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "Mic2", "RV_Mic2LT5Hr", "GT 5Hrs");
+		OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic2", "RV_Mic2LT5Hr", "GT 5Hrs");
 
 	if (RV_Mic2LT3Hr = 1)
-		BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "Mic2", "RV_Mic2LT3Hr", "LT 3Hrs");
+		OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic2", "RV_Mic2LT3Hr", "LT 3Hrs");
 	else
-		BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "Mic2", "RV_Mic2LT3Hr", "GT 3Hrs");
+		OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic2", "RV_Mic2LT3Hr", "GT 3Hrs");
 
 	if (RV_Mic2LT1_5Hr = 1)
-		BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "Mic2", "RV_Mic2LT1.5Hr", "LT 1.5Hrs");
+		OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic2", "RV_Mic2LT1.5Hr", "LT 1.5Hrs");
 	else
-		BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "Mic2", "RV_Mic2LT1.5Hr", "GT 1.5Hrs");
+		OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic2", "RV_Mic2LT1.5Hr", "GT 1.5Hrs");
 
 	if (RV_Mic2_RF_Int_Det = 1)
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", "Mic2", "RV_Mic2_RF_Int_Det", "RF Interference Detected");
+		OutputEvent("HEALTH", "AUTOGENERATED", "Mic2", "RV_Mic2_RF_Int_Det", "RF Interference Detected");
 	else
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", "Mic2", "RV_Mic2_RF_Int_Det", "Okay");
+		OutputEvent("HEALTH", "AUTOGENERATED", "Mic2", "RV_Mic2_RF_Int_Det", "Okay");
 	
-	BuildHttpMessage("INFO", "AUTOGENERATED", HOSTCPNum, "Program_Name", Program_Name$);
-	BuildHttpMessage("INFO", "AUTOGENERATED", HOSTCPNum, "Program_Compile_Date", Program_Compile_Date$);
-	BuildHttpMessage("INFO", "AUTOGENERATED", HOSTCPNum, "DMPSver", DMPSver$);
-	BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "D1", "Status Message", Display1_Status_Message_Fb);
-	BuildHttpMessage("INFO", "AUTOGENERATED", "D1", "Model", Display1_Model$);
-	BuildHttpMessage("INFO", "AUTOGENERATED", "D1", "ID String", Display1_ID_String_Fb);
-	BuildHttpMessage("INFO", "AUTOGENERATED", "D1", "IP Address", Display1_IP_Address_Fb);
-	BuildHttpMessage("INFO", "AUTOGENERATED", "D1", "Projector Name", Display1_Projector_Name_Fb);
-	BuildHttpMessage("INFO", "AUTOGENERATED", "D1", "Resolution", Display1_Resolution);
-	BuildHttpMessage("INFO", "AUTOGENERATED", "D1", "Firmware Version", Display1_Firmware_Version);
-	BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "D2", "Status Message", Display2_Status_Message_Fb);
-	BuildHttpMessage("INFO", "AUTOGENERATED", "D2", "Model", Display2_Model$);
-	BuildHttpMessage("INFO", "AUTOGENERATED", "D2", "ID String", Display2_ID_String_Fb);
-	BuildHttpMessage("INFO", "AUTOGENERATED", "D2", "IP Address", Display2_IP_Address_Fb);
-	BuildHttpMessage("INFO", "AUTOGENERATED", "D2", "Projector Name", Display2_Projector_Name_Fb);
-	BuildHttpMessage("INFO", "AUTOGENERATED", "D2", "Resolution", Display2_Resolution);
-	BuildHttpMessage("INFO", "AUTOGENERATED", "D2", "Firmware Version", Display2_Firmware_Version);
-	BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "D3", "Status Message", Display3_Status_Message_Fb);
-	BuildHttpMessage("INFO", "AUTOGENERATED", "D3", "Model", Display3_Model$);
-	BuildHttpMessage("INFO", "AUTOGENERATED", "D3", "ID String", Display3_ID_String_Fb);
-	BuildHttpMessage("INFO", "AUTOGENERATED", "D3", "IP Address", Display3_IP_Address_Fb);
-	BuildHttpMessage("INFO", "AUTOGENERATED", "D3", "Projector Name", Display3_Projector_Name_Fb);
-	BuildHttpMessage("INFO", "AUTOGENERATED", "D3", "Resolution", Display3_Resolution);
-	BuildHttpMessage("INFO", "AUTOGENERATED", "D3", "Firmware Version", Display3_Firmware_Version);
-	BuildHttpMessage("DETAILSTATE", "AUTOGENERATED", "MIC1", "Battery Time", RV_B1_Time);
-	BuildHttpMessage("DETAILSTATE", "AUTOGENERATED", "MIC1", "Group/Channel", RV_M1_GrpChan);
-	BuildHttpMessage("DETAILSTATE", "AUTOGENERATED", "MIC1", "Transmite RF Power", Wireless_Monitoring_Transmit_RF_Power1);
-	BuildHttpMessage("DETAILSTATE", "AUTOGENERATED", "MIC1", "Battery Time", RV_B2_Time);
-	BuildHttpMessage("DETAILSTATE", "AUTOGENERATED", "MIC1", "Group/Channel", RV_M2_GrpChan);
-	BuildHttpMessage("DETAILSTATE", "AUTOGENERATED", "MIC1", "Transmite RF Power", Wireless_Monitoring_Transmit_RF_Power2);
-	BuildHttpMessage("INFO", "AUTOGENERATED", HOSTCPNum, "Displays_Configured", itoa(Displays_Configured));
-	BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "D1","Lamp_Hours", itoa(Display1_Lamp_hours_fb));
-	BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "D1","Temperature", itoa(Display1_Temp));
-	BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "D2","Lamp_Hours", itoa(Display2_Lamp_hours_fb));
-	BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "D2","Temperature", itoa(Display2_Temp));
-	BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "D3","Lamp_Hours", itoa(Display3_Lamp_hours_fb));
-	BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "D3","Temperature", itoa(Display3_Temp));
-	BuildHttpMessage("INFO", "AUTOGENERATED", "RCV1","Wireless Mic Count", itoa(WLS));
+	OutputEvent("INFO", "AUTOGENERATED", HOSTCPNum, "Program_Name", Program_Name$);
+	OutputEvent("INFO", "AUTOGENERATED", HOSTCPNum, "Program_Compile_Date", Program_Compile_Date$);
+	OutputEvent("INFO", "AUTOGENERATED", HOSTCPNum, "DMPSver", DMPSver$);
+	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "D1", "Status Message", Display1_Status_Message_Fb);
+	OutputEvent("INFO", "AUTOGENERATED", "D1", "Model", Display1_Model$);
+	OutputEvent("INFO", "AUTOGENERATED", "D1", "ID String", Display1_ID_String_Fb);
+	OutputEvent("INFO", "AUTOGENERATED", "D1", "IP Address", Display1_IP_Address_Fb);
+	OutputEvent("INFO", "AUTOGENERATED", "D1", "Projector Name", Display1_Projector_Name_Fb);
+	OutputEvent("INFO", "AUTOGENERATED", "D1", "Resolution", Display1_Resolution);
+	OutputEvent("INFO", "AUTOGENERATED", "D1", "Firmware Version", Display1_Firmware_Version);
+	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "D2", "Status Message", Display2_Status_Message_Fb);
+	OutputEvent("INFO", "AUTOGENERATED", "D2", "Model", Display2_Model$);
+	OutputEvent("INFO", "AUTOGENERATED", "D2", "ID String", Display2_ID_String_Fb);
+	OutputEvent("INFO", "AUTOGENERATED", "D2", "IP Address", Display2_IP_Address_Fb);
+	OutputEvent("INFO", "AUTOGENERATED", "D2", "Projector Name", Display2_Projector_Name_Fb);
+	OutputEvent("INFO", "AUTOGENERATED", "D2", "Resolution", Display2_Resolution);
+	OutputEvent("INFO", "AUTOGENERATED", "D2", "Firmware Version", Display2_Firmware_Version);
+	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "D3", "Status Message", Display3_Status_Message_Fb);
+	OutputEvent("INFO", "AUTOGENERATED", "D3", "Model", Display3_Model$);
+	OutputEvent("INFO", "AUTOGENERATED", "D3", "ID String", Display3_ID_String_Fb);
+	OutputEvent("INFO", "AUTOGENERATED", "D3", "IP Address", Display3_IP_Address_Fb);
+	OutputEvent("INFO", "AUTOGENERATED", "D3", "Projector Name", Display3_Projector_Name_Fb);
+	OutputEvent("INFO", "AUTOGENERATED", "D3", "Resolution", Display3_Resolution);
+	OutputEvent("INFO", "AUTOGENERATED", "D3", "Firmware Version", Display3_Firmware_Version);
+	OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1", "Battery Time", RV_B1_Time);
+	OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1", "Group/Channel", RV_M1_GrpChan);
+	OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1", "Transmite RF Power", Wireless_Monitoring_Transmit_RF_Power1);
+	OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1", "Battery Time", RV_B2_Time);
+	OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1", "Group/Channel", RV_M2_GrpChan);
+	OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1", "Transmite RF Power", Wireless_Monitoring_Transmit_RF_Power2);
+	OutputEvent("INFO", "AUTOGENERATED", HOSTCPNum, "Displays_Configured", itoa(Displays_Configured));
+	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "D1","Lamp_Hours", itoa(Display1_Lamp_hours_fb));
+	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "D1","Temperature", itoa(Display1_Temp));
+	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "D2","Lamp_Hours", itoa(Display2_Lamp_hours_fb));
+	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "D2","Temperature", itoa(Display2_Temp));
+	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "D3","Lamp_Hours", itoa(Display3_Lamp_hours_fb));
+	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "D3","Temperature", itoa(Display3_Temp));
+	OutputEvent("INFO", "AUTOGENERATED", "RCV1","Wireless Mic Count", itoa(WLS));
 	
 	if (Mic1Status = 0)	
-	    BuildHttpMessage("HEALTH", "AUTOGENERATED", "MIC1","Status Message", "0=Mic On");
+	    OutputEvent("HEALTH", "AUTOGENERATED", "MIC1","Status Message", "0=Mic On");
 	else if (Mic1Status = 2)
-	    BuildHttpMessage("HEALTH", "AUTOGENERATED", "MIC1","Status Message", "1=Mic Initializing/Mic Off ok");
+	    OutputEvent("HEALTH", "AUTOGENERATED", "MIC1","Status Message", "1=Mic Initializing/Mic Off ok");
 	else if (Mic1Status = 3)
-	    BuildHttpMessage("HEALTH", "AUTOGENERATED", "MIC1","Status Message", "3=RF Interference Detected");
+	    OutputEvent("HEALTH", "AUTOGENERATED", "MIC1","Status Message", "3=RF Interference Detected");
 	else
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", "MIC1","Status Message", itoa(Mic1Status));
+		OutputEvent("HEALTH", "AUTOGENERATED", "MIC1","Status Message", itoa(Mic1Status));
 	
 	if (B1Status = 0)	
-	    BuildHttpMessage("DETAILSTATE", "AUTOGENERATED", "MIC1","Battery Status", "0=ok");
+	    OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1","Battery Status", "0=ok");
 	else if (B1Status = 1)
-	    BuildHttpMessage("DETAILSTATE", "AUTOGENERATED", "MIC1","Battery Status", "1=Yellow/Mic is Calculating Battery Time/B < 5H");
+	    OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1","Battery Status", "1=Yellow/Mic is Calculating Battery Time/B < 5H");
 	else if (B1Status = 2)
-	    BuildHttpMessage("DETAILSTATE", "AUTOGENERATED", "MIC1","Battery Status", "2=Orange/AA Batteries or unknown/B < 3H");
+	    OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1","Battery Status", "2=Orange/AA Batteries or unknown/B < 3H");
 	else if (B1Status = 3)
-	    BuildHttpMessage("DETAILSTATE", "AUTOGENERATED", "MIC1","Battery Status", "3 = Red / B < 1.5H");
+	    OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1","Battery Status", "3 = Red / B < 1.5H");
 	else
-		BuildHttpMessage("DETAILSTATE", "AUTOGENERATED", "MIC1","Battery Status", itoa(B1Status));
+		OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1","Battery Status", itoa(B1Status));
 	
-	BuildHttpMessage("DETAILSTATE", "AUTOGENERATED", "MIC1","Battery Bars", itoa(RV_B1Bars));
+	OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1","Battery Bars", itoa(RV_B1Bars));
 	
 	if (Mic2Status = 0)	
-	    BuildHttpMessage("HEALTH", "AUTOGENERATED", "MIC2","Status Message", "0=Mic On");
+	    OutputEvent("HEALTH", "AUTOGENERATED", "MIC2","Status Message", "0=Mic On");
 	else if (Mic2Status = 2)
-	    BuildHttpMessage("HEALTH", "AUTOGENERATED", "MIC2","Status Message", "1=Mic Initializing/Mic Off ok");
+	    OutputEvent("HEALTH", "AUTOGENERATED", "MIC2","Status Message", "1=Mic Initializing/Mic Off ok");
 	else if (Mic2Status = 3)
-	    BuildHttpMessage("HEALTH", "AUTOGENERATED", "MIC2","Status Message", "3=RF Interference Detected");
+	    OutputEvent("HEALTH", "AUTOGENERATED", "MIC2","Status Message", "3=RF Interference Detected");
 	else
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", "MIC2","Status Message", itoa(Mic2Status));
+		OutputEvent("HEALTH", "AUTOGENERATED", "MIC2","Status Message", itoa(Mic2Status));
 	
 	if (B2Status = 0)	
-	    BuildHttpMessage("DETAILSTATE", "AUTOGENERATED", "MIC2","Battery Status", "0=ok");
+	    OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC2","Battery Status", "0=ok");
 	else if (B2Status = 1)
-	    BuildHttpMessage("DETAILSTATE", "AUTOGENERATED", "MIC2","Battery Status", "1=Yellow/Mic is Calculating Battery Time/B < 5H");
+	    OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC2","Battery Status", "1=Yellow/Mic is Calculating Battery Time/B < 5H");
 	else if (B2Status = 2)
-	    BuildHttpMessage("DETAILSTATE", "AUTOGENERATED", "MIC2","Battery Status", "2=Orange/AA Batteries or unknown/B < 3H");
+	    OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC2","Battery Status", "2=Orange/AA Batteries or unknown/B < 3H");
 	else if (B2Status = 3)
-	    BuildHttpMessage("DETAILSTATE", "AUTOGENERATED", "MIC2","Battery Status", "3 = Red / B < 1.5H");
+	    OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC2","Battery Status", "3 = Red / B < 1.5H");
 	else
-		BuildHttpMessage("DETAILSTATE", "AUTOGENERATED", "MIC2","Battery Status", itoa(B2Status));
+		OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC2","Battery Status", itoa(B2Status));
 	
 	
-	BuildHttpMessage("DETAILSTATE", "AUTOGENERATED", "MIC2","Battery Bars", itoa(RV_B2Bars));
+	OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC2","Battery Bars", itoa(RV_B2Bars));
 
 }
 
 RELEASE Startup_press // Start the session, turn system on
-{  
-	//	StartSession();
-	
+{  	
 	/*User Event*/
-	BuildHttpMessage("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Startup_press");
-	//BuildHttpMessage("touchpanel", "Startup",USER,SESSION);
-	//BuildHttpMessage("touchpanel", "Startup",USER,SESSION);
-	//BuildHttpMessage("touchpanel", "Startup_press",USER,SESSION);
+	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Startup_press");
 }
 
 RELEASE Confirm_System_Off  // End the session, turn system off
 {
 	/*User Event*/
-	BuildHttpMessage("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Confirm_System_Off");
-	//BuildHttpMessage("touchpanel", "System Off",USER,SESSION);
-	//BuildHttpMessage("touchpanel", "Confirm_System_Off",USER,SESSION);
-	
-	/* Designated Session Stop */	
-	//EndSession();
+	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Confirm_System_Off");
 }
 
 Release Program_Volume_Down // Volume Down
 {
 	/*User Event*/
-	BuildHttpMessage("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Program_Volume_Down");
-	//BuildHttpMessage("touchpanel", "Volume Down",USER,SESSION);
-	//BuildHttpMessage("touchpanel", "Program_Volume_Down",USER,SESSION);
+	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Program_Volume_Down");
 }
 
 Release Program_Volume_Up // Volume Up
 {
 	/*User Event*/
-	BuildHttpMessage("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Program_Volume_Up");
-	//BuildHttpMessage("touchpanel", "Volume Up",USER,SESSION);
-	//BuildHttpMessage("touchpanel", "Program_Volume_Up",USER,SESSION);
+	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Program_Volume_Up");
 }
 
 Release Select_Blank // Blank
 {
 	/*User Event*/
-	BuildHttpMessage("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Select_Blank");
-	//BuildHttpMessage("touchpanel", "Blank",USER,SESSION);
-	//BuildHttpMessage("touchpanel", "Select_Blank",USER,SESSION);
+	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Select_Blank");
 }
 
 Release Select_Device_Control_IPTV // IPTV Device Control
 {
 	/*User Event*/
-	BuildHttpMessage("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Select_Device_Control_IPTV");
-	//	BuildHttpMessage("touchpanel", "Device Control - IPTV",USER,SESSION);
-	//BuildHttpMessage("touchpanel", "Select_Device_Control_IPTV",USER,SESSION);
+	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Select_Device_Control_IPTV");
 }
 
 Release Select_HDMI_Cable // HDMI Cable
 {
 	/*User Event*/
-	BuildHttpMessage("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Select_HDMI_Cable");
-	//BuildHttpMessage("touchpanel", "HDMI Cable",USER,SESSION);
-	//BuildHttpMessage("touchpanel", "Select_HDMI_Cable",USER,SESSION);
+	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Select_HDMI_Cable");
 }
 
 Release Select_HDMI_Jack // HDMI Jack
 {
 	/*User Event*/
-	BuildHttpMessage("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Select_HDMI_Jack");
-	//BuildHttpMessage("touchpanel", "HDMI Jack",USER,SESSION);
-	//BuildHttpMessage("touchpanel", "Select_HDMI_Jack",USER,SESSION);
+	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Select_HDMI_Jack");
 }
 
 Release Select_IPTV // IPTV Input
 {
 	/*User Event*/
-	BuildHttpMessage("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Select_IPTV");
-	//BuildHttpMessage("touchpanel", "IPTV",USER,SESSION);
-	//BuildHttpMessage("touchpanel", "Select_IPTV",USER,SESSION);
+	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Select_IPTV");
 }
 
 Release Select_Local_Input // Local Input
 {
 	/*User Event*/
-	BuildHttpMessage("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Select_Local_Input");
-	//BuildHttpMessage("touchpanel", "Local Input",USER,SESSION);
-	//BuildHttpMessage("touchpanel", "Select_Local_Input",USER,SESSION);
+	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Select_Local_Input");
 }
 
 Release Select_Remote_Input1 // Remote Input 1
 {
 	/*User Event*/
-	BuildHttpMessage("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Select_Remote_Input1");
-	//BuildHttpMessage("touchpanel", Input6,USER,SESSION);
+	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Select_Remote_Input1");
 }
 
 Release Select_Remote_Input2 // Remote Input 2
 {
 	/*User Event*/
-	BuildHttpMessage("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Select_Remote_Input2");
-	//BuildHttpMessage("touchpanel", Input7,USER,SESSION);
-}
+	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Select_Remote_Input2");}
 
 Release Select_VGA_Cable // VGA Input
 {
 	/*User Event*/
-	BuildHttpMessage("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Select_VGA_Cable");
-	//BuildHttpMessage("touchpanel", "VGA Cable",USER,SESSION);
-	//BuildHttpMessage("touchpanel", "Select_VGA_Cable",USER,SESSION);
+	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Select_VGA_Cable");
 }
 
 Release Help_Menu_Press // Help
 {
 	/*User Event*/
-	BuildHttpMessage("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Help_Menu_Press");
-	//BuildHttpMessage("touchpanel", "Help Menu",USER,SESSION);
-	//BuildHttpMessage("touchpanel", "Help_Menu_Press",USER,SESSION);
+	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Help_Menu_Press");
 }
 
 Release Home_button // Home
 {
 	/*User Event*/
-	BuildHttpMessage("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Home_button");
-	//BuildHttpMessage("touchpanel", "Home Button",USER,SESSION);
-	//BuildHttpMessage("touchpanel", "Home_button",USER,SESSION);
+	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Home_button");
 }
 
 Release Select_AV_Jack // AV Jack Input
 {
 	/*User Event*/
-	BuildHttpMessage("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Select_A/V_Jack");
-	//BuildHttpMessage("touchpanel", "AV Jack",USER,SESSION);
-	//BuildHttpMessage("touchpanel", "Select_AV_Jack",USER,SESSION);
+	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Select_A/V_Jack");
 }
 
 Release Select_BluRay // Blu-ray Input
 {
 	/*User Event*/
-	BuildHttpMessage("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Select_Blu-ray");
-	//BuildHttpMessage("touchpanel", "Blu-ray",USER,SESSION);
-	//BuildHttpMessage("touchpanel", "Select_BluRay",USER,SESSION);
+	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Select_Blu-ray");
 }
 
 Release Select_Device_Control_Bluray // Device Control Blu-ray
 {
 	/*User Event*/
-	BuildHttpMessage("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Select_Device_Control_Blu-ray");
-	//BuildHttpMessage("touchpanel", "Device Control - Blu-ray",USER,SESSION);
-	//BuildHttpMessage("touchpanel", "Select_Device_Control_BluRay",USER,SESSION);
+	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Select_Device_Control_Blu-ray");
 }
 
 Release Select_PA_Control // PA Control
 {
 	/*User Event*/
-	BuildHttpMessage("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Select_PA_Control");
-	//BuildHttpMessage("touchpanel", "PA Control",USER,SESSION);
-	//BuildHttpMessage("touchpanel", "Select_PA_Control",USER,SESSION);
+	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Select_PA_Control");
 }
 
 Release Program_Volume_Slider_Press // Slider volume control
 {
 	/* User Event */
-	BuildHttpMessage("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Program_Volume_Slider_Press");
-	//BuildHttpMessage("touchpanel", "Volume Slider",USER,SESSION);
-	//BuildHttpMessage("touchpanel", "Program_Volume_Slider_Press",USER,SESSION);
+	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Program_Volume_Slider_Press");
 }
 
 Release Audio_Only_Press // Audio Only button on init screen
 {
-	/* Designated Session Start */
-//	StartSession();
-
 	/* User Event */
-	BuildHttpMessage("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Audio_Only_Press");
-	//BuildHttpMessage("touchpanel", "Audio_Only_Press",USER,SESSION);
-	//BuildHttpMessage("touchpanel", "Audio Only",USER,SESSION);
-}
+	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Audio_Only_Press");}
 
 Push System_power_on_fb
 {
-	BuildHttpMessage("CORESTATE", "USERACTION", HOSTCPNum, "System_Power", "On");
+	OutputEvent("CORESTATE", "USERACTION", HOSTCPNum, "System_Power", "On");
 }
 
 Release System_power_on_fb
 {
-	BuildHttpMessage("CORESTATE", "USERACTION", HOSTCPNum, "System_Power", "Off");
+	OutputEvent("CORESTATE", "USERACTION", HOSTCPNum, "System_Power", "Off");
 }
 
 Push System_Closed_deb
 {
-	BuildHttpMessage("HEALTH", "USERACTION", HOSTCPNum, "System_Closed", "Closed");
+	OutputEvent("HEALTH", "USERACTION", HOSTCPNum, "System_Closed", "Closed");
 }
 
 Release System_Closed_deb
 {
-	BuildHttpMessage("HEALTH", "USERACTION", HOSTCPNum, "System_Closed", "Open");
+	OutputEvent("HEALTH", "USERACTION", HOSTCPNum, "System_Closed", "Open");
 }
 
 Push Monitor_Secure_tt
 {
-	BuildHttpMessage("HEALTH", "USERACTION", HOSTCPNum, "Monitor_Secure", "Ok");
+	OutputEvent("HEALTH", "USERACTION", HOSTCPNum, "Monitor_Secure", "Ok");
 }
 
 Release Monitor_Secure_tt
 {
-	BuildHttpMessage("HEALTH", "USERACTION", HOSTCPNum, "Monitor_Secure", "Disconnected");
+	OutputEvent("HEALTH", "USERACTION", HOSTCPNum, "Monitor_Secure", "Disconnected");
 }
 
 Push TP_Online
 {
-	BuildHttpMessage("HEALTH", "AUTOGENERATED", HOSTCPNum, "TP_Online", "Online");
+	OutputEvent("HEALTH", "AUTOGENERATED", HOSTCPNum, "TP_Online", "Online");
 }
 
 Release TP_Online
 {
-	BuildHttpMessage("HEALTH", "AUTOGENERATED", HOSTCPNum, "TP_Online", "Offline");
+	OutputEvent("HEALTH", "AUTOGENERATED", HOSTCPNum, "TP_Online", "Offline");
 }
 
 Push IPTV_VideoOk
 {
-	BuildHttpMessage("HEALTH", "AUTOGENERATED", HOSTCPNum, "IPTV_VideoOk", "IPTV Video Ok");
+	OutputEvent("HEALTH", "AUTOGENERATED", HOSTCPNum, "IPTV_VideoOk", "IPTV Video Ok");
 }
 
 Release IPTV_VideoOk
 {
-	BuildHttpMessage("HEALTH", "AUTOGENERATED", HOSTCPNum, "IPTV_VideoOk", "No IPTV Video");
+	OutputEvent("HEALTH", "AUTOGENERATED", HOSTCPNum, "IPTV_VideoOk", "No IPTV Video");
 }
 
 Push Input5_Composite_Video_Detected_fb
 {
-	BuildHttpMessage("HEALTH", "AUTOGENERATED", HOSTCPNum, "Input5_Composite_Video_Detected", "Composite_Video_Detected");
+	OutputEvent("HEALTH", "AUTOGENERATED", HOSTCPNum, "Input5_Composite_Video_Detected", "Composite_Video_Detected");
 }
 
 Release Input5_Composite_Video_Detected_fb
 {
-	BuildHttpMessage("HEALTH", "AUTOGENERATED", HOSTCPNum, "Input5_Composite_Video_Detected", "No Composite_Video_Detected");
+	OutputEvent("HEALTH", "AUTOGENERATED", HOSTCPNum, "Input5_Composite_Video_Detected", "No Composite_Video_Detected");
 }
 
 Push Display1_Power_is_On
 {
-	BuildHttpMessage("CORESTATE", "USERACTION", "D1", "Power", "On");
+	OutputEvent("CORESTATE", "USERACTION", "D1", "Power", "On");
 }
 
 Release Display1_Power_is_On
 {
-	BuildHttpMessage("CORESTATE", "USERACTION", "D1", "Power", "Standby");
+	OutputEvent("CORESTATE", "USERACTION", "D1", "Power", "Standby");
 }
 
 Push Display1_Secure_deb
 {
-	BuildHttpMessage("HEALTH", "AUTOGENERATED", "D1", "Secure", "Ok");
+	OutputEvent("HEALTH", "AUTOGENERATED", "D1", "Secure", "Ok");
 }
 
 Release Display1_Secure_deb
 {
-	BuildHttpMessage("HEALTH", "AUTOGENERATED", "D1", "Secure", "Disconnected");
+	OutputEvent("HEALTH", "AUTOGENERATED", "D1", "Secure", "Disconnected");
 }
 
 Push Display1_Ans_ros
 {
-	BuildHttpMessage("HEALTH", "AUTOGENERATED", "D1", "Responsive", "Ok");
+	OutputEvent("HEALTH", "AUTOGENERATED", "D1", "Responsive", "Ok");
 }
 
 Release Display1_Ans_ros
 {
-	BuildHttpMessage("HEALTH", "AUTOGENERATED", "D1", "Responsive", "No Response");
+	OutputEvent("HEALTH", "AUTOGENERATED", "D1", "Responsive", "No Response");
 }
 
 Push Not_Display1_Offline
 {
-	BuildHttpMessage("HEALTH", "AUTOGENERATED", "D1", "Online", "Online");
+	OutputEvent("HEALTH", "AUTOGENERATED", "D1", "Online", "Online");
 }
 
 Release Not_Display1_Offline
 {
-	BuildHttpMessage("HEALTH", "AUTOGENERATED", "D1", "Online", "Offline");
+	OutputEvent("HEALTH", "AUTOGENERATED", "D1", "Online", "Offline");
 }
 
 Push Display2_Power_is_On
 {
-	BuildHttpMessage("CORESTATE", "USERACTION", "D2", "Power", "On");
+	OutputEvent("CORESTATE", "USERACTION", "D2", "Power", "On");
 }
 
 Release Display2_Power_is_On
 {
-	BuildHttpMessage("CORESTATE", "USERACTION", "D2", "Power", "Standby");
+	OutputEvent("CORESTATE", "USERACTION", "D2", "Power", "Standby");
 }
 
 Push Display2_Secure_tt
 {
-	BuildHttpMessage("HEALTH", "AUTOGENERATED", "D2", "Secure", "Ok");
+	OutputEvent("HEALTH", "AUTOGENERATED", "D2", "Secure", "Ok");
 }
 
 Release Display2_Secure_tt
 {
-	BuildHttpMessage("HEALTH", "AUTOGENERATED", "D2", "Secure", "Disconnected");
+	OutputEvent("HEALTH", "AUTOGENERATED", "D2", "Secure", "Disconnected");
 }
 
 Push Display2_Ans_ros
 {
-	BuildHttpMessage("HEALTH", "AUTOGENERATED", "D2", "Responsive", "Ok");
+	OutputEvent("HEALTH", "AUTOGENERATED", "D2", "Responsive", "Ok");
 }
 
 Release Display2_Ans_ros
 {
-	BuildHttpMessage("HEALTH", "AUTOGENERATED", "D2", "Responsive", "No Response");
+	OutputEvent("HEALTH", "AUTOGENERATED", "D2", "Responsive", "No Response");
 }
 
 Push Not_Display2_Offline
 {
-	BuildHttpMessage("HEALTH", "AUTOGENERATED", "D2", "Online", "Online");
+	OutputEvent("HEALTH", "AUTOGENERATED", "D2", "Online", "Online");
 }
 
 Release Not_Display2_Offline
 {
-	BuildHttpMessage("HEALTH", "AUTOGENERATED", "D2", "Online", "Offline");
+	OutputEvent("HEALTH", "AUTOGENERATED", "D2", "Online", "Offline");
 }
 
 Push Display3_Power_is_On
 {
-	BuildHttpMessage("CORESTATE", "USERACTION", "D3", "Power", "On");
+	OutputEvent("CORESTATE", "USERACTION", "D3", "Power", "On");
 }
 
 Release Display3_Power_is_On
 {
-	BuildHttpMessage("CORESTATE", "USERACTION", "D3", "Power", "Standby");
+	OutputEvent("CORESTATE", "USERACTION", "D3", "Power", "Standby");
 }
 
 Push Display3_Secure_tt
 {
-	BuildHttpMessage("HEALTH", "AUTOGENERATED", "D3", "Secure", "Ok");
+	OutputEvent("HEALTH", "AUTOGENERATED", "D3", "Secure", "Ok");
 }
 
 Release Display3_Secure_tt
 {
-	BuildHttpMessage("HEALTH", "AUTOGENERATED", "D3", "Secure", "Disconnected");
+	OutputEvent("HEALTH", "AUTOGENERATED", "D3", "Secure", "Disconnected");
 }
 
 Push Display3_Ans_ros
 {
-	BuildHttpMessage("HEALTH", "AUTOGENERATED", "D3", "Responsive", "Ok");
+	OutputEvent("HEALTH", "AUTOGENERATED", "D3", "Responsive", "Ok");
 }
 
 Release Display3_Ans_ros
 {
-	BuildHttpMessage("HEALTH", "AUTOGENERATED", "D3", "Responsive", "No Response");
+	OutputEvent("HEALTH", "AUTOGENERATED", "D3", "Responsive", "No Response");
 }
 
 Push Not_Display3_Offline
 {
-	BuildHttpMessage("HEALTH", "AUTOGENERATED", "D3", "Online", "Online");
+	OutputEvent("HEALTH", "AUTOGENERATED", "D3", "Online", "Online");
 }
 
 Release Not_Display3_Offline
 {
-	BuildHttpMessage("HEALTH", "AUTOGENERATED", "D3", "Online", "Offline");
+	OutputEvent("HEALTH", "AUTOGENERATED", "D3", "Online", "Offline");
 }
 
 Push WlsMicAlert
 {
-	BuildHttpMessage("HEALTH", "AUTOGENERATED", "RCV1", "Mic Alerting", "Error");
+	OutputEvent("HEALTH", "AUTOGENERATED", "RCV1", "Mic Alerting", "Error");
 }
 
 Release WlsMicAlert
 {
-	BuildHttpMessage("HEALTH", "AUTOGENERATED", "RCV1", "Mic Alerting", "Okay");
+	OutputEvent("HEALTH", "AUTOGENERATED", "RCV1", "Mic Alerting", "Okay");
 }
 
 Push RV_WlsMic_TCP_IPConnect
 {
-	BuildHttpMessage("HEALTH", "AUTOGENERATED", "RCV1", "Online", "Online");
+	OutputEvent("HEALTH", "AUTOGENERATED", "RCV1", "Online", "Online");
 }
 
 Release RV_WlsMic_TCP_IPConnect
 {
-	BuildHttpMessage("HEALTH", "AUTOGENERATED", "RCV1", "Online", "Offline");
+	OutputEvent("HEALTH", "AUTOGENERATED", "RCV1", "Online", "Offline");
 }
 
 Push RV_Mic1_On
 {
-	BuildHttpMessage("CORESTATE", "USERACTION", "Mic1", "Power", "On");
+	OutputEvent("CORESTATE", "USERACTION", "Mic1", "Power", "On");
 }
 
 Release RV_Mic1_On
 {
-	BuildHttpMessage("CORESTATE", "USERACTION", "Mic1", "Power", "Standby");
+	OutputEvent("CORESTATE", "USERACTION", "Mic1", "Power", "Standby");
 }
 
 Push RV_Mic1LT5Hr
 {
-	BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "Mic1", "RV_Mic1LT5Hr", "LT 5Hrs");
+	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic1", "RV_Mic1LT5Hr", "LT 5Hrs");
 }
 
 Release RV_Mic1LT5Hr
 {
-	BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "Mic1", "RV_Mic1LT5Hr", "GT 5Hrs");
+	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic1", "RV_Mic1LT5Hr", "GT 5Hrs");
 }
 
 Push RV_Mic1LT3Hr
 {
-	BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "Mic1", "RV_Mic1LT3Hr", "LT 3Hrs");
+	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic1", "RV_Mic1LT3Hr", "LT 3Hrs");
 }
 
 Release RV_Mic1LT3Hr
 {
-	BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "Mic1", "RV_Mic1LT3Hr", "GT 3Hrs");
+	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic1", "RV_Mic1LT3Hr", "GT 3Hrs");
 }
 
 Push RV_Mic1LT1_5Hr
 {
-	BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "Mic1", "RV_Mic1LT1.5Hr", "LT 1.5Hrs");
+	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic1", "RV_Mic1LT1.5Hr", "LT 1.5Hrs");
 }
 
 Release RV_Mic1LT1_5Hr
 {
-	BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "Mic1", "RV_Mic1LT1.5Hr", "GT 1.5Hrs");
+	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic1", "RV_Mic1LT1.5Hr", "GT 1.5Hrs");
 }
 
 Push RV_Mic1_RF_Int_Det
 {
-	BuildHttpMessage("HEALTH", "AUTOGENERATED", "Mic1", "RV_Mic1_RF_Int_Det", "RF Interference Detected");
+	OutputEvent("HEALTH", "AUTOGENERATED", "Mic1", "RV_Mic1_RF_Int_Det", "RF Interference Detected");
 }
 
 Release RV_Mic1_RF_Int_Det
 {
-	BuildHttpMessage("HEALTH", "AUTOGENERATED", "Mic1", "RV_Mic1_RF_Int_Det", "Okay");
+	OutputEvent("HEALTH", "AUTOGENERATED", "Mic1", "RV_Mic1_RF_Int_Det", "Okay");
 }
 
 Push RV_Mic2_On
 {
-	BuildHttpMessage("CORESTATE", "USERACTION", "Mic2", "Power", "On");
+	OutputEvent("CORESTATE", "USERACTION", "Mic2", "Power", "On");
 }
 
 Release RV_Mic2_On
 {
-	BuildHttpMessage("CORESTATE", "USERACTION", "Mic2", "Power", "Standby");
+	OutputEvent("CORESTATE", "USERACTION", "Mic2", "Power", "Standby");
 }
 
 Push RV_Mic2LT5Hr
 {
-	BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "Mic2", "RV_Mic2LT5Hr", "LT 5Hrs");
+	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic2", "RV_Mic2LT5Hr", "LT 5Hrs");
 }
 
 Release RV_Mic2LT5Hr
 {
-	BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "Mic2", "RV_Mic2LT5Hr", "GT 5Hrs");
+	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic2", "RV_Mic2LT5Hr", "GT 5Hrs");
 }
 
 Push RV_Mic2LT3Hr
 {
-	BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "Mic2", "RV_Mic2LT3Hr", "LT 3Hrs");
+	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic2", "RV_Mic2LT3Hr", "LT 3Hrs");
 }
 
 Release RV_Mic2LT3Hr
 {
-	BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "Mic2", "RV_Mic2LT3Hr", "GT 3Hrs");
+	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic2", "RV_Mic2LT3Hr", "GT 3Hrs");
 }
 
 Push RV_Mic2LT1_5Hr
 {
-	BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "Mic2", "RV_Mic2LT1.5Hr", "LT 1.5Hrs");
+	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic2", "RV_Mic2LT1.5Hr", "LT 1.5Hrs");
 }
 
 Release RV_Mic2LT1_5Hr
 {
-	BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "Mic2", "RV_Mic2LT1.5Hr", "GT 1.5Hrs");
+	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic2", "RV_Mic2LT1.5Hr", "GT 1.5Hrs");
 }
 
 Push RV_Mic2_RF_Int_Det
 {
-	BuildHttpMessage("HEALTH", "AUTOGENERATED", "Mic2", "RV_Mic2_RF_Int_Det", "RF Interference Detected");
+	OutputEvent("HEALTH", "AUTOGENERATED", "Mic2", "RV_Mic2_RF_Int_Det", "RF Interference Detected");
 }
 
 Release RV_Mic2_RF_Int_Det
 {
-	BuildHttpMessage("HEALTH", "AUTOGENERATED", "Mic2", "RV_Mic2_RF_Int_Det", "Okay");
+	OutputEvent("HEALTH", "AUTOGENERATED", "Mic2", "RV_Mic2_RF_Int_Det", "Okay");
 }
 
 Push sendAll
@@ -1142,169 +1122,169 @@ Push sendAll
       
 Push SendHeartbeat
 {
-	BuildHttpMessage("HEALTH", "AUTOGENERATED", HOSTCPNum, "Heartbeat", "System_Active");
+	OutputEvent("HEALTH", "AUTOGENERATED", HOSTCPNum, "Heartbeat", "System_Active");
 }
 
 //Strings
 
 Change Program_Name$
 {
-	BuildHttpMessage("INFO", "AUTOGENERATED", HOSTCPNum, "Program_Name", Program_Name$);
+	OutputEvent("INFO", "AUTOGENERATED", HOSTCPNum, "Program_Name", Program_Name$);
 }
 
 Change Program_Compile_Date$
 {
-	BuildHttpMessage("INFO", "AUTOGENERATED", HOSTCPNum, "Program_Compile_Date", Program_Compile_Date$);
+	OutputEvent("INFO", "AUTOGENERATED", HOSTCPNum, "Program_Compile_Date", Program_Compile_Date$);
 }
 
 Change DMPSver$
 {
-	BuildHttpMessage("INFO", "AUTOGENERATED", HOSTCPNum, "DMPSver", DMPSver$);
+	OutputEvent("INFO", "AUTOGENERATED", HOSTCPNum, "DMPSver", DMPSver$);
 }
 
 Change Display1_Status_Message_Fb
 {
-     BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "D1", "Status Message", Display1_Status_Message_Fb);
+     OutputEvent("DEATAILSTATE", "AUTOGENERATED", "D1", "Status Message", Display1_Status_Message_Fb);
 }
 
 Change Display1_Model$
 {
-     BuildHttpMessage("INFO", "AUTOGENERATED", "D1", "Model", Display1_Model$);
+     OutputEvent("INFO", "AUTOGENERATED", "D1", "Model", Display1_Model$);
 }
 
 Change Display1_ID_String_Fb
 {
-     BuildHttpMessage("INFO", "AUTOGENERATED", "D1", "ID String", Display1_ID_String_Fb);
+     OutputEvent("INFO", "AUTOGENERATED", "D1", "ID String", Display1_ID_String_Fb);
 }
 
 Change Display1_IP_Address_Fb
 {
-     BuildHttpMessage("INFO", "AUTOGENERATED", "D1", "IP Address", Display1_IP_Address_Fb);
+     OutputEvent("INFO", "AUTOGENERATED", "D1", "IP Address", Display1_IP_Address_Fb);
 }
 
 Change Display1_Projector_Name_Fb
 {
-     BuildHttpMessage("INFO", "AUTOGENERATED", "D1", "Projector Name", Display1_Projector_Name_Fb);
+     OutputEvent("INFO", "AUTOGENERATED", "D1", "Projector Name", Display1_Projector_Name_Fb);
 }
 
 Change Display1_Resolution
 {
-     BuildHttpMessage("INFO", "AUTOGENERATED", "D1", "Resolution", Display1_Resolution);
+     OutputEvent("INFO", "AUTOGENERATED", "D1", "Resolution", Display1_Resolution);
 }
 
 Change Display1_Firmware_Version
 {
-     BuildHttpMessage("INFO", "AUTOGENERATED", "D1", "Firmware Version", Display1_Firmware_Version);
+     OutputEvent("INFO", "AUTOGENERATED", "D1", "Firmware Version", Display1_Firmware_Version);
 }
 
 
 
 Change Display2_Status_Message_Fb
 {
-     BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "D2", "Status Message", Display2_Status_Message_Fb);
+     OutputEvent("DEATAILSTATE", "AUTOGENERATED", "D2", "Status Message", Display2_Status_Message_Fb);
 }
 
 Change Display2_Model$
 {
-     BuildHttpMessage("INFO", "AUTOGENERATED", "D2", "Model", Display2_Model$);
+     OutputEvent("INFO", "AUTOGENERATED", "D2", "Model", Display2_Model$);
 }
 
 Change Display2_ID_String_Fb
 {
-     BuildHttpMessage("INFO", "AUTOGENERATED", "D2", "ID String", Display2_ID_String_Fb);
+     OutputEvent("INFO", "AUTOGENERATED", "D2", "ID String", Display2_ID_String_Fb);
 }
 
 Change Display2_IP_Address_Fb
 {
-     BuildHttpMessage("INFO", "AUTOGENERATED", "D2", "IP Address", Display2_IP_Address_Fb);
+     OutputEvent("INFO", "AUTOGENERATED", "D2", "IP Address", Display2_IP_Address_Fb);
 }
 
 Change Display2_Projector_Name_Fb
 {
-     BuildHttpMessage("INFO", "AUTOGENERATED", "D2", "Projector Name", Display2_Projector_Name_Fb);
+     OutputEvent("INFO", "AUTOGENERATED", "D2", "Projector Name", Display2_Projector_Name_Fb);
 }
 
 Change Display2_Resolution
 {
-     BuildHttpMessage("INFO", "AUTOGENERATED", "D2", "Resolution", Display2_Resolution);
+     OutputEvent("INFO", "AUTOGENERATED", "D2", "Resolution", Display2_Resolution);
 }
 
 Change Display2_Firmware_Version
 {
-     BuildHttpMessage("INFO", "AUTOGENERATED", "D2", "Firmware Version", Display2_Firmware_Version);
+     OutputEvent("INFO", "AUTOGENERATED", "D2", "Firmware Version", Display2_Firmware_Version);
 }
 
 
 
 Change Display3_Status_Message_Fb
 {
-     BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "D3", "Status Message", Display3_Status_Message_Fb);
+     OutputEvent("DEATAILSTATE", "AUTOGENERATED", "D3", "Status Message", Display3_Status_Message_Fb);
 }
 
 Change Display3_Model$
 {
-     BuildHttpMessage("INFO", "AUTOGENERATED", "D3", "Model", Display3_Model$);
+     OutputEvent("INFO", "AUTOGENERATED", "D3", "Model", Display3_Model$);
 }
 
 Change Display3_ID_String_Fb
 {
-     BuildHttpMessage("INFO", "AUTOGENERATED", "D3", "ID String", Display3_ID_String_Fb);
+     OutputEvent("INFO", "AUTOGENERATED", "D3", "ID String", Display3_ID_String_Fb);
 }
 
 Change Display3_IP_Address_Fb
 {
-     BuildHttpMessage("INFO", "AUTOGENERATED", "D3", "IP Address", Display3_IP_Address_Fb);
+     OutputEvent("INFO", "AUTOGENERATED", "D3", "IP Address", Display3_IP_Address_Fb);
 }
 
 Change Display3_Projector_Name_Fb
 {
-     BuildHttpMessage("INFO", "AUTOGENERATED", "D3", "Projector Name", Display3_Projector_Name_Fb);
+     OutputEvent("INFO", "AUTOGENERATED", "D3", "Projector Name", Display3_Projector_Name_Fb);
 }
 
 Change Display3_Resolution
 {
-     BuildHttpMessage("INFO", "AUTOGENERATED", "D3", "Resolution", Display3_Resolution);
+     OutputEvent("INFO", "AUTOGENERATED", "D3", "Resolution", Display3_Resolution);
 }
 
 Change Display3_Firmware_Version
 {
-     BuildHttpMessage("INFO", "AUTOGENERATED", "D3", "Firmware Version", Display3_Firmware_Version);
+     OutputEvent("INFO", "AUTOGENERATED", "D3", "Firmware Version", Display3_Firmware_Version);
 }
 
 
 Change RV_B1_Time
 {
-     BuildHttpMessage("DETAILSTATE", "AUTOGENERATED", "MIC1", "Battery Time", RV_B1_Time);
+     OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1", "Battery Time", RV_B1_Time);
 }
 
 
 Change RV_M1_GrpChan
 {
-     BuildHttpMessage("DETAILSTATE", "AUTOGENERATED", "MIC1", "Group/Channel", RV_M1_GrpChan);
+     OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1", "Group/Channel", RV_M1_GrpChan);
 }
 
 
 Change Wireless_Monitoring_Transmit_RF_Power1
 {
-     BuildHttpMessage("DETAILSTATE", "AUTOGENERATED", "MIC1", "Transmite RF Power", Wireless_Monitoring_Transmit_RF_Power1);
+     OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1", "Transmite RF Power", Wireless_Monitoring_Transmit_RF_Power1);
 }
 
 
 Change RV_B2_Time
 {
-     BuildHttpMessage("DETAILSTATE", "AUTOGENERATED", "MIC1", "Battery Time", RV_B2_Time);
+     OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1", "Battery Time", RV_B2_Time);
 }
 
 
 Change RV_M2_GrpChan
 {
-     BuildHttpMessage("DETAILSTATE", "AUTOGENERATED", "MIC1", "Group/Channel", RV_M2_GrpChan);
+     OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1", "Group/Channel", RV_M2_GrpChan);
 }
 
 
 Change Wireless_Monitoring_Transmit_RF_Power2
 {
-     BuildHttpMessage("DETAILSTATE", "AUTOGENERATED", "MIC1", "Transmite RF Power", Wireless_Monitoring_Transmit_RF_Power2);
+     OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1", "Transmite RF Power", Wireless_Monitoring_Transmit_RF_Power2);
 }
 
 
@@ -1313,104 +1293,104 @@ Change Wireless_Monitoring_Transmit_RF_Power2
 //int
 Change Displays_Configured
 {
-     BuildHttpMessage("INFO", "AUTOGENERATED", HOSTCPNum, "Displays_Configured", itoa(Displays_Configured));
+     OutputEvent("INFO", "AUTOGENERATED", HOSTCPNum, "Displays_Configured", itoa(Displays_Configured));
 }
 
 Change Display1_Lamp_hours_fb
 {
-     BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "D1","Lamp_Hours", itoa(Display1_Lamp_hours_fb));
+     OutputEvent("DEATAILSTATE", "AUTOGENERATED", "D1","Lamp_Hours", itoa(Display1_Lamp_hours_fb));
 }
 
 Change Display1_Temp
 {
-     BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "D1","Temperature", itoa(Display1_Temp));
+     OutputEvent("DEATAILSTATE", "AUTOGENERATED", "D1","Temperature", itoa(Display1_Temp));
 }
 
 Change Display2_Lamp_hours_fb
 {
-     BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "D2","Lamp_Hours", itoa(Display2_Lamp_hours_fb));
+     OutputEvent("DEATAILSTATE", "AUTOGENERATED", "D2","Lamp_Hours", itoa(Display2_Lamp_hours_fb));
 }
 
 Change Display2_Temp
 {
-     BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "D2","Temperature", itoa(Display2_Temp));
+     OutputEvent("DEATAILSTATE", "AUTOGENERATED", "D2","Temperature", itoa(Display2_Temp));
 }
 
 Change Display3_Lamp_hours_fb
 {
-     BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "D3","Lamp_Hours", itoa(Display3_Lamp_hours_fb));
+     OutputEvent("DEATAILSTATE", "AUTOGENERATED", "D3","Lamp_Hours", itoa(Display3_Lamp_hours_fb));
 }
 
 Change Display3_Temp
 {
-     BuildHttpMessage("DEATAILSTATE", "AUTOGENERATED", "D3","Temperature", itoa(Display3_Temp));
+     OutputEvent("DEATAILSTATE", "AUTOGENERATED", "D3","Temperature", itoa(Display3_Temp));
 }
 
 Change WLS
 {
-     BuildHttpMessage("INFO", "AUTOGENERATED", "RCV1","Wireless Mic Count", itoa(WLS));
+     OutputEvent("INFO", "AUTOGENERATED", "RCV1","Wireless Mic Count", itoa(WLS));
 }
 
 Change Mic1Status
 {
 	if (Mic1Status = 0)	
-	    BuildHttpMessage("HEALTH", "AUTOGENERATED", "MIC1","Status Message", "0=Mic On");
+	    OutputEvent("HEALTH", "AUTOGENERATED", "MIC1","Status Message", "0=Mic On");
 	else if (Mic1Status = 2)
-	    BuildHttpMessage("HEALTH", "AUTOGENERATED", "MIC1","Status Message", "1=Mic Initializing/Mic Off ok");
+	    OutputEvent("HEALTH", "AUTOGENERATED", "MIC1","Status Message", "1=Mic Initializing/Mic Off ok");
 	else if (Mic1Status = 3)
-	    BuildHttpMessage("HEALTH", "AUTOGENERATED", "MIC1","Status Message", "3=RF Interference Detected");
+	    OutputEvent("HEALTH", "AUTOGENERATED", "MIC1","Status Message", "3=RF Interference Detected");
 	else
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", "MIC1","Status Message", itoa(Mic1Status));
+		OutputEvent("HEALTH", "AUTOGENERATED", "MIC1","Status Message", itoa(Mic1Status));
 }
 
 Change B1Status
 {
 	if (B1Status = 0)	
-	    BuildHttpMessage("DETAILSTATE", "AUTOGENERATED", "MIC1","Battery Status", "0=ok");
+	    OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1","Battery Status", "0=ok");
 	else if (B1Status = 1)
-	    BuildHttpMessage("DETAILSTATE", "AUTOGENERATED", "MIC1","Battery Status", "1=Yellow/Mic is Calculating Battery Time/B < 5H");
+	    OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1","Battery Status", "1=Yellow/Mic is Calculating Battery Time/B < 5H");
 	else if (B1Status = 2)
-	    BuildHttpMessage("DETAILSTATE", "AUTOGENERATED", "MIC1","Battery Status", "2=Orange/AA Batteries or unknown/B < 3H");
+	    OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1","Battery Status", "2=Orange/AA Batteries or unknown/B < 3H");
 	else if (B1Status = 3)
-	    BuildHttpMessage("DETAILSTATE", "AUTOGENERATED", "MIC1","Battery Status", "3 = Red / B < 1.5H");
+	    OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1","Battery Status", "3 = Red / B < 1.5H");
 	else
-		BuildHttpMessage("DETAILSTATE", "AUTOGENERATED", "MIC1","Battery Status", itoa(B1Status));
+		OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1","Battery Status", itoa(B1Status));
 }
 
 Change RV_B1Bars
 {
-     BuildHttpMessage("DETAILSTATE", "AUTOGENERATED", "MIC1","Battery Bars", itoa(RV_B1Bars));
+     OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1","Battery Bars", itoa(RV_B1Bars));
 }
 
 Change Mic2Status
 {
 	if (Mic2Status = 0)	
-	    BuildHttpMessage("HEALTH", "AUTOGENERATED", "MIC2","Status Message", "0=Mic On");
+	    OutputEvent("HEALTH", "AUTOGENERATED", "MIC2","Status Message", "0=Mic On");
 	else if (Mic2Status = 2)
-	    BuildHttpMessage("HEALTH", "AUTOGENERATED", "MIC2","Status Message", "1=Mic Initializing/Mic Off ok");
+	    OutputEvent("HEALTH", "AUTOGENERATED", "MIC2","Status Message", "1=Mic Initializing/Mic Off ok");
 	else if (Mic2Status = 3)
-	    BuildHttpMessage("HEALTH", "AUTOGENERATED", "MIC2","Status Message", "3=RF Interference Detected");
+	    OutputEvent("HEALTH", "AUTOGENERATED", "MIC2","Status Message", "3=RF Interference Detected");
 	else
-		BuildHttpMessage("HEALTH", "AUTOGENERATED", "MIC2","Status Message", itoa(Mic2Status));
+		OutputEvent("HEALTH", "AUTOGENERATED", "MIC2","Status Message", itoa(Mic2Status));
 }
 
 Change B2Status
 {
 	if (B2Status = 0)	
-	    BuildHttpMessage("DETAILSTATE", "AUTOGENERATED", "MIC2","Battery Status", "0=ok");
+	    OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC2","Battery Status", "0=ok");
 	else if (B2Status = 1)
-	    BuildHttpMessage("DETAILSTATE", "AUTOGENERATED", "MIC2","Battery Status", "1=Yellow/Mic is Calculating Battery Time/B < 5H");
+	    OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC2","Battery Status", "1=Yellow/Mic is Calculating Battery Time/B < 5H");
 	else if (B2Status = 2)
-	    BuildHttpMessage("DETAILSTATE", "AUTOGENERATED", "MIC2","Battery Status", "2=Orange/AA Batteries or unknown/B < 3H");
+	    OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC2","Battery Status", "2=Orange/AA Batteries or unknown/B < 3H");
 	else if (B2Status = 3)
-	    BuildHttpMessage("DETAILSTATE", "AUTOGENERATED", "MIC2","Battery Status", "3 = Red / B < 1.5H");
+	    OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC2","Battery Status", "3 = Red / B < 1.5H");
 	else
-		BuildHttpMessage("DETAILSTATE", "AUTOGENERATED", "MIC2","Battery Status", itoa(B2Status));
+		OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC2","Battery Status", itoa(B2Status));
 }
 
 Change RV_B2Bars
 {
-     BuildHttpMessage("DETAILSTATE", "AUTOGENERATED", "MIC2","Battery Bars", itoa(RV_B2Bars));
+     OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC2","Battery Bars", itoa(RV_B2Bars));
 }
 
 
@@ -1430,7 +1410,7 @@ CHANGE cpHostName
 	INTEGER spacePosition,dash1,dash2,InvalidHostName;
 	bldg = "";
 	room = "";
-	flr = "";	
+	//flr = "";	
 	InvalidHostName = 0;
 //	print("Got a Change on dmpsHost - cpHostName: \"%s\".\n", cpHostName);
 
@@ -1456,31 +1436,37 @@ CHANGE cpHostName
 	dash2 = 0;
 	dash1 = find("-",HOSTNAME);
 	if(dash1 > 1)
-		{
+	{
 		dash2 = findnocase("-cp",HOSTNAME,dash1);
+
 		if(dash2>dash1)
-			{
+		{
 			bldg = mid(HOSTNAME, 1, dash1 - 1);
 			room = mid(HOSTNAME, dash1 + 1, (dash2 - dash1) - 1);
 			HOSTCPNum = mid(HOSTNAME, dash2 + 1, len(HOSTNAME) - dash2);
 			InvalidHostName = 0;
-			}
+		}
 		Else
+		{
 			InvalidHostName = 1;
 		}
+	}
 	Else
+	{
 		InvalidHostName = 1;
-     If(InvalidHostName)
+
+	    If(InvalidHostName)
 		{
-		//Invalid Hostname format
-        bldg = "NoBldg";
-		room = "NoRm";
-		HOSTCPNum = "CP?";
+			//Invalid Hostname format
+	        bldg = "NoBldg";
+			room = "NoRm";
+			HOSTCPNum = "CP?";
 		}
+	}
 
 	HOSTBLDG = bldg;
 	HOSTROOM = room;
-	HOSTFLOOR = flr;
+	//HOSTFLOOR = flr;
 //	print("HOSTBLDG: %s\nHOSTROOM: %s\nHOSTFLOOR: %s\ndash1: %d\ndash2: %d\nHOSTCPNum: %s\n",HOSTBLDG,HOSTROOM,HOSTFLOOR,dash1,dash2,HOSTCPNum);	
 }
 
@@ -1508,6 +1494,15 @@ CHANGE cpMACAddr
 		HOSTMAC = cpMACAddr;
 	}
 }
+
+
+PUSH systemReady
+{
+	//_clientConnected = 1;
+	OutputEvent("HEALTH", "AUTOGENERATED", HOSTCPNum, "Rebooted", "System_Rebooted");
+}
+
+ /*
 // Generate/store SessionID
 CHANGE sessionId
 {
@@ -1580,13 +1575,7 @@ RELEASE clientConnected
 	if (status < 0)
 		Print("Error disconnecting socket to address %s on port %d",REPORTINGHOST,REPORTINGHOSTPORT);
 }
-
-PUSH systemReady
-{
-	_clientConnected = 1;
-	BuildHttpMessage("HEALTH", "AUTOGENERATED", HOSTCPNum, "Rebooted", "System_Rebooted");
-	//BuildHttpMessage("controlProcessor", "System rebooted",SYSTEM,"");	
-}
+*/
 
 // The SOCKETCONNECT event is called when a socket connection is completed on a TCP_CLIENT or  TCP_SERVER variable.
 /***********
@@ -1596,6 +1585,8 @@ prevented from retriggering, until the entire code block in the event has execut
 Events prevented from triggering WILL be dropped.
 
 ************/
+
+/*
 THREADSAFE SOCKETCONNECT client
 {
 	SIGNED_INTEGER LocalStatus,PortNumber;
@@ -1612,8 +1603,8 @@ THREADSAFE SOCKETCONNECT client
 		Print("OnConnect: Connected to port %ld on address %s\n", REPORTINGHOSTPORT, REPORTINGHOST);
 	
 	// Consider doing a document overwrite
-	BuildHttpMessage("HEALTH", "AUTOGENERATED", HOSTCPNum, "Heartbeat", "System_Active");
-	//BuildHttpMessage("controlProcessor", "System active",SYSTEM,"");
+	OutputEvent("HEALTH", "AUTOGENERATED", HOSTCPNum, "Heartbeat", "System_Active");
+	//OutputEvent("controlProcessor", "System active",SYSTEM,"");
 
 	// Starts timer to force reconnect of stale session
 
@@ -1660,6 +1651,7 @@ SOCKETRECEIVE client
     // send to serial output and clear buffer
     //clientRx = client.SocketRxBuf;
     ClearBuffer(client.SocketRxBuf);
+
 }
 
 // The SOCKETSTATUS event is called when the status of a TCP_CLIENT or TCP_SERVER socket changes.
@@ -1752,7 +1744,7 @@ SOCKETSTATUS client
 			Log("Socket Status Undefined\n");
 		}
 	};
-}
+}*/
 
 /*******************************************************************************************
   Main()
@@ -1776,17 +1768,17 @@ Function Main()
 //	REPORTINGHOST = "sandbag.byu.edu";
 //	REPORTINGHOSTPORT = 5579;
 //	HEARTBEATHOSTPORT = 5580;
-	RECONNECTTIME = 9000; // Set reconnect timer for 90 seconds.
+	//RECONNECTTIME = 9000; // Set reconnect timer for 90 seconds.
 	HOSTNAME = "";
 	HOSTIP = "";
 	HOSTMAC = "";
 	HOSTBLDG = "";
 	HOSTROOM = "";
 	HOSTCPNum = "";
-	HOSTFLOOR = "";
-	HOSTLAT = "40.249719";
-	HOSTLON = "-111.649265";
-	SESSION = "";
+	//HOSTFLOOR = "";
+	//HOSTLAT = "40.249719";
+	//HOSTLON = "-111.649265";
+	//SESSION = "";
 	INPUT1 = "";
 	INPUT2 = "";
 	INPUT3 = "";
@@ -1794,6 +1786,8 @@ Function Main()
 	INPUT5 = "";
 	INPUT6 = "";
 	INPUT7 = "";
+
+	ISSENDINGMESSAGE = 0;
     //GetConfigurationValue("room");    
 	// !!!!!!!!!! TODO: Use Configuration File to store Event Host Information
 	/*
