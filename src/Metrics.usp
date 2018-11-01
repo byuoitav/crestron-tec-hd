@@ -7,6 +7,7 @@ Dealer Name: Brigham Young University
 System Name: Metrics Proxy
 System Number: 1.3.0
 Programmer: DC/David Allred / Matt Blodgett 10-2018
+
 Comments: Forwards Metrics Events.  In October 2018, we ran into an issue with
    increasing the number of metrics we were sending.  Trying to change to just
    output events to the console and then let a listener take care of sending
@@ -26,7 +27,6 @@ Comments: Forwards Metrics Events.  In October 2018, we ran into an issue with
 #OUTPUT_SHIFT 25
 #DEFAULT_VOLATILE
 #ENABLE_STACK_CHECKING
-//#PRINT_TO_TRACE
 
 /*******************************************************************************************
   DIGITAL_INPUT, ANALOG_INPUT, STRING_INPUT, BUFFER_INPUT inputs and DIGITAL_OUTPUT, 
@@ -37,72 +37,43 @@ DIGITAL_INPUT Startup_press,Confirm_System_Off,Program_Volume_Down,Program_Volum
 			Select_HDMI_Cable,Select_HDMI_Jack,Select_IPTV,Select_Local_Input,Select_PA_Control,
 			Select_Remote_Input1,Select_Remote_Input2,Select_VGA_Cable,Help_Menu_Press,
 			Home_button,Program_Volume_Slider_Press,Audio_Only_Press,_skip_,System_power_on_fb,
-			System_Closed_deb,Monitor_Secure_tt,TP_Online,IPTV_VideoOk,Input5_Composite_Video_Detected_fb,_skip_,
+			System_Closed_deb,Monitor_Secure_tt,TP_Online,_skip_,
 			Display1_Power_is_On,Display1_Secure_deb,Display1_Ans_ros,Not_Display1_Offline,_skip_,
-			Display2_Power_is_On,Display2_Secure_tt,Display2_Ans_ros,Not_Display2_Offline,_skip_,
-			Display3_Power_is_On,Display3_Secure_tt,Display3_Ans_ros,Not_Display3_Offline,_skip_,
+			Display2_Is_None,Display2_Power_is_On,Display2_Secure_tt,Display2_Ans_ros,Not_Display2_Offline,_skip_,
+			Display3_Is_None,Display3_Power_is_On,Display3_Secure_tt,Display3_Ans_ros,Not_Display3_Offline,_skip_,
 			WlsMicAlert,RV_WlsMic_TCP_IPConnect,_skip_,
-			RV_Mic1_On,RV_Mic1LT5Hr,RV_Mic1LT3Hr,RV_Mic1LT1_5Hr,RV_Mic1_RF_Int_Det,_skip_,
-			RV_Mic2_On,RV_Mic2LT5Hr,RV_Mic2LT3Hr,RV_Mic2LT1_5Hr,RV_Mic2_RF_Int_Det;
+			RV_Mic1_On,RV_Mic1_RF_Int_Det,_skip_,
+			RV_Mic2_On,RV_Mic2_RF_Int_Det,_skip_,
+			Program_Volume_Mute_On_fb;
 
 DIGITAL_INPUT _skip_,_skip_,_skip_,_skip_,_skip_;
  
-DIGITAL_INPUT clientConnected,systemReady,sendAll,SendHeartbeat,_skip_;   
+DIGITAL_INPUT stopSendingEvents,systemReady,sendAll,SendHeartbeat,_skip_;   
 
-STRING_INPUT cpHostName[32],cpIp[15],cpMACAddr[18],devBuilding[8],devRoom[16],devFloor[2],
-			devLatitude[11],devLongitude[11],volumeLevel[4],sessionId[256],InputLabel1[30],
-			InputLabel2[30],InputLabel3[30],InputLabel4[30],InputLabel5[30],InputLabel6[30],
-			InputLabel7[30],ReportToHost[30],Program_Name$[15],Program_Compile_Date$[30],DMPSver$[100],
-			Display1_Status_Message_Fb[25],Display1_Model$[50],Display1_ID_String_Fb[50],Display1_IP_Address_Fb[50],
+STRING_INPUT cpHostName[32],cpIp[15],cpMACAddr[18],Program_Name$[15],Program_Compile_Date$[30],DMPSver$[100],
+			Display1_Status_Message_Fb[25],Display1_ID_String_Fb[50],Display1_IP_Address_Fb[50],
 			Display1_Projector_Name_Fb[50],Display1_Resolution[25],Display1_Firmware_Version[25],Display2_Status_Message_Fb[25],
-			Display2_Model$[50],Display2_ID_String_Fb[50],Display2_IP_Address_Fb[50],Display2_Projector_Name_Fb[50],
+			Display2_ID_String_Fb[50],Display2_IP_Address_Fb[50],Display2_Projector_Name_Fb[50],
 			Display2_Resolution[25],Display2_Firmware_Version[25],
-			Display3_Status_Message_Fb[25],Display3_Model$[50],Display3_ID_String_Fb[50],Display3_IP_Address_Fb[50],
+			Display3_Status_Message_Fb[25],Display3_ID_String_Fb[50],Display3_IP_Address_Fb[50],
 			Display3_Projector_Name_Fb[25],Display3_Resolution[25],Display3_Firmware_Version[25],
 			RV_B1_Time[30],RV_M1_GrpChan[30],Wireless_Monitoring_Transmit_RF_Power1[30],			
 			RV_B2_Time[30],RV_M2_GrpChan[30],Wireless_Monitoring_Transmit_RF_Power2[30];
-                               
-BUFFER_INPUT clientBuffer[100];
+                              
 
-ANALOG_INPUT ReportToHostPort,Displays_Configured, Display1_Lamp_hours_fb, Display1_Temp, Display2_Lamp_hours_fb, 
-			Display2_Temp, Display3_Lamp_hours_fb, Display3_Temp, WLS, Mic1Status, B1Status, RV_B1Bars, 
-			Mic2Status, B2Status, RV_B2Bars;
+ANALOG_INPUT Program_Volume_fb, Displays_Configured, Display1_Lamp_hours_fb, Display1_Temp, Display2_Lamp_hours_fb, 
+			Display2_Temp, Display3_Lamp_hours_fb, Display3_Temp, WLS, RV_B1Bars, 
+			RV_B2Bars;
 
-DIGITAL_OUTPUT _clientConnected;
-
-STRING_OUTPUT  _skip_,_skip_,_skip_,_skip_,toDevBuilding,toDevRoom,toDevFloor,toDevLat,
-			toDevLon,toClientBuffer$,storeSessionId;
-
-
-/*******************************************************************************************
-  SOCKETS
-*******************************************************************************************/
-
-//TCP_CLIENT client[1024]; - MB 10-2018
-
-/*******************************************************************************************
-  Structure Definitions
-  Note:  Be sure to initialize all declared STRING variables as needed
-         For example, in Function Main: struct.myString = "";
-*******************************************************************************************/
-
-/*STRUCTURE QUEUEDEVENT
-{
-	STRING userOrSystem[15];
-	STRING header1[1024],header2[1024],header3[1024],header4[1024],header5[1024],header6[1024];
-	STRING innerMsg1[1024],innerMsg2[1024],innerMsg3[1024],innerMsg4[1024];
-};*/                 
 
 /*******************************************************************************************
   Global Variables
   (Uncomment and declare global variables as needed)
   Note:  Be sure to initialize all declared STRING variables as needed
-         For example, in Function Main: myString = "";
+         For example, in Function Main: myString = ";
 *******************************************************************************************/
-STRING 	HOSTNAME[30],HOSTIP[15],HOSTMAC[30],HOSTBLDG[8],HOSTROOM[16],
-		HOSTFLOOR[2],HOSTLAT[11],HOSTLON[11],HOSTCPNum[5],SESSION[256],
-		INPUT1[30],INPUT2[30],INPUT3[30],
-		INPUT4[30],INPUT5[30],INPUT6[30],INPUT7[30];
+STRING 	HOSTNAME[30],HOSTIP[15],HOSTMAC[30],HOSTBLDG[8],HOSTROOM[16],		
+		HOSTCPNUM[6];
 
 STRING MESSAGE[BIGGESTSIZE];
 
@@ -111,117 +82,14 @@ INTEGER ISSENDINGMESSAGE;
 /*******************************************************************************************
   Functions -- No Editing
 *******************************************************************************************/
-           
-/*STRING_FUNCTION Sanitize(string msg)
+  
+STRING_FUNCTION GetTimestamp()
 {
-	string strippedMessage[1024], char[1];
-	integer i;
-
-	for (i = 1 to len(msg)) // Loop through the string
-	{
-		char = mid(msg, i, 1);
-
-		if ((char != "_") && (char != "/")) // Kill character
-		{
-			strippedMessage = strippedMessage + char;
-		}
-	}
-
-	while (mid(strippedMessage, 1, 1) = " ") // Kill the leading space if it exists
-	{
-    	strippedMessage = right(strippedMessage, len(strippedMessage) - 1);
-	}
-     
-	while (mid(strippedMessage, len(strippedMessage), 1) = " ") // Kill the trailing space if it exists
-	{
-    	strippedMessage = left(strippedMessage, len(strippedMessage) - 1);
-	}
-       
-	RETURN (strippedMessage);
-}
-
-Function Log(string msg)
-{	
-	Print("\n%s",msg);
-}
-
-Function Error(string msg)
-{
-	Log(msg);
-}
-
-Function Send(string msg)
-{
-	SIGNED_INTEGER SendResult;
-	//Print("Sending: %s",msg);
-	//SendResult = SocketSend(client,msg);	
-	if (SendResult < 0)
-	{
-		Print("Error sending: %d", SendResult);
-	}
-}
-
-Function storeGlobalVars(string inputString)
-{
-	STRING trash[100],parseThisString[1024],temp[1024];
-	
-	// Expected Format: {"room":{"coordinates":[-111.657548,40.252619],"roomNumber":"1100J","floor":"1","building":"ITB"}}
-	if((FIND("building",inputString) > 0) && (FIND("roomNumber",inputString) > 0) && (FIND("floor",inputString) > 0) && (FIND("building",inputString) > 0))
-	{
-		trash = Remove(":[",inputString);
-		parseThisString = inputString;
-		
-		// Get Longitude
-		HOSTLON = Remove(",",parseThisString);
-		
-		// Get Latitude
-		HOSTLAT = Remove("],",parseThisString);
-		
-		// Get Room
-		trash = Remove(":\"",parseThisString);
-		HOSTROOM = Remove("\"",parseThisString);
-		
-		// Get Floor
-		trash = Remove(":\"",parseThisString);
-		HOSTFLOOR = Remove(",",parseThisString);
-		
-		//Get Building
-		
-		trash = Remove(":\"",parseThisString);
-		temp = parseThisString;
-		HOSTBLDG = Remove("\"",temp);		
-	}
-}
-*/
-        
-//Function BuildHttpMessage(STRING EVENTACTOR, STRING EVENTACTION, STRING userOrSystem, STRING sessn)	//Old Version
-//Renaming to "OutputEvent"
-FUNCTION OutputEvent(STRING EventCause, STRING EventType, STRING EventDevice, STRING EventInfoKey, String EventInfoValue)
-{
-	SIGNED_INTEGER dst,mNum,yNum,dNum,ContentLength;
+	SIGNED_INTEGER dst,mNum,yNum,dNum;
 
 	STRING timestamp[24];
 	STRING dateStr[24];
 	STRING timeStr[24];
-
-	INTEGER messageSent;
-	/*STRING description[256];
-	STRING ipAddress[15];
-	STRING mac[17];
-	STRING building[8];
-	STRING roomNumber[8];
-	STRING type[6];
-	STRING header1[1024],header2[1024],header3[1024],header4[1024],header5[1024],header6[1024];
-	STRING innerMsg1[1024],innerMsg2[1024],innerMsg3[1024],innerMsg4[1024];
-	STRING CLString[1024];*/
-
-
-	/*description = "";
-	ipAddress = HOSTIP;
-	mac = HOSTMAC;
-	building = HOSTBLDG;
-	roomNumber = HOSTROOM;
-	type = EventType;*/
 
 	mNum = GetMonthNum();
 	yNum = GetYearNum();
@@ -238,53 +106,29 @@ FUNCTION OutputEvent(STRING EventCause, STRING EventType, STRING EventDevice, ST
 		timestamp = dateStr +"T"+ timeStr + "-07:00"; // YYYY-MM-DDTHH:mm:ss.SSS-07:00
 	}
 
-    /***************************************************************************************
-		Old version
-	innerMsg1 = "{\"type\": \"" + type + "\",\"timestamp\": \"" + timestamp +"\",\"eventTime\": \"" + timeStr +"\",\"eventDate\": \"" + dateStr +"\",\"device\": {\"hostname\": \"" + HOSTNAME +"\", \"description\": \"";
-	innerMsg2 = "" + description +"\", \"ipAddress\": \"" + ipAddress +"\", \"macAddress\": \"" + mac +"\"}, \"room\": { \"building\": \"" + building;
-	innerMsg3 = "\", \"roomNumber\": \"" + roomNumber +"\",\"coordinates\": \"" + lat +"," + lon +"\", \"floor\": \"" + flr + "\"";
-	innerMsg4 = "},\"action\": {\"actor\": \"" + actor +"\", \"description\": \"" + desc +"\"}, \"session\": \""+ SESSION + "\"}";
-	***************************************************************************************/
-	/*
-	innerMsg1 = "{\"hostname\":\"" + HOSTNAME + "\",\"timestamp\":\"" + timestamp + 
-	"\",\"localEnvironment\":true,\"event\":{\"type\":0,\"requestor\":\"" + HOSTNAME; 
-	innerMsg2 = "\",\"eventcause\":0,\"device\":\"" + EventDevice + "\",\"eventInfoKey\":\"" + EventInfoKey;
-	innerMsg3 = "\",\"eventInfoValue\":\"" + EventInfoValue + "\"},\"building\":\"" + building + "\",\"room\":\"" + roomNumber;
-	innerMsg4 = "\",\"event-cause-string\":\"" + EventCause +"\",\"event-type-string\":\"" + EventType + "\"}";
-	ContentLength = Len(innerMsg1) + Len(innerMsg2) + Len(innerMsg3) + Len(innerMsg4);
-	CLString = ITOA(ContentLength);
- 
-	//header1 = "POST /dmps/heartbeat/ HTTP/1.1" + NEWLINE;   
+	return (timestamp);
+}
+     
+FUNCTION OutputEvent(STRING EventCause, STRING EventType, STRING EventDevice, STRING EventInfoKey, String EventInfoValue)
+{
+	STRING timestamp[24];
+	STRING EventMessage[1024];
 
-	if (EventInfoValue = "System_Active"){
-		header1 = "POST /dmps/heartbeat/ HTTP/1.1" + NEWLINE;
-		//header1 = "POST /dmps/heartbeat/" + hostname + "_SystemActive HTTP/1.1" + NEWLINE;
-		//header2 = "Host: " + REPORTINGHOST + ":" + ITOA(HEARTBEATHOSTPORT) + NEWLINE;
-	}
-	ELSE {
-		header1 = "POST /dmps/event/" + " HTTP/1.1" + NEWLINE;
-		//header2 = "Host: " + REPORTINGHOST + ":" + ITOA(REPORTINGHOSTPORT) + NEWLINE;
-	}
-	header2 = "Host: " + REPORTINGHOST + ":" + ITOA(REPORTINGHOSTPORT) + NEWLINE;
-	header3 = "Connection: keep-alive" + NEWLINE;
-	header4 = "Content-Length: " + CLString + NEWLINE;
-	header5 = "Content-type: application/json" + NEWLINE;
-	header6 = "Accept: *//*" + NEWLINE; //added an extra / to get this to comment out
-	*/
+	INTEGER messageSent;
 
-/*	Send(header1);
-	Send(header2);
-	Send(header3);
-	Send(header4);
-	Send(header5);
-	Send(header6);
-	Send(NEWLINE);
-	Send(innerMsg1);
-	Send(innerMsg2);
-	Send(innerMsg3);
-	Send(innerMsg4);*/
+	if (HOSTIP = "")
+	{
+		Print("Host IP not set yet.\n");
+		return;
+	}
+
+	timestamp = GetTimestamp();
+               
+	MAKESTRING(EventMessage, "~EVENT~%s~%s~%s~%s~%s~%s~%s~%s~\n", HOSTNAME, HOSTIP, timestamp, EventCause, EventType, EventDevice, EventInfoKey, EventInfoValue);
+	Print("%s", EventMessage);
 
 	//have to make this pseudo single threaded without losing events if possible
+	/*
 	DO
 	{	
 		messageSent = 0;
@@ -300,820 +144,894 @@ FUNCTION OutputEvent(STRING EventCause, STRING EventType, STRING EventDevice, ST
 			//new 10-2018 - just output a single line with the event information
 			//Format:
 			//~EVENT~[HostName]~[HostIP]~[Timestamp]~[EventCause]~[EventType]~[EventDevice]~[EventInfoKey]~[EventInfoValue]~\n
-		
-			Print("~EVENT~");
-			Print("%s", HOSTNAME);
-			Print("~");
-			Print("%s", HOSTIP);
-			Print("~");
-			Print("%s", timestamp);
-			Print("~");
-			Print("%s", EventCause);
-			Print("~");
-			Print("%s", EventType);
-			Print("~");
-		    Print("%s", EventDevice);
-			Print("~");
-		    Print("%s", EventInfoKey);
-			Print("~");
-		    Print("%s", EventInfoValue);
-			Print("~");
-			Print("\n");
+
+			if (stopSendingEvents = 0)
+			{		
+				Print("~EVENT~");
+				Print("%s", HOSTNAME);
+				Print("~");
+				Print("%s", HOSTIP);
+				Print("~");
+				Print("%s", timestamp);
+				Print("~");
+				Print("%s", EventCause);
+				Print("~");
+				Print("%s", EventType);
+				Print("~");
+			    Print("%s", EventDevice);
+				Print("~");
+			    Print("%s", EventInfoKey);
+				Print("~");
+			    Print("%s", EventInfoValue);
+				Print("~");
+				Print("\n");
+			}
 	
 			ISSENDINGMESSAGE = 0;
 			messageSent = 1;
 		}	
 	} UNTIL (messageSent = 1);
-}
-
-/*******************************************************************************************
-Comment out function StartSession
-
-Function StartSession()
-{
-	SIGNED_INTEGER mNum,yNum,dNum;
-	INTEGER HSeconds,ch,counter,period;
-	STRING genSession[256], msg[256],tmpMac[30],leftover[30],tmp[30];
-	tmp = "";
-	leftover = "";
-	HSeconds = GetHSeconds();
-	// PATTERN : SERIAL 
-	genSession = ITOA(HSeconds);
-	tmpMac = HOSTMAC;
-	mNum = GetMonthNum();
-	yNum = GetYearNum();
-	dNum = GetDateNum();	
+	*/
 	
-	if (len(tmpMac) > 0 && FIND(".",tmpMac) > 0) // Remove . separators from MacAddress
-	{
-		ch = GetC(tmpMac);		
-		leftover = leftover + CHR(ch);
-		ch = GetC(tmpMac);	
-		leftover = leftover + CHR(ch);
-		period = GetC(tmpMac);
-		
-		ch = GetC(tmpMac);
-		leftover = leftover + CHR(ch);
-		ch = GetC(tmpMac);
-		leftover = leftover + CHR(ch);
-		period = GetC(tmpMac);
-		
-		ch = GetC(tmpMac);
-		leftover = leftover + CHR(ch);
-		ch = GetC(tmpMac);
-		leftover = leftover + CHR(ch);
-		period = GetC(tmpMac);
-		
-		ch = GetC(tmpMac);
-		leftover = leftover + CHR(ch);
-		ch = GetC(tmpMac);
-		leftover = leftover + CHR(ch);
-		period = GetC(tmpMac);
-		
-		ch = GetC(tmpMac);
-		leftover = leftover + CHR(ch);
-		ch = GetC(tmpMac);
-		leftover = leftover + CHR(ch);
-		period = GetC(tmpMac);
-		
-		ch = GetC(tmpMac);
-		leftover = leftover + CHR(ch);
-		ch = GetC(tmpMac);
-		leftover = leftover + CHR(ch);
-	}
-	tmpMac = leftover;
-	HOSTMAC = tmpMac;	// Save cleaned MacAddress formated like: 00017f4e6761
-	storeSessionId = tmpMac + "-" + genSession + "-" + ITOA(yNum) + ITOA(mNum) + ITOA(dNum);	//Format: "00017f4e6761-65535-2018-7-6"
-	msg = "Session START: " + genSession; 	
-	// Designated Session Start 
-	OutputEvent("session",msg,USER,SESSION);
 }
-*******************************************************************************************/
-
-/*******************************************************************************************
-Comment out function EndSession
-
-
-Function EndSession()
-{
-	STRING msg[256];
-	
-	msg = "Session STOP: " + SESSION;
-	
-	storeSessionId = " ";
-
-	//* Designated Session Stop 	
-	OutputEvent("session",msg,USER,SESSION);	
-}
-*******************************************************************************************/
-
-
-/*******************************************************************************************
-Function GetConfigurationValue(string field)
-{
-	SIGNED_INTEGER offset,mNum,yNum,dNum,ContentLength;
-    SIGNED_LONG_INTEGER PortNumber;
-	STRING header1[1024],header2[1024],header3[1024],header4[1024],header5[1024],header6[1024];
-	STRING CLString[1024];
-	ContentLength = 0;
-	CLString = ITOA(ContentLength);
-
-	header1 = "GET /configuration/device/" + HOSTNAME +"?_source_include=" + field+ " HTTP/1.1" + NEWLINE;
-	header2 = "Host: " + AWS + ":" + ITOA(REPORTINGHOSTPORT) + NEWLINE;
-	header3 = "Connection: keep-alive" + NEWLINE;
-	header4 = "Content-Length: " + CLString + NEWLINE;
-	header5 = "Content-type: text/plain;charset=UTF-8" + NEWLINE;
-	header6 = "Accept: **" + NEWLINE;
-
-	Send(header1);
-	Send(header2);
-	Send(header3);
-	Send(header4);
-	Send(header5);
-	Send(header6);
-	Send(NEWLINE);
-}
-
-*******************************************************************************************/
-
-/*******************************************************************************************
-  Event Handlers
-  (Uncomment and declare additional event handlers as needed)
-*******************************************************************************************/
-
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
-/******************
-//
-// !!! MOVE ACTIVE SIGNAL EVENTS INTO THIS SECTION !!!
-//
-******************/
-
 
 Function SendAllEvents()
 {
+                                 
+	/* CP Events */
 
 	if (System_power_on_fb = 1)
-		OutputEvent("CORESTATE", "AUTOGENERATED", HOSTCPNum, "System_Power", "On");
+		OutputEvent("core-state", "auto-generated", HOSTCPNum, "power", "On");
 	else
-		OutputEvent("CORESTATE", "AUTOGENERATED", HOSTCPNum, "System_Power", "Off");
+		OutputEvent("core-state", "auto-generated", HOSTCPNum, "power", "Off");
 
     if (System_Closed_deb = 1)
-		OutputEvent("HEALTH", "AUTOGENERATED", HOSTCPNum, "System_Closed", "Closed");
+		OutputEvent("health", "auto-generated", HOSTCPNum, "active", "False");
 	else
-		OutputEvent("HEALTH", "AUTOGENERATED", HOSTCPNum, "System_Closed", "Open");
+		OutputEvent("health", "auto-generated", HOSTCPNum, "active", "True");
 
 	if (Monitor_Secure_tt = 1)
-		OutputEvent("HEALTH", "AUTOGENERATED", HOSTCPNum, "Monitor_Secure", "Ok");
+		OutputEvent("health", "auto-generated", HOSTCPNum, "secure", "True");
 	else
-		OutputEvent("HEALTH", "AUTOGENERATED", HOSTCPNum, "Monitor_Secure", "Disconnected");
+		OutputEvent("health", "auto-generated", HOSTCPNum, "secure", "False");
 
 	if (TP_Online = 1)
-		OutputEvent("HEALTH", "AUTOGENERATED", HOSTCPNum, "TP_Online", "Online");
+		OutputEvent("health", "auto-generated", HOSTCPNum, "TP_Online", "Online");
 	else
-		OutputEvent("HEALTH", "AUTOGENERATED", HOSTCPNum, "TP_Online", "Offline");
+		OutputEvent("health", "auto-generated", HOSTCPNum, "TP_Online", "Offline");
 
-	if (IPTV_VideoOk = 1)
-		OutputEvent("HEALTH", "AUTOGENERATED", HOSTCPNum, "IPTV_VideoOk", "IPTV Video Ok");
-	else
-		OutputEvent("HEALTH", "AUTOGENERATED", HOSTCPNum, "IPTV_VideoOk", "No IPTV Video");
+	MAKESTRING(MESSAGE, "%s-%s", Program_Name$, Program_Compile_Date$);
+	OutputEvent("info", "auto-generated", HOSTCPNum, "software-version", MESSAGE);
 
-	if (Input5_Composite_Video_Detected_fb = 1)
-		OutputEvent("HEALTH", "AUTOGENERATED", HOSTCPNum, "Input5_Composite_Video_Detected", "Composite_Video_Detected");
+	OutputEvent("info", "auto-generated", HOSTCPNum, "hardware-version", DMPSver$);
+
+	OutputEvent("info", "auto-generated", HOSTCPNum, "volume", itoa(Program_Volume_fb));
+
+	if (Program_Volume_Mute_On_fb = 1)
+		OutputEvent("info", "auto-generated", HOSTCPNum, "muted", "true");
 	else
-		OutputEvent("HEALTH", "AUTOGENERATED", HOSTCPNum, "Input5_Composite_Video_Detected", "No Composite_Video_Detected");
+		OutputEvent("info", "auto-generated", HOSTCPNum, "muted", "false");
+
+    OutputEvent("info", "auto-generated", HOSTCPNum, "Displays_Configured", itoa(Displays_Configured));
+
+	/* Display 1 */
 
 	if (Display1_Power_is_On = 1)
-		OutputEvent("CORESTATE", "AUTOGENERATED", "D1", "Power", "On");
+		OutputEvent("core-state", "auto-generated", "D1", "power", "On");
 	else
-		OutputEvent("CORESTATE", "AUTOGENERATED", "D1", "Power", "Standby");
+		OutputEvent("core-state", "auto-generated", "D1", "power", "Standby");
 
 	if (Display1_Secure_deb = 1)
-		OutputEvent("HEALTH", "AUTOGENERATED", "D1", "Secure", "Ok");
+		OutputEvent("health", "auto-generated", "D1", "secure", "True");
 	else
-		OutputEvent("HEALTH", "AUTOGENERATED", "D1", "Secure", "Disconnected");
+		OutputEvent("health", "auto-generated", "D1", "secure", "False");
 
 	if (Display1_Ans_ros = 1)
-		OutputEvent("HEALTH", "AUTOGENERATED", "D1", "Responsive", "Ok");
+		OutputEvent("health", "auto-generated", "D1", "Responsive", "Ok");
 	else
-		OutputEvent("HEALTH", "AUTOGENERATED", "D1", "Responsive", "No Response");
+		OutputEvent("health", "auto-generated", "D1", "Responsive", "No Response");
 
 	if (Not_Display1_Offline = 1)
-		OutputEvent("HEALTH", "AUTOGENERATED", "D1", "Online", "Online");
+		OutputEvent("health", "auto-generated", "D1", "Online", "Online");
 	else 
-		OutputEvent("HEALTH", "AUTOGENERATED", "D1", "Online", "Offline");
+		OutputEvent("health", "auto-generated", "D1", "Online", "Offline");
 
-	if (Display2_Power_is_On = 1)
-		OutputEvent("CORESTATE", "AUTOGENERATED", "D2", "Power", "On");
-	else
-		OutputEvent("CORESTATE", "AUTOGENERATED", "D2", "Power", "Standby");
+	OutputEvent("detail-state", "auto-generated", "D1", "Status Message", Display1_Status_Message_Fb);
 
-	if (Display2_Secure_tt = 1)
-		OutputEvent("HEALTH", "AUTOGENERATED", "D2", "Secure", "Ok");
-	else	
-		OutputEvent("HEALTH", "AUTOGENERATED", "D2", "Secure", "Disconnected");
+	OutputEvent("info", "auto-generated", "D1", "hardware-version", Display1_ID_String_Fb);
 
-	if (Display2_Ans_ros = 1)
-		OutputEvent("HEALTH", "AUTOGENERATED", "D2", "Responsive", "Ok");
-	else
-		OutputEvent("HEALTH", "AUTOGENERATED", "D2", "Responsive", "No Response");
+	OutputEvent("info", "auto-generated", "D1", "IP Address", Display1_IP_Address_Fb);
+	OutputEvent("info", "auto-generated", "D1", "Projector Name", Display1_Projector_Name_Fb);
+	OutputEvent("info", "auto-generated", "D1", "Resolution", Display1_Resolution);
+	OutputEvent("info", "auto-generated", "D1", "software-version", Display1_Firmware_Version);
 
-	if (Not_Display2_Offline = 1)
-		OutputEvent("HEALTH", "AUTOGENERATED", "D2", "Online", "Online");
-	else
-		OutputEvent("HEALTH", "AUTOGENERATED", "D2", "Online", "Offline");
+    OutputEvent("detail-state", "auto-generated", "D1","lamp-hours", itoa(Display1_Lamp_hours_fb));
+	OutputEvent("detail-state", "auto-generated", "D1","temperature", itoa(Display1_Temp));
 
-	if (Display3_Power_is_On = 1)
-		OutputEvent("CORESTATE", "AUTOGENERATED", "D3", "Power", "On");
-	else
-		OutputEvent("CORESTATE", "AUTOGENERATED", "D3", "Power", "Standby");
-
-	if (Display3_Secure_tt = 1)
-		OutputEvent("HEALTH", "AUTOGENERATED", "D3", "Secure", "Ok");
-	else
-		OutputEvent("HEALTH", "AUTOGENERATED", "D3", "Secure", "Disconnected");
-
-	if (Display3_Ans_ros = 1)
-		OutputEvent("HEALTH", "AUTOGENERATED", "D3", "Responsive", "Ok");
-	else
-		OutputEvent("HEALTH", "AUTOGENERATED", "D3", "Responsive", "No Response");
-
-	if (Not_Display3_Offline = 1)	
-		OutputEvent("HEALTH", "AUTOGENERATED", "D3", "Online", "Online");
-	else
-		OutputEvent("HEALTH", "AUTOGENERATED", "D3", "Online", "Offline");
-
-	if (WlsMicAlert = 1)
-		OutputEvent("HEALTH", "AUTOGENERATED", "RCV1", "Mic Alerting", "Error");
-	else
-		OutputEvent("HEALTH", "AUTOGENERATED", "RCV1", "Mic Alerting", "Okay");
-
-	if (RV_WlsMic_TCP_IPConnect = 1)
-		OutputEvent("HEALTH", "AUTOGENERATED", "RCV1", "Online", "Online");
-	else
-		OutputEvent("HEALTH", "AUTOGENERATED", "RCV1", "Online", "Offline");
-
-	if (RV_Mic1_On = 1)
-		OutputEvent("CORESTATE", "AUTOGENERATED", "Mic1", "Power", "On");
-	else
-		OutputEvent("CORESTATE", "AUTOGENERATED", "Mic1", "Power", "Standby");
-
-	if (RV_Mic1LT5Hr = 1)
-		OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic1", "RV_Mic1LT5Hr", "LT 5Hrs");
-	else
-		OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic1", "RV_Mic1LT5Hr", "GT 5Hrs");
-
-	if (RV_Mic1LT3Hr = 1)
-		OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic1", "RV_Mic1LT3Hr", "LT 3Hrs");
-	else
-		OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic1", "RV_Mic1LT3Hr", "GT 3Hrs");
-
-	if (RV_Mic1LT1_5Hr = 1)	
-		OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic1", "RV_Mic1LT1.5Hr", "LT 1.5Hrs");
-	else
-		OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic1", "RV_Mic1LT1.5Hr", "GT 1.5Hrs");
-
-	if (RV_Mic1_RF_Int_Det = 1)
-		OutputEvent("HEALTH", "AUTOGENERATED", "Mic1", "RV_Mic1_RF_Int_Det", "RF Interference Detected");
-	else
-		OutputEvent("HEALTH", "AUTOGENERATED", "Mic1", "RV_Mic1_RF_Int_Det", "Okay");
-
-
-	if (RV_Mic2_On = 1)
-		OutputEvent("CORESTATE", "AUTOGENERATED", "Mic2", "Power", "On");
-	else
-		OutputEvent("CORESTATE", "AUTOGENERATED", "Mic2", "Power", "Standby");
-
-	if (RV_Mic2LT5Hr = 1)
-		OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic2", "RV_Mic2LT5Hr", "LT 5Hrs");
-	else
-		OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic2", "RV_Mic2LT5Hr", "GT 5Hrs");
-
-	if (RV_Mic2LT3Hr = 1)
-		OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic2", "RV_Mic2LT3Hr", "LT 3Hrs");
-	else
-		OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic2", "RV_Mic2LT3Hr", "GT 3Hrs");
-
-	if (RV_Mic2LT1_5Hr = 1)
-		OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic2", "RV_Mic2LT1.5Hr", "LT 1.5Hrs");
-	else
-		OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic2", "RV_Mic2LT1.5Hr", "GT 1.5Hrs");
-
-	if (RV_Mic2_RF_Int_Det = 1)
-		OutputEvent("HEALTH", "AUTOGENERATED", "Mic2", "RV_Mic2_RF_Int_Det", "RF Interference Detected");
-	else
-		OutputEvent("HEALTH", "AUTOGENERATED", "Mic2", "RV_Mic2_RF_Int_Det", "Okay");
+	/*Display 2 */
+	if (Display2_Is_None = 0)
+	{	
+		if (Display2_Power_is_On = 1)
+			OutputEvent("core-state", "auto-generated", "D2", "power", "On");
+		else
+			OutputEvent("core-state", "auto-generated", "D2", "power", "Standby");
 	
-	OutputEvent("INFO", "AUTOGENERATED", HOSTCPNum, "Program_Name", Program_Name$);
-	OutputEvent("INFO", "AUTOGENERATED", HOSTCPNum, "Program_Compile_Date", Program_Compile_Date$);
-	OutputEvent("INFO", "AUTOGENERATED", HOSTCPNum, "DMPSver", DMPSver$);
-	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "D1", "Status Message", Display1_Status_Message_Fb);
-	OutputEvent("INFO", "AUTOGENERATED", "D1", "Model", Display1_Model$);
-	OutputEvent("INFO", "AUTOGENERATED", "D1", "ID String", Display1_ID_String_Fb);
-	OutputEvent("INFO", "AUTOGENERATED", "D1", "IP Address", Display1_IP_Address_Fb);
-	OutputEvent("INFO", "AUTOGENERATED", "D1", "Projector Name", Display1_Projector_Name_Fb);
-	OutputEvent("INFO", "AUTOGENERATED", "D1", "Resolution", Display1_Resolution);
-	OutputEvent("INFO", "AUTOGENERATED", "D1", "Firmware Version", Display1_Firmware_Version);
-	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "D2", "Status Message", Display2_Status_Message_Fb);
-	OutputEvent("INFO", "AUTOGENERATED", "D2", "Model", Display2_Model$);
-	OutputEvent("INFO", "AUTOGENERATED", "D2", "ID String", Display2_ID_String_Fb);
-	OutputEvent("INFO", "AUTOGENERATED", "D2", "IP Address", Display2_IP_Address_Fb);
-	OutputEvent("INFO", "AUTOGENERATED", "D2", "Projector Name", Display2_Projector_Name_Fb);
-	OutputEvent("INFO", "AUTOGENERATED", "D2", "Resolution", Display2_Resolution);
-	OutputEvent("INFO", "AUTOGENERATED", "D2", "Firmware Version", Display2_Firmware_Version);
-	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "D3", "Status Message", Display3_Status_Message_Fb);
-	OutputEvent("INFO", "AUTOGENERATED", "D3", "Model", Display3_Model$);
-	OutputEvent("INFO", "AUTOGENERATED", "D3", "ID String", Display3_ID_String_Fb);
-	OutputEvent("INFO", "AUTOGENERATED", "D3", "IP Address", Display3_IP_Address_Fb);
-	OutputEvent("INFO", "AUTOGENERATED", "D3", "Projector Name", Display3_Projector_Name_Fb);
-	OutputEvent("INFO", "AUTOGENERATED", "D3", "Resolution", Display3_Resolution);
-	OutputEvent("INFO", "AUTOGENERATED", "D3", "Firmware Version", Display3_Firmware_Version);
-	OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1", "Battery Time", RV_B1_Time);
-	OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1", "Group/Channel", RV_M1_GrpChan);
-	OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1", "Transmite RF Power", Wireless_Monitoring_Transmit_RF_Power1);
-	OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1", "Battery Time", RV_B2_Time);
-	OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1", "Group/Channel", RV_M2_GrpChan);
-	OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1", "Transmite RF Power", Wireless_Monitoring_Transmit_RF_Power2);
-	OutputEvent("INFO", "AUTOGENERATED", HOSTCPNum, "Displays_Configured", itoa(Displays_Configured));
-	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "D1","Lamp_Hours", itoa(Display1_Lamp_hours_fb));
-	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "D1","Temperature", itoa(Display1_Temp));
-	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "D2","Lamp_Hours", itoa(Display2_Lamp_hours_fb));
-	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "D2","Temperature", itoa(Display2_Temp));
-	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "D3","Lamp_Hours", itoa(Display3_Lamp_hours_fb));
-	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "D3","Temperature", itoa(Display3_Temp));
-	OutputEvent("INFO", "AUTOGENERATED", "RCV1","Wireless Mic Count", itoa(WLS));
+		if (Display2_Secure_tt = 1)
+			OutputEvent("health", "auto-generated", "D2", "secure", "True");
+		else
+			OutputEvent("health", "auto-generated", "D2", "secure", "False");
 	
-	if (Mic1Status = 0)	
-	    OutputEvent("HEALTH", "AUTOGENERATED", "MIC1","Status Message", "0=Mic On");
-	else if (Mic1Status = 2)
-	    OutputEvent("HEALTH", "AUTOGENERATED", "MIC1","Status Message", "1=Mic Initializing/Mic Off ok");
-	else if (Mic1Status = 3)
-	    OutputEvent("HEALTH", "AUTOGENERATED", "MIC1","Status Message", "3=RF Interference Detected");
-	else
-		OutputEvent("HEALTH", "AUTOGENERATED", "MIC1","Status Message", itoa(Mic1Status));
+		if (Display2_Ans_ros = 1)
+			OutputEvent("health", "auto-generated", "D2", "Responsive", "Ok");
+		else
+			OutputEvent("health", "auto-generated", "D2", "Responsive", "No Response");
 	
-	if (B1Status = 0)	
-	    OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1","Battery Status", "0=ok");
-	else if (B1Status = 1)
-	    OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1","Battery Status", "1=Yellow/Mic is Calculating Battery Time/B < 5H");
-	else if (B1Status = 2)
-	    OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1","Battery Status", "2=Orange/AA Batteries or unknown/B < 3H");
-	else if (B1Status = 3)
-	    OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1","Battery Status", "3 = Red / B < 1.5H");
-	else
-		OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1","Battery Status", itoa(B1Status));
+		if (Not_Display2_Offline = 1)
+			OutputEvent("health", "auto-generated", "D2", "Online", "Online");
+		else 
+			OutputEvent("health", "auto-generated", "D2", "Online", "Offline");
 	
-	OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1","Battery Bars", itoa(RV_B1Bars));
+		OutputEvent("detail-state", "auto-generated", "D2", "Status Message", Display2_Status_Message_Fb);
 	
-	if (Mic2Status = 0)	
-	    OutputEvent("HEALTH", "AUTOGENERATED", "MIC2","Status Message", "0=Mic On");
-	else if (Mic2Status = 2)
-	    OutputEvent("HEALTH", "AUTOGENERATED", "MIC2","Status Message", "1=Mic Initializing/Mic Off ok");
-	else if (Mic2Status = 3)
-	    OutputEvent("HEALTH", "AUTOGENERATED", "MIC2","Status Message", "3=RF Interference Detected");
-	else
-		OutputEvent("HEALTH", "AUTOGENERATED", "MIC2","Status Message", itoa(Mic2Status));
+		OutputEvent("info", "auto-generated", "D2", "hardware-version", Display2_ID_String_Fb);
 	
-	if (B2Status = 0)	
-	    OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC2","Battery Status", "0=ok");
-	else if (B2Status = 1)
-	    OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC2","Battery Status", "1=Yellow/Mic is Calculating Battery Time/B < 5H");
-	else if (B2Status = 2)
-	    OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC2","Battery Status", "2=Orange/AA Batteries or unknown/B < 3H");
-	else if (B2Status = 3)
-	    OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC2","Battery Status", "3 = Red / B < 1.5H");
-	else
-		OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC2","Battery Status", itoa(B2Status));
+		OutputEvent("info", "auto-generated", "D2", "IP Address", Display2_IP_Address_Fb);
+		OutputEvent("info", "auto-generated", "D2", "Projector Name", Display2_Projector_Name_Fb);
+		OutputEvent("info", "auto-generated", "D2", "Resolution", Display2_Resolution);
+		OutputEvent("info", "auto-generated", "D2", "software-version", Display2_Firmware_Version);
 	
+	    OutputEvent("detail-state", "auto-generated", "D2","lamp-hours", itoa(Display2_Lamp_hours_fb));
+		OutputEvent("detail-state", "auto-generated", "D2","temperature", itoa(Display2_Temp));
+    }
+
+	/* Display 3 */
+
+	if (Display3_Is_None = 0)
+	{	
+		if (Display3_Power_is_On = 1)
+			OutputEvent("core-state", "auto-generated", "D3", "power", "On");
+		else
+			OutputEvent("core-state", "auto-generated", "D3", "power", "Standby");
 	
-	OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC2","Battery Bars", itoa(RV_B2Bars));
+		if (Display3_Secure_tt = 1)
+			OutputEvent("health", "auto-generated", "D3", "secure", "True");
+		else
+			OutputEvent("health", "auto-generated", "D3", "secure", "False");
+	
+		if (Display3_Ans_ros = 1)
+			OutputEvent("health", "auto-generated", "D3", "Responsive", "Ok");
+		else
+			OutputEvent("health", "auto-generated", "D3", "Responsive", "No Response");
+	
+		if (Not_Display3_Offline = 1)
+			OutputEvent("health", "auto-generated", "D3", "Online", "Online");
+		else 
+			OutputEvent("health", "auto-generated", "D3", "Online", "Offline");
+	
+		OutputEvent("detail-state", "auto-generated", "D3", "Status Message", Display3_Status_Message_Fb);
+	
+
+		OutputEvent("info", "auto-generated", "D3", "hardware-version", Display3_ID_String_Fb);
+	
+		OutputEvent("info", "auto-generated", "D3", "IP Address", Display3_IP_Address_Fb);
+		OutputEvent("info", "auto-generated", "D3", "Projector Name", Display3_Projector_Name_Fb);
+		OutputEvent("info", "auto-generated", "D3", "Resolution", Display3_Resolution);
+		OutputEvent("info", "auto-generated", "D3", "software-version", Display3_Firmware_Version);
+	
+	    OutputEvent("detail-state", "auto-generated", "D3","lamp-hours", itoa(Display3_Lamp_hours_fb));
+		OutputEvent("detail-state", "auto-generated", "D3","temperature", itoa(Display3_Temp));
+    }
+
+	/* Wireless Mic Receiver */
+
+
+	OutputEvent("info", "auto-generated", "RCV1", "Wireless Mic Count", itoa(WLS));
+
+	if (WLS >= 1)
+	{
+		if (WlsMicAlert = 1)
+			OutputEvent("health", "auto-generated", "RCV1", "Mic Alerting", "Error");
+		else
+			OutputEvent("health", "auto-generated", "RCV1", "Mic Alerting", "Okay");
+	
+		if (RV_WlsMic_TCP_IPConnect = 1)
+		{
+			MESSAGE = GetTimestamp();
+			OutputEvent("health", "auto-generated", "RCV1", "last-heartbeat", MESSAGE);
+		}
+	}
+
+
+	/* Wireless Mic 1 */
+
+	if (WLS >= 1)
+	{
+		if (RV_Mic1_On = 1)
+			OutputEvent("core-state", "auto-generated", "MIC1", "power", "On");
+		else
+			OutputEvent("core-state", "auto-generated", "MIC1", "power", "Off");
+	
+		OutputEvent("detail-state", "auto-generated", "MIC1", "battery-charge-hours-minutes", RV_B1_Time);                                                                                                     
+	
+		OutputEvent("detail-state", "auto-generated", "MIC1","battery-charge-bars", itoa(RV_B1Bars));
+	
+		OutputEvent("detail-state", "auto-generated", "MIC1", "microphone-channel", RV_M1_GrpChan);
+	
+		OutputEvent("detail-state", "auto-generated", "MIC1", "Transmit RF Power", Wireless_Monitoring_Transmit_RF_Power1);
+	
+		if (RV_Mic1_RF_Int_Det = 1)
+			OutputEvent("detail-state", "auto-generated", "MIC1", "interference", "Interference Detected");
+		else
+			OutputEvent("detail-state", "auto-generated", "MIC1", "interference", "");
+    }
+
+	/* Wireless Mic 2 */                              
+
+    if (WLS >= 2)
+	{
+		if (RV_Mic2_On = 1)
+			OutputEvent("core-state", "auto-generated", "MIC2", "power", "On");
+		else
+			OutputEvent("core-state", "auto-generated", "MIC2", "power", "Standby");
+	
+		OutputEvent("detail-state", "auto-generated", "MIC2", "battery-charge-hours-minutes", RV_B2_Time);
+		
+		OutputEvent("detail-state", "auto-generated", "MIC2","battery-charge-bars", itoa(RV_B2Bars));
+	
+		OutputEvent("detail-state", "auto-generated", "MIC2", "microphone-channel", RV_M2_GrpChan);
+	
+		OutputEvent("detail-state", "auto-generated", "MIC2", "Transmit RF Power", Wireless_Monitoring_Transmit_RF_Power2);	
+	
+		if (RV_Mic2_RF_Int_Det = 1)
+			OutputEvent("detail-state", "auto-generated", "MIC2", "interference", "Interference Detected");
+		else
+			OutputEvent("detail-state", "auto-generated", "MIC2", "interference", "");
+	}
 
 }
+             
+
+/* CP Events */
+
+Push System_power_on_fb
+{
+	OutputEvent("core-state", "user-generated", HOSTCPNum, "power", "On");
+}
+
+Release System_power_on_fb
+{
+	OutputEvent("core-state", "user-generated", HOSTCPNum, "power", "Off");
+}
+
+Push System_Closed_deb
+{
+	OutputEvent("health", "user-generated", HOSTCPNum, "active", "False");
+}
+
+Release System_Closed_deb
+{
+	OutputEvent("health", "user-generated", HOSTCPNum, "active", "True");
+}
+
+Push Monitor_Secure_tt
+{
+	OutputEvent("health", "user-generated", HOSTCPNum, "secure", "True");
+}
+
+Release Monitor_Secure_tt
+{
+	OutputEvent("health", "user-generated", HOSTCPNum, "secure", "False");
+}
+
+Push TP_Online
+{
+	OutputEvent("health", "auto-generated", HOSTCPNum, "TP_Online", "Online");
+}
+
+Release TP_Online
+{
+	OutputEvent("health", "auto-generated", HOSTCPNum, "TP_Online", "Offline");
+}
+
+Change Program_Name$
+{
+	MAKESTRING(MESSAGE, "%s-%s", Program_Name$, Program_Compile_Date$);
+	OutputEvent("info", "auto-generated", HOSTCPNum, "software-version", MESSAGE);
+}
+
+Change Program_Compile_Date$
+{
+	MAKESTRING(MESSAGE, "%s-%s", Program_Name$, Program_Compile_Date$);
+	OutputEvent("info", "auto-generated", HOSTCPNum, "software-version", MESSAGE);
+}
+
+Change DMPSver$
+{
+	OutputEvent("info", "auto-generated", HOSTCPNum, "hardware-version", DMPSver$);
+}
+
+Change Program_Volume_fb
+{  
+	OutputEvent("core-state", "auto-generated", HOSTCPNum, "volume", itoa(Program_Volume_fb));
+}
+
+Push Program_Volume_Mute_On_fb
+{
+		OutputEvent("core-state", "auto-generated", HOSTCPNum, "muted", "true");
+}
+
+Release Program_Volume_Mute_On_fb
+{
+		OutputEvent("core-state", "auto-generated", HOSTCPNum, "muted", "false");
+}
+
+Change Displays_Configured
+{
+    OutputEvent("info", "auto-generated", HOSTCPNum, "Displays_Configured", itoa(Displays_Configured));
+}
+
+
+/* D1 */
+
+
+Push Display1_Power_is_On
+{
+	OutputEvent("core-state", "user-generated", "D1", "power", "On");
+}
+
+Release Display1_Power_is_On
+{
+	OutputEvent("core-state", "user-generated", "D1", "power", "Standby");
+}
+
+Push Display1_Secure_deb
+{
+	OutputEvent("health", "auto-generated", "D1", "secure", "True");
+}
+
+Release Display1_Secure_deb
+{
+	OutputEvent("health", "auto-generated", "D1", "secure", "False");
+}
+
+Push Display1_Ans_ros
+{
+	OutputEvent("health", "auto-generated", "D1", "Responsive", "Ok");
+}
+
+Release Display1_Ans_ros
+{
+	OutputEvent("health", "auto-generated", "D1", "Responsive", "No Response");
+}
+
+Push Not_Display1_Offline
+{
+	OutputEvent("health", "auto-generated", "D1", "Online", "Online");
+}
+
+Release Not_Display1_Offline
+{
+	OutputEvent("health", "auto-generated", "D1", "Online", "Offline");
+}
+
+Change Display1_Status_Message_Fb
+{
+     OutputEvent("detail-state", "auto-generated", "D1", "Status Message", Display1_Status_Message_Fb);
+}
+
+Change Display1_ID_String_Fb
+{
+     OutputEvent("info", "auto-generated", "D1", "hardware-version", Display1_ID_String_Fb);
+}
+
+Change Display1_IP_Address_Fb
+{
+     OutputEvent("info", "auto-generated", "D1", "IP Address", Display1_IP_Address_Fb);
+}
+
+Change Display1_Projector_Name_Fb
+{
+     OutputEvent("info", "auto-generated", "D1", "Projector Name", Display1_Projector_Name_Fb);
+}
+
+Change Display1_Resolution
+{
+     OutputEvent("info", "auto-generated", "D1", "Resolution", Display1_Resolution);
+}
+
+Change Display1_Firmware_Version
+{
+     OutputEvent("info", "auto-generated", "D1", "software-version", Display1_Firmware_Version);
+}
+
+Change Display1_Lamp_hours_fb
+{
+     OutputEvent("detail-state", "auto-generated", "D1","lamp-hours", itoa(Display1_Lamp_hours_fb));
+}
+
+Change Display1_Temp
+{
+     OutputEvent("detail-state", "auto-generated", "D1","temperature", itoa(Display1_Temp));
+}
+
+
+/* D2 */
+
+
+Push Display2_Power_is_On
+{
+	if (Display2_Is_None = 0)
+		OutputEvent("core-state", "user-generated", "D2", "power", "On");
+}
+
+Release Display2_Power_is_On
+{
+	if (Display2_Is_None = 0)
+		OutputEvent("core-state", "user-generated", "D2", "power", "Standby");
+}
+
+Push Display2_Secure_tt
+{	
+	if (Display2_Is_None = 0)
+		OutputEvent("health", "auto-generated", "D2", "secure", "True");
+}
+
+Release Display2_Secure_tt
+{
+	if (Display2_Is_None = 0)
+		OutputEvent("health", "auto-generated", "D2", "secure", "False");
+}
+
+Push Display2_Ans_ros
+{
+	if (Display2_Is_None = 0)
+		OutputEvent("health", "auto-generated", "D2", "Responsive", "Ok");
+}
+
+Release Display2_Ans_ros
+{
+	if (Display2_Is_None = 0)
+		OutputEvent("health", "auto-generated", "D2", "Responsive", "No Response");
+}
+
+Push Not_Display2_Offline
+{
+	if (Display2_Is_None = 0)
+		OutputEvent("health", "auto-generated", "D2", "Online", "Online");
+}
+
+Release Not_Display2_Offline
+{
+	if (Display2_Is_None = 0)
+		OutputEvent("health", "auto-generated", "D2", "Online", "Offline");
+}
+
+
+Change Display2_Status_Message_Fb
+{
+	if (Display2_Is_None = 0)
+	    OutputEvent("detail-state", "auto-generated", "D2", "Status Message", Display2_Status_Message_Fb);
+}
+
+Change Display2_ID_String_Fb
+{
+	if (Display2_Is_None = 0)
+	    OutputEvent("info", "auto-generated", "D2", "hardware-version", Display2_ID_String_Fb);
+}
+
+Change Display2_IP_Address_Fb
+{
+	if (Display2_Is_None = 0)
+	    OutputEvent("info", "auto-generated", "D2", "IP Address", Display2_IP_Address_Fb);
+}
+
+Change Display2_Projector_Name_Fb
+{
+	if (Display2_Is_None = 0)
+		OutputEvent("info", "auto-generated", "D2", "Projector Name", Display2_Projector_Name_Fb);
+}
+
+Change Display2_Resolution
+{
+	if (Display2_Is_None = 0)
+		OutputEvent("info", "auto-generated", "D2", "Resolution", Display2_Resolution);
+}
+
+Change Display2_Firmware_Version
+{
+	if (Display2_Is_None = 0)
+	    OutputEvent("info", "auto-generated", "D2", "software-version", Display2_Firmware_Version);
+}
+
+
+Change Display2_Lamp_hours_fb
+{
+	if (Display2_Is_None = 0)
+	    OutputEvent("detail-state", "auto-generated", "D2","lamp-hours", itoa(Display2_Lamp_hours_fb));
+}
+
+Change Display2_Temp
+{
+	if (Display2_Is_None = 0)
+	    OutputEvent("detail-state", "auto-generated", "D2","temperature", itoa(Display2_Temp));
+}
+
+
+
+
+
+/* D3 */
+        
+
+
+Push Display3_Power_is_On
+{
+	if (Display3_Is_None = 0)
+		OutputEvent("core-state", "user-generated", "D2", "power", "On");
+}
+
+Release Display3_Power_is_On
+{
+	if (Display3_Is_None = 0)
+		OutputEvent("core-state", "user-generated", "D2", "power", "Standby");
+}
+
+Push Display3_Secure_tt
+{	
+	if (Display3_Is_None = 0)
+		OutputEvent("health", "auto-generated", "D2", "secure", "True");
+}
+
+Release Display3_Secure_tt
+{
+	if (Display3_Is_None = 0)
+		OutputEvent("health", "auto-generated", "D2", "secure", "False");
+}
+
+Push Display3_Ans_ros
+{
+	if (Display3_Is_None = 0)
+		OutputEvent("health", "auto-generated", "D2", "Responsive", "Ok");
+}
+
+Release Display3_Ans_ros
+{
+	if (Display3_Is_None = 0)
+		OutputEvent("health", "auto-generated", "D2", "Responsive", "No Response");
+}
+
+Push Not_Display3_Offline
+{
+	if (Display3_Is_None = 0)
+		OutputEvent("health", "auto-generated", "D2", "Online", "Online");
+}
+
+Release Not_Display3_Offline
+{
+	if (Display3_Is_None = 0)
+		OutputEvent("health", "auto-generated", "D2", "Online", "Offline");
+}
+
+
+Change Display3_Status_Message_Fb
+{
+	if (Display3_Is_None = 0)
+	    OutputEvent("detail-state", "auto-generated", "D2", "Status Message", Display3_Status_Message_Fb);
+}
+
+Change Display3_ID_String_Fb
+{
+	if (Display3_Is_None = 0)
+	    OutputEvent("info", "auto-generated", "D2", "hardware-version", Display3_ID_String_Fb);
+}
+
+Change Display3_IP_Address_Fb
+{
+	if (Display3_Is_None = 0)
+	    OutputEvent("info", "auto-generated", "D2", "IP Address", Display3_IP_Address_Fb);
+}
+
+Change Display3_Projector_Name_Fb
+{
+	if (Display3_Is_None = 0)
+		OutputEvent("info", "auto-generated", "D2", "Projector Name", Display3_Projector_Name_Fb);
+}
+
+Change Display3_Resolution
+{
+	if (Display3_Is_None = 0)
+		OutputEvent("info", "auto-generated", "D2", "Resolution", Display3_Resolution);
+}
+
+Change Display3_Firmware_Version
+{
+	if (Display3_Is_None = 0)
+	    OutputEvent("info", "auto-generated", "D2", "software-version", Display3_Firmware_Version);
+}
+
+
+Change Display3_Lamp_hours_fb
+{
+	if (Display3_Is_None = 0)
+	    OutputEvent("detail-state", "auto-generated", "D2","lamp-hours", itoa(Display3_Lamp_hours_fb));
+}
+
+Change Display3_Temp
+{
+	if (Display3_Is_None = 0)
+	    OutputEvent("detail-state", "auto-generated", "D2","temperature", itoa(Display3_Temp));
+}
+
+
+/* Wireless Mic Receiver */
+
+              
+Change WLS
+{
+     OutputEvent("info", "auto-generated", "RCV1","Wireless Mic Count", itoa(WLS));
+}
+
+
+Push WlsMicAlert
+{
+	if (WLS >= 1)
+		OutputEvent("health", "auto-generated", "RCV1", "Mic Alerting", "Error");
+}
+
+Release WlsMicAlert
+{
+	if (WLS >= 1)
+		OutputEvent("health", "auto-generated", "RCV1", "Mic Alerting", "Okay");
+}
+
+Push RV_WlsMic_TCP_IPConnect
+{
+	if (WLS >= 1)
+	{
+		MESSAGE = GetTimestamp();
+		OutputEvent("health", "auto-generated", "RCV1", "last-heartbeat", MESSAGE);
+	}
+}
+
+
+
+/* Wireless Mic 1 */
+
+
+
+Push RV_Mic1_On
+{
+	if (WLS >= 1)
+		OutputEvent("core-state", "user-generated", "MIC1", "power", "On");
+}
+
+Release RV_Mic1_On
+{
+	if (WLS >= 1)
+		OutputEvent("core-state", "user-generated", "MIC1", "power", "Standby");
+}
+
+Push RV_Mic1_RF_Int_Det
+{
+	if (WLS >= 1)
+		OutputEvent("health", "auto-generated", "MIC1", "interference", "Interference Detected");
+}
+
+Release RV_Mic1_RF_Int_Det
+{
+	if (WLS >= 1)
+		OutputEvent("health", "auto-generated", "MIC1", "interference", "");
+}                    
+ 
+Change RV_B1_Time
+{
+	if (WLS >= 1)
+	    OutputEvent("detail-state", "auto-generated", "MIC1", "battery-charge-hours-minutes", RV_B1_Time);
+}
+
+Change RV_B1Bars
+{
+	if (WLS >= 1)
+	    OutputEvent("detail-state", "auto-generated", "MIC1","Battery Bars", itoa(RV_B1Bars));
+}
+
+Change RV_M1_GrpChan
+{
+	if (WLS >= 1)
+	    OutputEvent("detail-state", "auto-generated", "MIC1", "microphone-channel", RV_M1_GrpChan);
+}
+
+Change Wireless_Monitoring_Transmit_RF_Power1
+{
+	if (WLS >= 1)
+	    OutputEvent("detail-state", "auto-generated", "MIC1", "Transmit RF Power", Wireless_Monitoring_Transmit_RF_Power1);
+}
+
+
+/* wireless mic 2 */
+
+     
+Push RV_Mic2_On
+{
+	if (WLS >= 2)
+		OutputEvent("core-state", "user-generated", "MIC2", "power", "On");
+}
+
+Release RV_Mic2_On
+{
+	if (WLS >= 2)
+		OutputEvent("core-state", "user-generated", "MIC2", "power", "Standby");
+}
+
+Push RV_Mic2_RF_Int_Det
+{
+	if (WLS >= 2)
+		OutputEvent("health", "auto-generated", "MIC2", "interference", "Interference Detected");
+}
+
+Release RV_Mic2_RF_Int_Det
+{
+	if (WLS >= 2)
+		OutputEvent("health", "auto-generated", "MIC2", "interference", "");
+}                    
+ 
+Change RV_B2_Time
+{
+	if (WLS >= 2)
+	    OutputEvent("detail-state", "auto-generated", "MIC2", "battery-charge-hours-minutes", RV_B2_Time);
+}
+
+Change RV_B2Bars
+{
+	if (WLS >= 2)
+	    OutputEvent("detail-state", "auto-generated", "MIC2","Battery Bars", itoa(RV_B2Bars));
+}
+
+Change RV_M2_GrpChan
+{
+	if (WLS >= 2)
+	    OutputEvent("detail-state", "auto-generated", "MIC2", "microphone-channel", RV_M2_GrpChan);
+}
+
+Change Wireless_Monitoring_Transmit_RF_Power2
+{
+	if (WLS >= 2)
+	    OutputEvent("detail-state", "auto-generated", "MIC2", "Transmit RF Power", Wireless_Monitoring_Transmit_RF_Power2);
+}
+
+
+
+//User Events
+
 
 RELEASE Startup_press // Start the session, turn system on
 {  	
 	/*User Event*/
-	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Startup_press");
+	OutputEvent("metrics", "user-generated", HOSTCPNum, "Button Press", "Startup_press");
 }
 
 RELEASE Confirm_System_Off  // End the session, turn system off
 {
 	/*User Event*/
-	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Confirm_System_Off");
+	OutputEvent("metrics", "user-generated", HOSTCPNum, "Button Press", "Confirm_System_Off");
 }
 
 Release Program_Volume_Down // Volume Down
 {
 	/*User Event*/
-	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Program_Volume_Down");
+	OutputEvent("metrics", "user-generated", HOSTCPNum, "Button Press", "Program_Volume_Down");
 }
 
 Release Program_Volume_Up // Volume Up
 {
 	/*User Event*/
-	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Program_Volume_Up");
+	OutputEvent("metrics", "user-generated", HOSTCPNum, "Button Press", "Program_Volume_Up");
 }
 
 Release Select_Blank // Blank
 {
 	/*User Event*/
-	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Select_Blank");
+	OutputEvent("metrics", "user-generated", HOSTCPNum, "Button Press", "Select_Blank");
 }
 
 Release Select_Device_Control_IPTV // IPTV Device Control
 {
 	/*User Event*/
-	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Select_Device_Control_IPTV");
+	OutputEvent("metrics", "user-generated", HOSTCPNum, "Button Press", "Select_Device_Control_IPTV");
 }
 
 Release Select_HDMI_Cable // HDMI Cable
 {
 	/*User Event*/
-	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Select_HDMI_Cable");
+	OutputEvent("metrics", "user-generated", HOSTCPNum, "Button Press", "Select_HDMI_Cable");
 }
 
 Release Select_HDMI_Jack // HDMI Jack
 {
 	/*User Event*/
-	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Select_HDMI_Jack");
+	OutputEvent("metrics", "user-generated", HOSTCPNum, "Button Press", "Select_HDMI_Jack");
 }
 
 Release Select_IPTV // IPTV Input
 {
 	/*User Event*/
-	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Select_IPTV");
+	OutputEvent("metrics", "user-generated", HOSTCPNum, "Button Press", "Select_IPTV");
 }
 
 Release Select_Local_Input // Local Input
 {
 	/*User Event*/
-	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Select_Local_Input");
+	OutputEvent("metrics", "user-generated", HOSTCPNum, "Button Press", "Select_Local_Input");
 }
 
 Release Select_Remote_Input1 // Remote Input 1
 {
 	/*User Event*/
-	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Select_Remote_Input1");
+	OutputEvent("metrics", "user-generated", HOSTCPNum, "Button Press", "Select_Remote_Input1");
 }
 
 Release Select_Remote_Input2 // Remote Input 2
 {
 	/*User Event*/
-	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Select_Remote_Input2");}
+	OutputEvent("metrics", "user-generated", HOSTCPNum, "Button Press", "Select_Remote_Input2");}
 
 Release Select_VGA_Cable // VGA Input
 {
 	/*User Event*/
-	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Select_VGA_Cable");
+	OutputEvent("metrics", "user-generated", HOSTCPNum, "Button Press", "Select_VGA_Cable");
 }
 
 Release Help_Menu_Press // Help
 {
 	/*User Event*/
-	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Help_Menu_Press");
+	OutputEvent("metrics", "user-generated", HOSTCPNum, "Button Press", "Help_Menu_Press");
 }
 
 Release Home_button // Home
 {
 	/*User Event*/
-	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Home_button");
+	OutputEvent("metrics", "user-generated", HOSTCPNum, "Button Press", "Home_button");
 }
 
 Release Select_AV_Jack // AV Jack Input
 {
 	/*User Event*/
-	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Select_A/V_Jack");
+	OutputEvent("metrics", "user-generated", HOSTCPNum, "Button Press", "Select_A/V_Jack");
 }
 
 Release Select_BluRay // Blu-ray Input
 {
 	/*User Event*/
-	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Select_Blu-ray");
+	OutputEvent("metrics", "user-generated", HOSTCPNum, "Button Press", "Select_Blu-ray");
 }
 
 Release Select_Device_Control_Bluray // Device Control Blu-ray
 {
 	/*User Event*/
-	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Select_Device_Control_Blu-ray");
+	OutputEvent("metrics", "user-generated", HOSTCPNum, "Button Press", "Select_Device_Control_Blu-ray");
 }
 
 Release Select_PA_Control // PA Control
 {
 	/*User Event*/
-	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Select_PA_Control");
+	OutputEvent("metrics", "user-generated", HOSTCPNum, "Button Press", "Select_PA_Control");
 }
 
 Release Program_Volume_Slider_Press // Slider volume control
 {
 	/* User Event */
-	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Program_Volume_Slider_Press");
+	OutputEvent("metrics", "user-generated", HOSTCPNum, "Button Press", "Program_Volume_Slider_Press");
 }
 
 Release Audio_Only_Press // Audio Only button on init screen
 {
 	/* User Event */
-	OutputEvent("USERINPUT", "USERACTION", HOSTCPNum, "Button Press", "Audio_Only_Press");}
-
-Push System_power_on_fb
-{
-	OutputEvent("CORESTATE", "USERACTION", HOSTCPNum, "System_Power", "On");
+	OutputEvent("metrics", "user-generated", HOSTCPNum, "Button Press", "Audio_Only_Press");
 }
 
-Release System_power_on_fb
-{
-	OutputEvent("CORESTATE", "USERACTION", HOSTCPNum, "System_Power", "Off");
-}
 
-Push System_Closed_deb
-{
-	OutputEvent("HEALTH", "USERACTION", HOSTCPNum, "System_Closed", "Closed");
-}
 
-Release System_Closed_deb
-{
-	OutputEvent("HEALTH", "USERACTION", HOSTCPNum, "System_Closed", "Open");
-}
-
-Push Monitor_Secure_tt
-{
-	OutputEvent("HEALTH", "USERACTION", HOSTCPNum, "Monitor_Secure", "Ok");
-}
-
-Release Monitor_Secure_tt
-{
-	OutputEvent("HEALTH", "USERACTION", HOSTCPNum, "Monitor_Secure", "Disconnected");
-}
-
-Push TP_Online
-{
-	OutputEvent("HEALTH", "AUTOGENERATED", HOSTCPNum, "TP_Online", "Online");
-}
-
-Release TP_Online
-{
-	OutputEvent("HEALTH", "AUTOGENERATED", HOSTCPNum, "TP_Online", "Offline");
-}
-
-Push IPTV_VideoOk
-{
-	OutputEvent("HEALTH", "AUTOGENERATED", HOSTCPNum, "IPTV_VideoOk", "IPTV Video Ok");
-}
-
-Release IPTV_VideoOk
-{
-	OutputEvent("HEALTH", "AUTOGENERATED", HOSTCPNum, "IPTV_VideoOk", "No IPTV Video");
-}
-
-Push Input5_Composite_Video_Detected_fb
-{
-	OutputEvent("HEALTH", "AUTOGENERATED", HOSTCPNum, "Input5_Composite_Video_Detected", "Composite_Video_Detected");
-}
-
-Release Input5_Composite_Video_Detected_fb
-{
-	OutputEvent("HEALTH", "AUTOGENERATED", HOSTCPNum, "Input5_Composite_Video_Detected", "No Composite_Video_Detected");
-}
-
-Push Display1_Power_is_On
-{
-	OutputEvent("CORESTATE", "USERACTION", "D1", "Power", "On");
-}
-
-Release Display1_Power_is_On
-{
-	OutputEvent("CORESTATE", "USERACTION", "D1", "Power", "Standby");
-}
-
-Push Display1_Secure_deb
-{
-	OutputEvent("HEALTH", "AUTOGENERATED", "D1", "Secure", "Ok");
-}
-
-Release Display1_Secure_deb
-{
-	OutputEvent("HEALTH", "AUTOGENERATED", "D1", "Secure", "Disconnected");
-}
-
-Push Display1_Ans_ros
-{
-	OutputEvent("HEALTH", "AUTOGENERATED", "D1", "Responsive", "Ok");
-}
-
-Release Display1_Ans_ros
-{
-	OutputEvent("HEALTH", "AUTOGENERATED", "D1", "Responsive", "No Response");
-}
-
-Push Not_Display1_Offline
-{
-	OutputEvent("HEALTH", "AUTOGENERATED", "D1", "Online", "Online");
-}
-
-Release Not_Display1_Offline
-{
-	OutputEvent("HEALTH", "AUTOGENERATED", "D1", "Online", "Offline");
-}
-
-Push Display2_Power_is_On
-{
-	OutputEvent("CORESTATE", "USERACTION", "D2", "Power", "On");
-}
-
-Release Display2_Power_is_On
-{
-	OutputEvent("CORESTATE", "USERACTION", "D2", "Power", "Standby");
-}
-
-Push Display2_Secure_tt
-{
-	OutputEvent("HEALTH", "AUTOGENERATED", "D2", "Secure", "Ok");
-}
-
-Release Display2_Secure_tt
-{
-	OutputEvent("HEALTH", "AUTOGENERATED", "D2", "Secure", "Disconnected");
-}
-
-Push Display2_Ans_ros
-{
-	OutputEvent("HEALTH", "AUTOGENERATED", "D2", "Responsive", "Ok");
-}
-
-Release Display2_Ans_ros
-{
-	OutputEvent("HEALTH", "AUTOGENERATED", "D2", "Responsive", "No Response");
-}
-
-Push Not_Display2_Offline
-{
-	OutputEvent("HEALTH", "AUTOGENERATED", "D2", "Online", "Online");
-}
-
-Release Not_Display2_Offline
-{
-	OutputEvent("HEALTH", "AUTOGENERATED", "D2", "Online", "Offline");
-}
-
-Push Display3_Power_is_On
-{
-	OutputEvent("CORESTATE", "USERACTION", "D3", "Power", "On");
-}
-
-Release Display3_Power_is_On
-{
-	OutputEvent("CORESTATE", "USERACTION", "D3", "Power", "Standby");
-}
-
-Push Display3_Secure_tt
-{
-	OutputEvent("HEALTH", "AUTOGENERATED", "D3", "Secure", "Ok");
-}
-
-Release Display3_Secure_tt
-{
-	OutputEvent("HEALTH", "AUTOGENERATED", "D3", "Secure", "Disconnected");
-}
-
-Push Display3_Ans_ros
-{
-	OutputEvent("HEALTH", "AUTOGENERATED", "D3", "Responsive", "Ok");
-}
-
-Release Display3_Ans_ros
-{
-	OutputEvent("HEALTH", "AUTOGENERATED", "D3", "Responsive", "No Response");
-}
-
-Push Not_Display3_Offline
-{
-	OutputEvent("HEALTH", "AUTOGENERATED", "D3", "Online", "Online");
-}
-
-Release Not_Display3_Offline
-{
-	OutputEvent("HEALTH", "AUTOGENERATED", "D3", "Online", "Offline");
-}
-
-Push WlsMicAlert
-{
-	OutputEvent("HEALTH", "AUTOGENERATED", "RCV1", "Mic Alerting", "Error");
-}
-
-Release WlsMicAlert
-{
-	OutputEvent("HEALTH", "AUTOGENERATED", "RCV1", "Mic Alerting", "Okay");
-}
-
-Push RV_WlsMic_TCP_IPConnect
-{
-	OutputEvent("HEALTH", "AUTOGENERATED", "RCV1", "Online", "Online");
-}
-
-Release RV_WlsMic_TCP_IPConnect
-{
-	OutputEvent("HEALTH", "AUTOGENERATED", "RCV1", "Online", "Offline");
-}
-
-Push RV_Mic1_On
-{
-	OutputEvent("CORESTATE", "USERACTION", "Mic1", "Power", "On");
-}
-
-Release RV_Mic1_On
-{
-	OutputEvent("CORESTATE", "USERACTION", "Mic1", "Power", "Standby");
-}
-
-Push RV_Mic1LT5Hr
-{
-	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic1", "RV_Mic1LT5Hr", "LT 5Hrs");
-}
-
-Release RV_Mic1LT5Hr
-{
-	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic1", "RV_Mic1LT5Hr", "GT 5Hrs");
-}
-
-Push RV_Mic1LT3Hr
-{
-	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic1", "RV_Mic1LT3Hr", "LT 3Hrs");
-}
-
-Release RV_Mic1LT3Hr
-{
-	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic1", "RV_Mic1LT3Hr", "GT 3Hrs");
-}
-
-Push RV_Mic1LT1_5Hr
-{
-	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic1", "RV_Mic1LT1.5Hr", "LT 1.5Hrs");
-}
-
-Release RV_Mic1LT1_5Hr
-{
-	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic1", "RV_Mic1LT1.5Hr", "GT 1.5Hrs");
-}
-
-Push RV_Mic1_RF_Int_Det
-{
-	OutputEvent("HEALTH", "AUTOGENERATED", "Mic1", "RV_Mic1_RF_Int_Det", "RF Interference Detected");
-}
-
-Release RV_Mic1_RF_Int_Det
-{
-	OutputEvent("HEALTH", "AUTOGENERATED", "Mic1", "RV_Mic1_RF_Int_Det", "Okay");
-}
-
-Push RV_Mic2_On
-{
-	OutputEvent("CORESTATE", "USERACTION", "Mic2", "Power", "On");
-}
-
-Release RV_Mic2_On
-{
-	OutputEvent("CORESTATE", "USERACTION", "Mic2", "Power", "Standby");
-}
-
-Push RV_Mic2LT5Hr
-{
-	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic2", "RV_Mic2LT5Hr", "LT 5Hrs");
-}
-
-Release RV_Mic2LT5Hr
-{
-	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic2", "RV_Mic2LT5Hr", "GT 5Hrs");
-}
-
-Push RV_Mic2LT3Hr
-{
-	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic2", "RV_Mic2LT3Hr", "LT 3Hrs");
-}
-
-Release RV_Mic2LT3Hr
-{
-	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic2", "RV_Mic2LT3Hr", "GT 3Hrs");
-}
-
-Push RV_Mic2LT1_5Hr
-{
-	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic2", "RV_Mic2LT1.5Hr", "LT 1.5Hrs");
-}
-
-Release RV_Mic2LT1_5Hr
-{
-	OutputEvent("DEATAILSTATE", "AUTOGENERATED", "Mic2", "RV_Mic2LT1.5Hr", "GT 1.5Hrs");
-}
-
-Push RV_Mic2_RF_Int_Det
-{
-	OutputEvent("HEALTH", "AUTOGENERATED", "Mic2", "RV_Mic2_RF_Int_Det", "RF Interference Detected");
-}
-
-Release RV_Mic2_RF_Int_Det
-{
-	OutputEvent("HEALTH", "AUTOGENERATED", "Mic2", "RV_Mic2_RF_Int_Det", "Okay");
-}
+/* Timer Events */
 
 Push sendAll
 {
@@ -1122,283 +1040,16 @@ Push sendAll
       
 Push SendHeartbeat
 {
-	OutputEvent("HEALTH", "AUTOGENERATED", HOSTCPNum, "Heartbeat", "System_Active");
+	OutputEvent("health", "auto-generated", HOSTCPNum, "heartbeat", "System_Active");
 }
 
-//Strings
-
-Change Program_Name$
+PUSH systemReady
 {
-	OutputEvent("INFO", "AUTOGENERATED", HOSTCPNum, "Program_Name", Program_Name$);
-}
-
-Change Program_Compile_Date$
-{
-	OutputEvent("INFO", "AUTOGENERATED", HOSTCPNum, "Program_Compile_Date", Program_Compile_Date$);
-}
-
-Change DMPSver$
-{
-	OutputEvent("INFO", "AUTOGENERATED", HOSTCPNum, "DMPSver", DMPSver$);
-}
-
-Change Display1_Status_Message_Fb
-{
-     OutputEvent("DEATAILSTATE", "AUTOGENERATED", "D1", "Status Message", Display1_Status_Message_Fb);
-}
-
-Change Display1_Model$
-{
-     OutputEvent("INFO", "AUTOGENERATED", "D1", "Model", Display1_Model$);
-}
-
-Change Display1_ID_String_Fb
-{
-     OutputEvent("INFO", "AUTOGENERATED", "D1", "ID String", Display1_ID_String_Fb);
-}
-
-Change Display1_IP_Address_Fb
-{
-     OutputEvent("INFO", "AUTOGENERATED", "D1", "IP Address", Display1_IP_Address_Fb);
-}
-
-Change Display1_Projector_Name_Fb
-{
-     OutputEvent("INFO", "AUTOGENERATED", "D1", "Projector Name", Display1_Projector_Name_Fb);
-}
-
-Change Display1_Resolution
-{
-     OutputEvent("INFO", "AUTOGENERATED", "D1", "Resolution", Display1_Resolution);
-}
-
-Change Display1_Firmware_Version
-{
-     OutputEvent("INFO", "AUTOGENERATED", "D1", "Firmware Version", Display1_Firmware_Version);
+	/* System generated event - not state */
+	OutputEvent("health", "auto-generated", HOSTCPNum, "rebooted", "System_Rebooted");
 }
 
 
-
-Change Display2_Status_Message_Fb
-{
-     OutputEvent("DEATAILSTATE", "AUTOGENERATED", "D2", "Status Message", Display2_Status_Message_Fb);
-}
-
-Change Display2_Model$
-{
-     OutputEvent("INFO", "AUTOGENERATED", "D2", "Model", Display2_Model$);
-}
-
-Change Display2_ID_String_Fb
-{
-     OutputEvent("INFO", "AUTOGENERATED", "D2", "ID String", Display2_ID_String_Fb);
-}
-
-Change Display2_IP_Address_Fb
-{
-     OutputEvent("INFO", "AUTOGENERATED", "D2", "IP Address", Display2_IP_Address_Fb);
-}
-
-Change Display2_Projector_Name_Fb
-{
-     OutputEvent("INFO", "AUTOGENERATED", "D2", "Projector Name", Display2_Projector_Name_Fb);
-}
-
-Change Display2_Resolution
-{
-     OutputEvent("INFO", "AUTOGENERATED", "D2", "Resolution", Display2_Resolution);
-}
-
-Change Display2_Firmware_Version
-{
-     OutputEvent("INFO", "AUTOGENERATED", "D2", "Firmware Version", Display2_Firmware_Version);
-}
-
-
-
-Change Display3_Status_Message_Fb
-{
-     OutputEvent("DEATAILSTATE", "AUTOGENERATED", "D3", "Status Message", Display3_Status_Message_Fb);
-}
-
-Change Display3_Model$
-{
-     OutputEvent("INFO", "AUTOGENERATED", "D3", "Model", Display3_Model$);
-}
-
-Change Display3_ID_String_Fb
-{
-     OutputEvent("INFO", "AUTOGENERATED", "D3", "ID String", Display3_ID_String_Fb);
-}
-
-Change Display3_IP_Address_Fb
-{
-     OutputEvent("INFO", "AUTOGENERATED", "D3", "IP Address", Display3_IP_Address_Fb);
-}
-
-Change Display3_Projector_Name_Fb
-{
-     OutputEvent("INFO", "AUTOGENERATED", "D3", "Projector Name", Display3_Projector_Name_Fb);
-}
-
-Change Display3_Resolution
-{
-     OutputEvent("INFO", "AUTOGENERATED", "D3", "Resolution", Display3_Resolution);
-}
-
-Change Display3_Firmware_Version
-{
-     OutputEvent("INFO", "AUTOGENERATED", "D3", "Firmware Version", Display3_Firmware_Version);
-}
-
-
-Change RV_B1_Time
-{
-     OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1", "Battery Time", RV_B1_Time);
-}
-
-
-Change RV_M1_GrpChan
-{
-     OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1", "Group/Channel", RV_M1_GrpChan);
-}
-
-
-Change Wireless_Monitoring_Transmit_RF_Power1
-{
-     OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1", "Transmite RF Power", Wireless_Monitoring_Transmit_RF_Power1);
-}
-
-
-Change RV_B2_Time
-{
-     OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1", "Battery Time", RV_B2_Time);
-}
-
-
-Change RV_M2_GrpChan
-{
-     OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1", "Group/Channel", RV_M2_GrpChan);
-}
-
-
-Change Wireless_Monitoring_Transmit_RF_Power2
-{
-     OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1", "Transmite RF Power", Wireless_Monitoring_Transmit_RF_Power2);
-}
-
-
-
-
-//int
-Change Displays_Configured
-{
-     OutputEvent("INFO", "AUTOGENERATED", HOSTCPNum, "Displays_Configured", itoa(Displays_Configured));
-}
-
-Change Display1_Lamp_hours_fb
-{
-     OutputEvent("DEATAILSTATE", "AUTOGENERATED", "D1","Lamp_Hours", itoa(Display1_Lamp_hours_fb));
-}
-
-Change Display1_Temp
-{
-     OutputEvent("DEATAILSTATE", "AUTOGENERATED", "D1","Temperature", itoa(Display1_Temp));
-}
-
-Change Display2_Lamp_hours_fb
-{
-     OutputEvent("DEATAILSTATE", "AUTOGENERATED", "D2","Lamp_Hours", itoa(Display2_Lamp_hours_fb));
-}
-
-Change Display2_Temp
-{
-     OutputEvent("DEATAILSTATE", "AUTOGENERATED", "D2","Temperature", itoa(Display2_Temp));
-}
-
-Change Display3_Lamp_hours_fb
-{
-     OutputEvent("DEATAILSTATE", "AUTOGENERATED", "D3","Lamp_Hours", itoa(Display3_Lamp_hours_fb));
-}
-
-Change Display3_Temp
-{
-     OutputEvent("DEATAILSTATE", "AUTOGENERATED", "D3","Temperature", itoa(Display3_Temp));
-}
-
-Change WLS
-{
-     OutputEvent("INFO", "AUTOGENERATED", "RCV1","Wireless Mic Count", itoa(WLS));
-}
-
-Change Mic1Status
-{
-	if (Mic1Status = 0)	
-	    OutputEvent("HEALTH", "AUTOGENERATED", "MIC1","Status Message", "0=Mic On");
-	else if (Mic1Status = 2)
-	    OutputEvent("HEALTH", "AUTOGENERATED", "MIC1","Status Message", "1=Mic Initializing/Mic Off ok");
-	else if (Mic1Status = 3)
-	    OutputEvent("HEALTH", "AUTOGENERATED", "MIC1","Status Message", "3=RF Interference Detected");
-	else
-		OutputEvent("HEALTH", "AUTOGENERATED", "MIC1","Status Message", itoa(Mic1Status));
-}
-
-Change B1Status
-{
-	if (B1Status = 0)	
-	    OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1","Battery Status", "0=ok");
-	else if (B1Status = 1)
-	    OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1","Battery Status", "1=Yellow/Mic is Calculating Battery Time/B < 5H");
-	else if (B1Status = 2)
-	    OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1","Battery Status", "2=Orange/AA Batteries or unknown/B < 3H");
-	else if (B1Status = 3)
-	    OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1","Battery Status", "3 = Red / B < 1.5H");
-	else
-		OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1","Battery Status", itoa(B1Status));
-}
-
-Change RV_B1Bars
-{
-     OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC1","Battery Bars", itoa(RV_B1Bars));
-}
-
-Change Mic2Status
-{
-	if (Mic2Status = 0)	
-	    OutputEvent("HEALTH", "AUTOGENERATED", "MIC2","Status Message", "0=Mic On");
-	else if (Mic2Status = 2)
-	    OutputEvent("HEALTH", "AUTOGENERATED", "MIC2","Status Message", "1=Mic Initializing/Mic Off ok");
-	else if (Mic2Status = 3)
-	    OutputEvent("HEALTH", "AUTOGENERATED", "MIC2","Status Message", "3=RF Interference Detected");
-	else
-		OutputEvent("HEALTH", "AUTOGENERATED", "MIC2","Status Message", itoa(Mic2Status));
-}
-
-Change B2Status
-{
-	if (B2Status = 0)	
-	    OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC2","Battery Status", "0=ok");
-	else if (B2Status = 1)
-	    OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC2","Battery Status", "1=Yellow/Mic is Calculating Battery Time/B < 5H");
-	else if (B2Status = 2)
-	    OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC2","Battery Status", "2=Orange/AA Batteries or unknown/B < 3H");
-	else if (B2Status = 3)
-	    OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC2","Battery Status", "3 = Red / B < 1.5H");
-	else
-		OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC2","Battery Status", itoa(B2Status));
-}
-
-Change RV_B2Bars
-{
-     OutputEvent("DETAILSTATE", "AUTOGENERATED", "MIC2","Battery Bars", itoa(RV_B2Bars));
-}
-
-
-
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
-// !!!!!!!!! MOVE INACTIVE SIGNAL EVENTS HERE !!!!!!!!!!!!!!
 
 
 // !!!!!!!! SYSTEM SETUP EVENTS -- NO EDITING
@@ -1410,17 +1061,14 @@ CHANGE cpHostName
 	INTEGER spacePosition,dash1,dash2,InvalidHostName;
 	bldg = "";
 	room = "";
-	//flr = "";	
 	InvalidHostName = 0;
-//	print("Got a Change on dmpsHost - cpHostName: \"%s\".\n", cpHostName);
+
 
 	HOSTNAME = cpHostName;
 	temp = cpHostName;
 
 	if(FIND(" ",cpHostName) >= 1)
 	{
-//	print("Got to Parsing - cpHostName: \"%s\".\n", cpHostName);
-	//	temp = cpHostName;
 		bldg = REMOVE(" ",temp); // remove preceding space if there
 		room = REMOVE(" ",temp);
 		c = GETC(room);
@@ -1466,8 +1114,7 @@ CHANGE cpHostName
 
 	HOSTBLDG = bldg;
 	HOSTROOM = room;
-	//HOSTFLOOR = flr;
-//	print("HOSTBLDG: %s\nHOSTROOM: %s\nHOSTFLOOR: %s\ndash1: %d\ndash2: %d\nHOSTCPNum: %s\n",HOSTBLDG,HOSTROOM,HOSTFLOOR,dash1,dash2,HOSTCPNum);	
+
 }
 
 // If system gets IP, set it in the global var
@@ -1476,8 +1123,6 @@ CHANGE cpIp
 	STRING trash[16];
 	trash = REMOVE(" ",cpIp);
 	HOSTIP = cpIp;
-//	Print("\n********** trash:\"%s\", HOSTIP:\"%s\".\n", trash, HOSTIP);
-
 }
 
 // If system gets MAC, set it in the global var
@@ -1496,255 +1141,7 @@ CHANGE cpMACAddr
 }
 
 
-PUSH systemReady
-{
-	//_clientConnected = 1;
-	OutputEvent("HEALTH", "AUTOGENERATED", HOSTCPNum, "Rebooted", "System_Rebooted");
-}
 
- /*
-// Generate/store SessionID
-CHANGE sessionId
-{
-	SESSION = sessionId;
-}
-
-CHANGE InputLabel1 
-{
-	INPUT1 = InputLabel1;
-}
-
-CHANGE InputLabel2
-{
-	INPUT2 = InputLabel2;
-}
-
-CHANGE InputLabel3
-{
-	INPUT3 = InputLabel3;
-}
-
-CHANGE InputLabel4
-{
-	INPUT4 = InputLabel4;
-}
-
-CHANGE InputLabel5
-{
-	INPUT5 = InputLabel5;
-}
-
-CHANGE InputLabel6
-{
-	INPUT6 = InputLabel6;
-}
-
-CHANGE InputLabel7
-{
-	INPUT7 = InputLabel7;
-}
-
-CHANGE ReportToHost
-{
-	REPORTINGHOST = ReportToHost;
-}
-
-CHANGE ReportToHostPort
-{
-	REPORTINGHOSTPORT = ReportToHostPort;
-}
-
-// Start a socket session to handle whether a push is active or not 
-PUSH clientConnected
-{
- 	SIGNED_INTEGER status; // variable to capture/store socket status
-	status = SocketConnectClient (client, REPORTINGHOST, REPORTINGHOSTPORT, 0); // SocketConnectClient(tcpClient,host,port,reconnect)
-    
-	// Status < 0 is an error, greater than is a successful connection
-    if (status < 0)
-        Print("Error connecting socket to address %s on port  %d", REPORTINGHOST, REPORTINGHOSTPORT);
-}
- 
-
-//Signal to disconnect socket has been sent
-RELEASE clientConnected  
-{
-	SIGNED_INTEGER status;
-	status = SocketDisconnectClient(client);
-
-	if (status < 0)
-		Print("Error disconnecting socket to address %s on port %d",REPORTINGHOST,REPORTINGHOSTPORT);
-}
-*/
-
-// The SOCKETCONNECT event is called when a socket connection is completed on a TCP_CLIENT or  TCP_SERVER variable.
-/***********
-When using the THREADSAFE keyword before an event (such as PUSH, RELEASE, CHANGE) the event is 
-prevented from retriggering, until the entire code block in the event has executed.
-
-Events prevented from triggering WILL be dropped.
-
-************/
-
-/*
-THREADSAFE SOCKETCONNECT client
-{
-	SIGNED_INTEGER LocalStatus,PortNumber;
-	Print("OnConnect: input buffer size is: %d\n", Len(client.SocketRxBuf));
-
-    LocalStatus = SocketGetRemoteIPAddress(client, REPORTINGHOST);
-    PortNumber = SocketGetPortNumber(client);
-
-    if (LocalStatus < 0)
-        Print("Error getting remote ip address. %d\n", LocalStatus);
-	else if (PortNumber < 0)
-        Print("Error getting client port number. %ld\n", REPORTINGHOSTPORT);
-    else
-		Print("OnConnect: Connected to port %ld on address %s\n", REPORTINGHOSTPORT, REPORTINGHOST);
-	
-	// Consider doing a document overwrite
-	OutputEvent("HEALTH", "AUTOGENERATED", HOSTCPNum, "Heartbeat", "System_Active");
-	//OutputEvent("controlProcessor", "System active",SYSTEM,"");
-
-	// Starts timer to force reconnect of stale session
-
-	#IF_SERIES2
-	WAIT (RECONNECTTIME, ReconnectTimer)
-	{
-		_clientConnected = 0;
-		_clientConnected = 1;
-	}
-    #ENDIF
-}
-
-// The SOCKETDISCONNECT event is called when a TCP_CLIENT or  TCP_SERVER socket is disconnected. Determine if this was done remotely (i.e. network, remote server, etc.) or locally via this module
-SOCKETDISCONNECT client
-{
-	if (clientConnected = 0)
-		Print("Socket disconnected remotely\n");
-	else
-		Print("Local socket disconnect complete.\n");
-	_clientConnected = 0;
-	_clientConnected = 1;
-    
-
-	#IF_SERIES2
-	CancelWait(ReconnectTimer);
-	#ENDIF
-}
-
-// Display the data received from the calls to the client and clear the buffer
-SOCKETRECEIVE client
-{
-
-	#IF_SERIES2
-	RetimeWait(RECONNECTTIME, ReconnectTimer);
-	#ENDIF
-	
-	//STRING received$[1024];
-	//received$ = client.SocketRxBuf;
-    if (Len(client.SocketRxBuf) < 256)
-        Print("Rx: %s\n", client.SocketRxBuf);
-    
-    //storeGlobalVars(received$);    
-
-    // send to serial output and clear buffer
-    //clientRx = client.SocketRxBuf;
-    ClearBuffer(client.SocketRxBuf);
-
-}
-
-// The SOCKETSTATUS event is called when the status of a TCP_CLIENT or TCP_SERVER socket changes.
-SOCKETSTATUS client
-{
-	SIGNED_INTEGER Status;
- 	Status = SocketGetStatus();
-    Switch(Status)
-	{
-		case(0):
-		{
-			//Comment this eventually
-			Log("SOCKET STATUS: Not Connected\n");
-			//_clientConnected = 0;
-		}
-		case(1):
-		{
-			//Comment this eventually
-			Log("SOCKET STATUS: Waiting for Connection\n");
-		}
-		case(2):
-		{
-			//Comment this eventually
-			Log("SOCKET STATUS: Connected\n");
-		}
-		case(3):
-		{
-			Log("SOCKET STATUS: Connection Failed\n");
-			//_clientConnected = 0;
-		}
-		case(4):
-		{
-			//Comment this eventually
-			Log("SOCKET STATUS: Connection Broken Remotely\n");
-			//_clientConnected = 0;
-		}
-		case(5):
-		{
-			//Comment this eventually
-			Log("SOCKET STATUS: Connection Broken Locally\n");
-			//_clientConnected = 0;
-		}
-		case(6):
-		{
-			//Comment this eventually
-			Log("SOCKET STATUS: Performing DNS Lookup\n");
-		}
-		case(7):
-		{
-			Log("SOCKET STATUS: DNS Lookup Failed\n");
-			//_clientConnected = 0;
-		}
-		case(8):
-		{
-			//Comment this eventually
-			Log("SOCKET STATUS: DNS Name Resolved\n");
-		}
-		case(-1):
-		{
-			Log("SOCKET STATUS: Client, Server or UDP variable not a TCP/IP or UDP variable.\n");
-			//_clientConnected = 0;
-		}
-		case(-2):
-		{
-			Log("SOCKET STATUS: Could not create the connection task\n");
-			//_clientConnected = 0;
-		}
-		case(-3):
-		{
-			Log("SOCKET STATUS: Could not resolve address\n");
-			//_clientConnected = 0;
-		}
-		case(-4):
-		{
-			Log("SOCKET STATUS: Port not in range of 0-65535.\n");
-			//_clientConnected = 0;
-		}
-		case(-5):
-		{
-			//Comment this eventually
-			Log("SOCKET STATUS: No connection has been established\n");
-		}
-		case(-6):
-		{
-			Log("SOCKET STATUS: Not enough room in string parameter to hold IP address.\n");
-			//_clientConnected = 0;
-		}
-		default:
-		{
-			Log("Socket Status Undefined\n");
-		}
-	};
-}*/
 
 /*******************************************************************************************
   Main()
@@ -1763,43 +1160,13 @@ Function Main()
     //   runs and propagates the values to them.
     WaitForInitializationComplete();
 
-//	REPORTINGHOST = "shipper-dev-intake.byu.edu";
-//	REPORTINGHOST = "linux-knight.byu.edu";
-//	REPORTINGHOST = "sandbag.byu.edu";
-//	REPORTINGHOSTPORT = 5579;
-//	HEARTBEATHOSTPORT = 5580;
-	//RECONNECTTIME = 9000; // Set reconnect timer for 90 seconds.
 	HOSTNAME = "";
 	HOSTIP = "";
 	HOSTMAC = "";
 	HOSTBLDG = "";
 	HOSTROOM = "";
 	HOSTCPNum = "";
-	//HOSTFLOOR = "";
-	//HOSTLAT = "40.249719";
-	//HOSTLON = "-111.649265";
-	//SESSION = "";
-	INPUT1 = "";
-	INPUT2 = "";
-	INPUT3 = "";
-	INPUT4 = "";
-	INPUT5 = "";
-	INPUT6 = "";
-	INPUT7 = "";
 
 	ISSENDINGMESSAGE = 0;
-    //GetConfigurationValue("room");    
-	// !!!!!!!!!! TODO: Use Configuration File to store Event Host Information
-	/*
-	CONFIGFILEHANDLE = FileOpen ( "\\NVRAM\\EVENTTARGET.TXT", _O_RDONLY );
-	if (CONFIGFILEHANDLE < 0)
-	{
-		PRINT("Error opening event target configuration file\n");
-	}
-	else {
-		if ( FileClose( CONFIGFILEHANDLE ) <> 0 )
-		{
-			Print("Error closing file\n");
-		}
-	}*/
 }
+        
