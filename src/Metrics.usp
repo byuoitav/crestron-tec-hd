@@ -63,7 +63,7 @@ STRING_INPUT cpHostName[32],cpIp[15],cpMACAddr[18],Program_Name$[15],Program_Com
 
 ANALOG_INPUT Program_Volume_fb, Displays_Configured, Display1_Lamp_hours_fb, Display1_Temp, Display2_Lamp_hours_fb, 
 			Display2_Temp, Display3_Lamp_hours_fb, Display3_Temp, WLS, RV_B1Bars, 
-			RV_B2Bars;
+			RV_B2Bars, ProgramAudioSelectFb;
 
 
 /*******************************************************************************************
@@ -1028,7 +1028,12 @@ Release Audio_Only_Press // Audio Only button on init screen
 	/* User Event */
 	OutputEvent("metrics", "user-generated", HOSTCPNum, "Button Press", "Audio_Only_Press");
 }
-
+ 
+Change ProgramAudioSelectFb //Audio Select Feedback
+{
+	/* User Event */
+	OutputEvent("metrics", "user-generated", HOSTCPNum, "Program Audio Selected", itoa(ProgramAudioSelectFb));
+}
 
 
 /* Timer Events */
