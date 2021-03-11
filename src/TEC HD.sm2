@@ -20521,15 +20521,15 @@ ObjTp=Bw
 H=1
 Lx=306
 Ly=19
-Rx=860
-Ry=631
+Rx=942
+Ry=790
 Xm=-1
 Ym=-1
 SH=615
 Z=100
-P=480
+P=1516
 Ht=1
-Hi=756
+Hi=91
 ]
 [
 ObjTp=Bw
@@ -89587,7 +89587,6 @@ ObjTp=Sg
 H=4618
 Nm=Mic6_Gain_fb
 SgTp=2
-SgTf=Yes
 ]
 [
 ObjTp=Sg
