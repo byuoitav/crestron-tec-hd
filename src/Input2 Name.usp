@@ -48,7 +48,7 @@ Comments:
   DIGITAL, ANALOG and SERIAL INPUTS and OUTPUTS
   (Uncomment and declare inputs and outputs as needed)
 *******************************************************************************************/
-DIGITAL_INPUT TEC_PC_2,Custom_Input2;
+DIGITAL_INPUT TEC_PC_2,Department_Device,Apple_TV,Desk_Doc_Cam,Custom_Input2;
 // ANALOG_INPUT 
 STRING_INPUT _skip_,Custom_Name2$[25];
 // BUFFER_INPUT 
@@ -164,6 +164,24 @@ PUSH TEC_PC_2
 
 {
 	Input2_Name$ = "TEC PC 2";
+}
+
+PUSH Department_Device
+
+{
+	Input2_Name$ = "Dept Device";
+}
+
+PUSH Apple_TV
+
+{
+	Input2_Name$ = "Apple TV";
+}
+
+PUSH Desk_Doc_Cam
+
+{
+	Input2_Name$ = "Desk Doc Cam";
 }
 
 PUSH Custom_Input2
